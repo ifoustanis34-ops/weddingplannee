@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<title>{{ title }} {{ reservation.number }}</title>
+<style>
+  @font-face { font-family: Manrope; font-weight: 400; src: url("fonts/manrope-latin-400-normal.woff"); }
+  @font-face { font-family: Manrope; font-weight: 700; src: url("fonts/manrope-latin-700-normal.woff"); }
+  @font-face { font-family: Sora; font-weight: 600; src: url("fonts/sora-latin-600-normal.woff"); }
+  @page { size: A4; margin: 16mm 14mm 18mm;
+    @bottom-left { content: "{{ organization.name|cut:'"'|cut:'\\' }} · {{ title }} {{ reservation.number }}"; font: 8pt Manrope; color: #85829f; }
+    @bottom-right { content: "Page " counter(page) " sur " counter(pages); font: 8pt Manrope; color: #85829f; } }
+  body { font: 9.5pt/1.45 Manrope, "DejaVu Sans", sans-serif; color: #17153b; margin: 0; }
+  header { display: table; width: 100%; margin-bottom: 8mm; }
+  header > div { display: table-cell; vertical-align: top; }
+  .brand img { height: 42px; }
+  .name { font: 600 13pt Sora; }
+  .muted { color: #85829f; font-size: 8.5pt; }
+  .doc { text-align: right; }
+  .doc h1 { font: 600 19pt Sora; margin: 0; }
+  .doc .number { color: #5126c2; font: 600 11pt Sora; }
+  .cards { display: table; width: 100%; border-spacing: 4mm 0; margin: 0 -4mm 6mm; }
+  .card { display: table-cell; border: 1px solid #e5e2f0; border-radius: 8px; padding: 8px 10px; width: 50%; }
+  .label { color: #85829f; font-size: 7.5pt; font-weight: 700; margin-bottom: 2px; }
+  table { width: 100%; border-collapse: collapse; }
+  th { text-align: left; font-size: 7.5pt; color: #85829f; padding: 5px 6px; border-bottom: 1.5px solid #17153b; }
+  td { padding: 6px; border-bottom: 1px solid #e5e2f0; vertical-align: top; }
+  td.n { text-align: right; font-variant-numeric: tabular-nums; width: 16mm; }
+  td.box { width: 16mm; }
+  .box span { display: inline-block; width: 12mm; height: 6mm; border: 1px solid #b8b4cc; border-radius: 3px; }
+  .parts { color: #4a4769; font-size: 8pt; }
+  .dates td { border: none; padding: 2px 6px 2px 0; }
+  .sign { display: table; width: 100%; margin-top: 12mm; border-spacing: 6mm 0; }
+  .sign div { display: table-cell; border-top: 1px solid #17153b; padding-top: 4px; width: 50%; font-size: 8pt; color: #4a4769; }
+</style>
+</head>
+<body>
+  <header>
+    <div class="brand">
+      {% if logo_url %}<img src="{{ logo_url }}" alt="">{% endif %}
+      <div class="name">{{ organization.name }}</div>
+      <div class="muted">{{ organization.city }}</div>
+    </div>
+    <div class="doc">
+      <h1>{{ title }}</h1>
+      <div class="number">{{ reservation.number }}</div>
+      <div class="muted">Imprimé le {{ printed_at }}</div>
+    </div>
+  </header>
+
+  <div class="cards">
+    <div class="card">
+      <div class="label">Client</div>
+      <strong>{{ client.name }}</strong>
+      {% if client.phone %}<div>{{ client.phone }}</div>{% endif %}
+      <div class="label" style="margin-top:6px">Événement</div>
+      <strong>{{ reservation.title }}</strong>
+      <div>{{ reservation.venue }}{% if reservation.address %} — {{ reservation.address }}{% endif %}</div>
+    </div>
+    <div class="card">
+      <div class="label">Logistique</div>
+      <table class="dates">{% for label, value in dates %}<tr><td class="muted">{{ label }}</td><td>{{ value }}</td></tr>{% endfor %}</table>
+    </div>
+  </div>
+
+  <table>
+    <thead>
+      <tr>
+        <th>Article</th><th>Réf.</th>
+        {% if kind == "checkout" %}<th>Emplacement</th><th class="n">Prévu</th><th>Chargé</th>
+        {% else %}<th class="n">Sorti</th><th class="n">Rendu</th><th class="n">Abîmé</th><th class="n">Manquant</th>{% endif %}
+      </tr>
+    </thead>
+    <tbody>
+      {% for row in rows %}
+      <tr>
+        <td><strong>{{ row.label }}</strong> <span class="muted">({{ row.kind }})</span>
+          {% if row.components %}<div class="parts">{{ row.components|join:", " }}</div>{% endif %}</td>
+        <td>{{ row.reference }}</td>
+        {% if kind == "checkout" %}
+        <td>{{ row.location|default:"—" }}</td><td class="n">{{ row.quantity }}</td><td class="box"><span></span></td>
+        {% else %}
+        <td class="n">{{ row.out }}</td><td class="n">{% if reservation.returned_at %}{{ row.returned }}{% endif %}</td>
+        <td class="n">{% if reservation.returned_at %}{{ row.damaged }}{% endif %}</td>
+        <td class="n">{% if reservation.returned_at %}{{ row.missing }}{% endif %}</td>
+        {% endif %}
+      </tr>
+      {% empty %}
+      <tr><td colspan="5" class="muted">Aucun matériel sur cette réservation.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+  <div class="sign">
+    <div>{% if kind == "checkout" %}Préparé par (magasinier){% else %}Reçu par (magasinier){% endif %}</div>
+    <div>{% if kind == "checkout" %}Pris en charge par (chauffeur, client){% else %}Rendu par{% endif %}</div>
+  </div>
+</body>
+</html>

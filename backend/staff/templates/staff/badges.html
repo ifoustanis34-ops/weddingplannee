@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<title>Badges du personnel</title>
+<style>
+@font-face { font-family: "M"; src: url("{{ fonts.m400 }}"); font-weight: 400; }
+@font-face { font-family: "M"; src: url("{{ fonts.m700 }}"); font-weight: 700; }
+@font-face { font-family: "P"; src: url("{{ fonts.p700 }}"); font-weight: 700; }
+{% if preview %}@page { size: {{ w }} {{ h }}; margin: 0; }{% else %}@page { size: A4; margin: 12mm 13mm; }{% endif %}
+body { margin: 0; font-family: "M"; color: {{ p.text }}; }
+.sheet { position: relative; width: 184mm; height: 270mm; page-break-after: always; }
+.sheet:last-child { page-break-after: auto; }
+{% if preview %}.sheet { width: {{ w }}; height: {{ h }}; }{% endif %}
+.badge { position: absolute; overflow: hidden; width: {{ w }}; height: {{ h }}; border-radius: 3mm; background: #fff;
+  {% if not preview %}outline: .3mm dashed #b8b5cc; outline-offset: .6mm;{% endif %} }
+.qr svg { width: 100%; height: 100%; }
+.photo, .initials { object-fit: cover; }
+.initials { text-align: center; font-weight: 700; }
+
+{% if design == "classique" %}
+.badge { border: .3mm solid #e5e2f0; }
+.band { position: absolute; left: 0; top: 0; right: 0; height: 13mm; background: {{ p.dark }}; }
+.band .logo { position: absolute; left: 4mm; top: 2.5mm; height: 8mm; max-width: 38mm; }
+.band .agency { position: absolute; left: 4mm; top: 4.4mm; color: #fff; font-weight: 700; font-size: 8pt; }
+.band .tag { position: absolute; right: 4mm; top: 4.6mm; color: {{ p.accent }}; font-weight: 700; font-size: 6.5pt; letter-spacing: .4mm; }
+.photo, .initials { position: absolute; left: 4mm; top: 16mm; width: 24mm; height: 30mm; border-radius: 2mm; border: .6mm solid {{ p.accent }}; }
+.initials { background: {{ p.soft }}; color: {{ p.dark }}; font-size: 20pt; line-height: 30mm; }
+.name { position: absolute; left: 31mm; top: 17mm; width: 30mm; font-size: 10pt; font-weight: 700; color: {{ p.dark }}; line-height: 1.15; }
+.position { position: absolute; left: 31mm; top: 31mm; width: 30mm; font-size: 7pt; color: {{ p.muted }}; line-height: 1.25; }
+.qr { position: absolute; right: 3.5mm; top: 17mm; width: 19mm; height: 19mm; }
+.foot { position: absolute; left: 31mm; right: 3mm; bottom: 3.2mm; font-size: 5.3pt; color: {{ p.muted }}; }
+.stripe { position: absolute; left: 0; right: 0; bottom: 0; height: 1.4mm; background: {{ p.accent }}; }
+
+{% elif design == "portrait" %}
+.badge { border: .3mm solid #e5e2f0; }
+.band { position: absolute; left: 0; top: 0; right: 0; height: 26mm; background: {{ p.dark }}; }
+.hole { position: absolute; left: 21mm; top: 3mm; width: 12mm; height: 2.4mm; border-radius: 2mm; background: #fff; }
+.band .logo { position: absolute; left: 50%; top: 8mm; height: 7mm; max-width: 40mm; transform: translateX(-50%); }
+.band .agency { position: absolute; left: 0; right: 0; top: 9.5mm; text-align: center; color: #fff; font-weight: 700; font-size: 7.5pt; }
+.photo, .initials { position: absolute; left: 13mm; top: 17mm; width: 28mm; height: 28mm; border-radius: 50%; border: .9mm solid {{ p.accent }}; background: {{ p.soft }}; }
+.initials { color: {{ p.dark }}; font-size: 20pt; line-height: 28mm; }
+.name { position: absolute; left: 3mm; right: 3mm; top: 48mm; text-align: center; font-size: 10.5pt; font-weight: 700; color: {{ p.dark }}; line-height: 1.15; }
+.position { position: absolute; left: 3mm; right: 3mm; top: 57.5mm; text-align: center; font-size: 7pt; color: {{ p.muted }}; }
+.qr { position: absolute; left: 18.5mm; top: 64mm; width: 17mm; height: 17mm; }
+.tag { position: absolute; left: 0; right: 0; bottom: 0; height: 3.4mm; background: {{ p.accent }}; color: {{ p.dark }}; font-size: 5.5pt; font-weight: 700; text-align: center; line-height: 3.4mm; letter-spacing: .5mm; }
+.foot { display: none; }
+
+{% elif design == "elegant" %}
+.badge { background: {{ p.dark }}; color: #fff; }
+.frame { position: absolute; left: 2.2mm; top: 2.2mm; right: 2.2mm; bottom: 2.2mm; border: .3mm solid {{ p.accent }}; border-radius: 2mm; }
+.band .logo { position: absolute; left: 6mm; top: 5mm; height: 7mm; max-width: 34mm; }
+.band .agency { position: absolute; left: 6mm; top: 6.5mm; font-family: "P"; font-size: 9pt; color: {{ p.accent }}; }
+.photo, .initials { position: absolute; left: 6mm; top: 16mm; width: 27mm; height: 27mm; border-radius: 50%; border: .7mm solid {{ p.accent }}; background: {{ p.dark_2 }}; }
+.initials { color: {{ p.accent }}; font-family: "P"; font-size: 19pt; line-height: 27mm; }
+.name { position: absolute; left: 37mm; top: 18mm; width: 26mm; font-family: "P"; font-size: 11pt; color: #fff; line-height: 1.12; }
+.position { position: absolute; left: 37mm; top: 33mm; width: 26mm; font-size: 6.8pt; color: {{ p.accent }}; text-transform: uppercase; letter-spacing: .3mm; line-height: 1.3; }
+.qr { position: absolute; right: 6mm; top: 16mm; width: 16mm; height: 16mm; padding: 1.2mm; background: #fff; border-radius: 1.5mm; }
+.foot { position: absolute; left: 6mm; right: 6mm; bottom: 4.2mm; font-size: 5.2pt; color: #c6c3de; }
+.tag { position: absolute; right: 6mm; top: 6.3mm; font-size: 6pt; color: {{ p.accent }}; letter-spacing: .5mm; }
+
+{% else %}{# minimal #}
+.badge { border: .3mm solid #e5e2f0; }
+.side { position: absolute; left: 0; top: 0; bottom: 0; width: 3.5mm; background: {{ p.dark }}; }
+.side::after { content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 18mm; background: {{ p.accent }}; }
+.band .logo { position: absolute; left: 8mm; top: 5mm; height: 6.5mm; max-width: 36mm; }
+.band .agency { position: absolute; left: 8mm; top: 6mm; font-size: 7.5pt; font-weight: 700; color: {{ p.dark }}; }
+.photo, .initials { position: absolute; right: 5mm; top: 5mm; width: 18mm; height: 22mm; border-radius: 1.5mm; background: {{ p.soft }}; }
+.initials { color: {{ p.dark }}; font-size: 15pt; line-height: 22mm; }
+.name { position: absolute; left: 8mm; top: 20mm; width: 50mm; font-size: 13pt; font-weight: 700; color: {{ p.dark }}; line-height: 1.1; }
+.position { position: absolute; left: 8mm; top: 35mm; width: 50mm; font-size: 7.5pt; color: {{ p.muted }}; }
+.qr { position: absolute; right: 5mm; bottom: 4mm; width: 16mm; height: 16mm; }
+.foot { position: absolute; left: 8mm; bottom: 4mm; width: 50mm; font-size: 5.3pt; color: {{ p.muted }}; }
+.tag { display: none; }
+{% endif %}
+</style>
+</head>
+<body>
+{% for badges in pages %}<div class="sheet">{% for b in badges %}<div class="badge" style="left: {{ b.left }}; top: {{ b.top }}">
+  {% if design == "elegant" %}<div class="frame"></div>{% endif %}
+  {% if design == "minimal" %}<div class="side"></div>{% endif %}
+  {% if design == "classique" or design == "portrait" %}<div class="band">{% if design == "portrait" %}<div class="hole"></div>{% endif %}{% if logo %}<img class="logo" src="{{ logo }}" alt="">{% else %}<span class="agency">{{ agency }}</span>{% endif %}{% if design == "classique" %}<span class="tag">PERSONNEL</span>{% endif %}</div>
+  {% else %}<div class="band">{% if logo and design == "minimal" %}<img class="logo" src="{{ logo }}" alt="">{% else %}<span class="agency">{{ agency }}</span>{% endif %}</div>{% endif %}
+  {% if b.photo %}<img class="photo" src="{{ b.photo }}" alt="">{% else %}<div class="initials">{{ b.initials }}</div>{% endif %}
+  <div class="name">{{ b.name }}</div>
+  <div class="position">{{ b.position }}<br>{{ b.kind }}</div>
+  <div class="qr">{{ b.qr|safe }}</div>
+  {% if design == "portrait" %}<div class="tag">PERSONNEL</div>{% elif design == "elegant" %}<div class="tag">PERSONNEL</div>{% endif %}
+  <div class="foot">{{ agency }}{% if b.phone %} · Urgence : {{ b.phone }}{% endif %}</div>
+  {% if design == "classique" %}<div class="stripe"></div>{% endif %}
+</div>{% endfor %}</div>{% endfor %}
+</body>
+</html>

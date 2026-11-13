@@ -1,0 +1,126 @@
+{% comment %}
+« Carte employé » — faithful copy of the reference provided on 13/11/2026 (photo/lop.jpeg).
+Every position is measured on the reference (card 54 × 85.6 mm, portrait) and the colors are the
+reference's own: deep purple and metallic gold (on purpose, not the agency palette).
+Fronts on one page, backs on the next with mirrored columns (double-sided, long-edge flip).
+{% endcomment %}<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<title>Cartes employé</title>
+<style>
+@font-face { font-family: "M"; src: url("{{ fonts.m400 }}"); font-weight: 400; }
+@font-face { font-family: "M"; src: url("{{ fonts.m400i }}"); font-weight: 400; font-style: italic; }
+@font-face { font-family: "M"; src: url("{{ fonts.m500 }}"); font-weight: 500; }
+@font-face { font-family: "M"; src: url("{{ fonts.m500i }}"); font-weight: 500; font-style: italic; }
+@font-face { font-family: "M"; src: url("{{ fonts.m600 }}"); font-weight: 600; }
+@font-face { font-family: "M"; src: url("{{ fonts.m700 }}"); font-weight: 700; }
+@font-face { font-family: "M"; src: url("{{ fonts.m800 }}"); font-weight: 800; }
+{% if preview %}@page { size: 112mm 85.6mm; margin: 0; }{% else %}@page { size: A4; margin: 12mm 13mm; }{% endif %}
+body { margin: 0; font-family: "M"; color: #1e1a3c; }
+.sheet { position: relative; width: 184mm; height: 270mm; page-break-after: always; }
+.sheet:last-child { page-break-after: auto; }
+{% if preview %}.sheet { width: 112mm; height: 85.6mm; }{% endif %}
+.card { position: absolute; width: 54mm; height: 85.6mm; overflow: hidden; border-radius: 3mm; background: #fff;
+  {% if not preview %}outline: .3mm dashed #b8b5cc; outline-offset: .6mm;{% endif %} }
+.deco { position: absolute; left: 0; top: 0; width: 54mm; height: 85.6mm; }
+.slot { position: absolute; top: 2.6mm; width: 11mm; height: 2mm; border-radius: 1mm; background: #e9e8ee; border: .2mm solid #d6d4de; }
+.wm { position: absolute; height: 28mm; opacity: .13; }
+.logo { position: absolute; object-fit: contain; }
+.monogram { position: absolute; font-weight: 800; color: #c9962f; font-size: 13pt; }
+
+/* ---- Front ---- */
+.f .slot { left: 21.5mm; }
+.f .logo { left: 4.6mm; top: 4.2mm; width: 33mm; height: 13.6mm; object-position: left center; }
+.f .monogram { left: 5mm; top: 7mm; }
+.f .wm { left: 40.5mm; top: 19mm; }
+.photo { position: absolute; left: 14.3mm; top: 19.1mm; width: 25.8mm; height: 28.4mm; box-sizing: border-box;
+  border-radius: 2mm; padding: .55mm; background: linear-gradient(135deg, #b8862e, #f2d48a 45%, #c9962f 70%, #f6dc95); }
+.photo .inner { width: 100%; height: 100%; border-radius: 1.5mm; overflow: hidden; background: #eef0f4; }
+.photo img { width: 100%; height: 100%; object-fit: cover; }
+.photo .inner.empty { background: linear-gradient(180deg, #f1f3f7, #dfe3ea); }
+.photo .silhouette { width: 100%; height: 100%; }
+.name { position: absolute; left: 1mm; right: 1mm; top: 49mm; text-align: center; font-size: 14.2pt; font-weight: 800; color: #26124f; line-height: 1; letter-spacing: -.18mm; }
+.role { position: absolute; left: 1mm; right: 1mm; top: 54.1mm; text-align: center; font-size: 8.5pt; font-weight: 500; color: #2a1458; line-height: 1; letter-spacing: -.1mm; }
+.rule { position: absolute; left: 11mm; width: 32.6mm; top: 58.4mm; height: .3mm;
+  background: linear-gradient(90deg, rgba(201,150,47,0), #c9962f 12%, #f2d48a 50%, #c9962f 88%, rgba(201,150,47,0)); }
+.row { position: absolute; left: 7.6mm; right: 1mm; height: 3.8mm; }
+.row .ico { position: absolute; left: 0; top: 0; width: 3.8mm; height: 3.8mm; border-radius: 50%; background: #2b1252; }
+.row .ico svg { position: absolute; left: .85mm; top: .85mm; width: 2.1mm; height: 2.1mm; }
+.row .txt { position: absolute; left: 6.2mm; top: .7mm; font-size: 6.3pt; font-weight: 600; color: #1e1a3c; white-space: nowrap; line-height: 1; letter-spacing: -.1mm; }
+.motto { position: absolute; left: 23.6mm; width: 27.5mm; top: 77mm; text-align: center; color: #fff; font-size: 6.6pt; font-style: italic; font-weight: 600; line-height: 1.25; letter-spacing: -.08mm; }
+
+/* ---- Back ---- */
+.b .slot { left: 20.7mm; top: 3.2mm; }
+.b .logo { left: 10.5mm; top: 7.4mm; width: 34mm; height: 13.2mm; object-position: center center; }
+.b .monogram { left: 0; right: 0; top: 10mm; text-align: center; font-size: 18pt; }
+.b .wm { left: 39.8mm; top: 37.4mm; height: 23.7mm; }
+.gline { position: absolute; height: .25mm; background: linear-gradient(90deg, rgba(201,150,47,0), #c9962f 30%, #f2d48a 50%, #c9962f 70%, rgba(201,150,47,0)); }
+.values { position: absolute; left: 0; right: 0; top: 23.2mm; text-align: center; font-size: 6.5pt; font-style: italic; font-weight: 700; color: #26124f; line-height: 1; letter-spacing: -.1mm; }
+.values .dot { color: #c9962f; padding: 0 .5mm; }
+.pill { position: absolute; left: 7.6mm; width: 38.9mm; top: 28.3mm; height: 5.6mm; border-radius: 1.4mm;
+  background: linear-gradient(90deg, #2b1252, #3d1c70 50%, #2b1252); color: #fff; text-align: center; line-height: 5.7mm; font-size: 10pt; font-weight: 700; letter-spacing: .05mm; }
+.qrbox { position: absolute; left: 16.6mm; top: 36mm; width: 20.8mm; height: 20.1mm; box-sizing: border-box; border-radius: 1.2mm; padding: .45mm;
+  background: linear-gradient(135deg, #b8862e, #f2d48a 45%, #c9962f 70%, #f6dc95); }
+.qrbox .inner { width: 100%; height: 100%; border-radius: .9mm; background: #fff; position: relative; }
+.qrbox svg { position: absolute; left: 1.1mm; top: .9mm; width: 17.6mm; height: 17.6mm; }
+.scan { position: absolute; left: 0; right: 0; top: 57.6mm; text-align: center; font-size: 6.7pt; font-weight: 600; color: #1e1a3c; line-height: 1.3; letter-spacing: -.06mm; }
+.company { position: absolute; left: 3.2mm; top: 75.6mm; color: #fff; font-size: 6.8pt; font-weight: 700; line-height: 1; letter-spacing: -.06mm; white-space: nowrap; }
+.activity { position: absolute; left: 3.2mm; top: 78.6mm; width: 46mm; color: #fff; font-size: 5.4pt; font-style: italic; font-weight: 500; line-height: 1; letter-spacing: -.06mm; white-space: nowrap; }
+.building { position: absolute; left: 35.6mm; top: 67.4mm; width: 15.6mm; height: 10.6mm; }
+</style>
+</head>
+<body>
+{% for page in pages %}<div class="sheet">{% for c in page.cards %}<div class="card {{ page.side }}" style="left: {{ c.left }}; top: {{ c.top }}">
+  {% if page.side == "f" %}
+  <svg class="deco" viewBox="0 0 54 85.6" preserveAspectRatio="none">
+    <defs>
+      <linearGradient id="gf" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#b8862e"/><stop offset=".35" stop-color="#f4d68e"/><stop offset=".6" stop-color="#c9962f"/><stop offset="1" stop-color="#f2d48a"/></linearGradient>
+      <linearGradient id="pf" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#3d1c70"/><stop offset=".55" stop-color="#2b1252"/><stop offset="1" stop-color="#22103f"/></linearGradient>
+      <linearGradient id="gc" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#f4d68e"/><stop offset="1" stop-color="#c9962f"/></linearGradient>
+    </defs>
+    <!-- top-right corner: gold corner, purple band, thin gold line -->
+    <polygon points="34.8,0 36.4,0 54,16.9 54,18.4" fill="url(#gc)"/>
+    <polygon points="37.4,0 44.6,0 54,6.6 54,15.8" fill="url(#pf)"/>
+    <polygon points="44.6,0 54,0 54,6.6" fill="url(#gc)"/>
+    <!-- bottom: gold band then purple -->
+    <path d="M0 72.4 C 9 76.8, 27 79, 54 69.8 L54 85.6 L0 85.6 Z" fill="url(#pf)"/>
+    <path d="M0 76.5 C 14 80.5, 30 80.8, 54 73 L54 85.6 L0 85.6 Z" fill="#22103f" opacity=".55"/>
+    <path d="M0 70.1 C 9 74.9, 27 77.1, 54 67.3 L54 69.8 C 27 79, 9 76.8, 0 72.4 Z" fill="url(#gf)"/>
+    <path d="M35.2 83.4 C 39 82.5, 43 82.6, 45.8 83" fill="none" stroke="#e7c169" stroke-width=".35" stroke-linecap="round"/>
+  </svg>
+  <div class="slot"></div>
+  {% if logo %}<img class="wm" src="{{ logo }}" alt=""><img class="logo" src="{{ logo }}" alt="">{% else %}<div class="monogram">{{ agency }}</div>{% endif %}
+  <div class="photo"><div class="inner{% if not c.photo %} empty{% endif %}">{% if c.photo %}<img src="{{ c.photo }}" alt="">{% else %}<svg class="silhouette" viewBox="0 0 100 110" preserveAspectRatio="xMidYMax slice" aria-label="{{ c.initials }}"><circle cx="50" cy="40" r="19" fill="#b9c0cc"/><path d="M12 110c2-24 18-38 38-38s36 14 38 38z" fill="#b9c0cc"/></svg>{% endif %}</div></div>
+  <div class="name" style="font-size: {{ c.name_size }}">{{ c.name }}</div>
+  <div class="role" style="font-size: {{ c.role_size }}">{{ c.position }}</div>
+  <div class="rule"></div>
+  <div class="row" style="top: 60.3mm"><div class="ico">{{ icons.briefcase|safe }}</div><div class="txt" style="font-size: {{ c.row_size }}">Département : {{ c.department }}</div></div>
+  <div class="row" style="top: 64.1mm"><div class="ico">{{ icons.id|safe }}</div><div class="txt" style="font-size: {{ c.row_size }}">Matricule : {{ c.number }}</div></div>
+  <div class="row" style="top: 67.9mm"><div class="ico">{{ icons.phone|safe }}</div><div class="txt" style="font-size: {{ c.row_size }}">Contact : {{ c.phone }}</div></div>
+  {% if motto_lines %}<div class="motto" style="font-size: {{ motto_size }}">{% for line in motto_lines %}{{ line }}{% if not forloop.last %}<br>{% endif %}{% endfor %}</div>{% endif %}
+  {% else %}
+  <svg class="deco" viewBox="0 0 54 85.6" preserveAspectRatio="none">
+    <defs>
+      <linearGradient id="gb" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#b8862e"/><stop offset=".3" stop-color="#f4d68e"/><stop offset=".6" stop-color="#c9962f"/><stop offset="1" stop-color="#f2d48a"/></linearGradient>
+      <linearGradient id="pb" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#3d1c70"/><stop offset=".55" stop-color="#2b1252"/><stop offset="1" stop-color="#22103f"/></linearGradient>
+    </defs>
+    <path d="M0 66.8 C 10 70.8, 24 72.2, 54 63.4 L54 85.6 L0 85.6 Z" fill="url(#pb)"/>
+    <path d="M0 71 C 14 75, 30 75, 54 68 L54 85.6 L0 85.6 Z" fill="#22103f" opacity=".45"/>
+    <path d="M0 62.6 C 10 68.4, 24 70.2, 54 61.4 L54 63.4 C 24 72.2, 10 70.8, 0 66.8 Z" fill="url(#gb)"/>
+  </svg>
+  <div class="slot"></div>
+  {% if logo %}<img class="wm" src="{{ logo }}" alt=""><img class="logo" src="{{ logo }}" alt="">{% else %}<div class="monogram">{{ agency }}</div>{% endif %}
+  <div class="gline" style="left: 23.8mm; width: 7.6mm; top: 21.6mm"></div>
+  <div class="values" style="font-size: {{ values_size }}">{{ values_html|safe }}</div>
+  <div class="gline" style="left: 24.6mm; width: 5mm; top: 26.2mm; opacity: .6"></div>
+  <div class="pill">{{ c.card_label }}</div>
+  <div class="qrbox"><div class="inner">{{ c.qr|safe }}</div></div>
+  <div class="scan">Scannez pour vérifier<br>l’authenticité</div>
+  <div class="company" style="font-size: {{ company_size }}">{{ company }}</div>
+  <div class="activity" style="font-size: {{ activity_size }}">{{ activity }}</div>
+  <div class="building">{{ icons.building|safe }}</div>
+  {% endif %}
+</div>{% endfor %}</div>{% endfor %}
+</body>
+</html>

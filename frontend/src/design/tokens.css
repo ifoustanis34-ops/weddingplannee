@@ -1,0 +1,147 @@
+/* Wedivo design tokens — copied verbatim from docs/specs/complement-prototype.md §3.
+   Single source of truth: Tailwind only references these variables (main.css).
+   `.theme-light` / `.theme-dark` scope a theme to a subtree (the /dev/ui page shows both). */
+:root,
+.theme-light {
+  --bg: #f5f4fa;
+  --surface: #ffffff;
+  --surface-2: #f1eff8;
+  --surface-3: #e9e6f4;
+  --ink: #17153b;
+  --ink-2: #4a4769;
+  --muted: #85829f;
+  --line: #e5e2f0;
+  --line-2: #d6d2e6;
+  --violet: #5126c2;
+  --violet-ink: #ffffff;
+  --violet-soft: #eee8fd;
+  --fuchsia: #c42c7e;
+  --fuchsia-soft: #fce6f1;
+  --coral: #e3622f;
+  --coral-soft: #feebe2;
+  --gold: #b97a0e;
+  --gold-soft: #fdf2dc;
+  --gold-bright: #f4a62a;
+  --green: #0e8f69;
+  --green-soft: #dff4ec;
+  --red: #d23a50;
+  --red-soft: #fce6ea;
+  --grey-soft: #eeedf3;
+  --hero: #17153b;
+  --hero-ink: #ffffff;
+  --hero-muted: #a9a5cc;
+  --ribbon: linear-gradient(118deg, #4a22b5 0%, #8e2ba8 42%, #e03e7d 70%, #f68a45 100%);
+  --shadow: 0 1px 2px rgba(23, 21, 59, 0.05), 0 8px 24px -12px rgba(23, 21, 59, 0.12);
+  --shadow-lg: 0 24px 60px -20px rgba(23, 21, 59, 0.35);
+  --scrim: rgba(13, 12, 32, 0.5);
+  --toast-success: #5de3b4;
+  --toast-alert: #ffb27a;
+  /* Charts (reservations-stock.md §8), validated with the dataviz palette checker:
+     income / expenses bars, profit line, then the categorical ring order (fuchsia never next
+     to green, also when the ring wraps around). */
+  --chart-income: #5126c2;
+  --chart-expense: #e3622f;
+  --chart-profit: #d9a520;
+  --chart-1: #5126c2;
+  --chart-2: #c42c7e;
+  --chart-3: #b97a0e;
+  --chart-4: #0e8f69;
+  --chart-5: #e3622f;
+  --chart-other: #a9a6bf;
+  --chart-grid: #ece9f4;
+  --tooltip-bg: #17153b;
+  --tooltip-ink: #ffffff;
+  --r-sm: 8px;
+  --r: 12px;
+  --r-lg: 18px;
+  --sidebar: 252px;
+  color-scheme: light;
+}
+
+/* Dark: system preference (unless the user forced light) and the remembered manual choice. */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) {
+    --bg: #0d0c20;
+    --surface: #16152e;
+    --surface-2: #1e1c3a;
+    --surface-3: #28264a;
+    --ink: #f2f1fa;
+    --ink-2: #c6c3de;
+    --muted: #8c89ad;
+    --line: #29274a;
+    --line-2: #36345a;
+    --violet: #9f82ff;
+    --violet-ink: #120f2c;
+    --violet-soft: #29225a;
+    --fuchsia: #f06ab0;
+    --fuchsia-soft: #3a1830;
+    --coral: #ff925f;
+    --coral-soft: #3a2016;
+    --gold: #f4b54a;
+    --gold-soft: #36290f;
+    --green: #3dd3a0;
+    --green-soft: #10302a;
+    --red: #ff6f85;
+    --red-soft: #3b1822;
+    --grey-soft: #24223f;
+    --hero: #221f4c;
+    --hero-muted: #aba7d6;
+    --shadow: 0 1px 2px rgba(0, 0, 0, 0.3), 0 8px 24px -12px rgba(0, 0, 0, 0.5);
+    --chart-income: #9072ee;
+    --chart-expense: #da713d;
+    --chart-profit: #f4b54a;
+    --chart-1: #9072ee;
+    --chart-2: #d14e95;
+    --chart-3: #a16700;
+    --chart-4: #00a171;
+    --chart-5: #da713d;
+    --chart-other: #5f5c80;
+    --chart-grid: #26244a;
+    --tooltip-bg: #2c2959;
+    --tooltip-ink: #f2f1fa;
+    color-scheme: dark;
+  }
+}
+
+:root[data-theme='dark'],
+.theme-dark {
+  --bg: #0d0c20;
+  --surface: #16152e;
+  --surface-2: #1e1c3a;
+  --surface-3: #28264a;
+  --ink: #f2f1fa;
+  --ink-2: #c6c3de;
+  --muted: #8c89ad;
+  --line: #29274a;
+  --line-2: #36345a;
+  --violet: #9f82ff;
+  --violet-ink: #120f2c;
+  --violet-soft: #29225a;
+  --fuchsia: #f06ab0;
+  --fuchsia-soft: #3a1830;
+  --coral: #ff925f;
+  --coral-soft: #3a2016;
+  --gold: #f4b54a;
+  --gold-soft: #36290f;
+  --green: #3dd3a0;
+  --green-soft: #10302a;
+  --red: #ff6f85;
+  --red-soft: #3b1822;
+  --grey-soft: #24223f;
+  --hero: #221f4c;
+  --hero-muted: #aba7d6;
+  --shadow: 0 1px 2px rgba(0, 0, 0, 0.3), 0 8px 24px -12px rgba(0, 0, 0, 0.5);
+  --chart-income: #9072ee;
+  --chart-expense: #da713d;
+  --chart-profit: #f4b54a;
+  --chart-1: #9072ee;
+  --chart-2: #d14e95;
+  --chart-3: #a16700;
+  --chart-4: #00a171;
+  --chart-5: #da713d;
+  --chart-other: #5f5c80;
+  --chart-grid: #26244a;
+  --tooltip-bg: #2c2959;
+  --tooltip-ink: #f2f1fa;
+  color-scheme: dark;
+}

@@ -1,0 +1,130 @@
+{% extends "documents/quote_base.html" %}
+{% load documents %}
+{% comment %} Devis A « Prestige » — docs/rendus/analyse-devis.md §2 (A4: vertical blocks −5.7 %). {% endcomment %}
+
+{% block style %}
+.head { position: relative; height: 68mm; }
+.head .brand { position: absolute; left: 8mm; top: 7mm; }
+.head .acts { position: absolute; left: 101mm; top: 9mm; padding-left: 3.5mm; border-left: .4mm solid var(--doc-accent); display: flex; flex-direction: column; gap: 2.2mm; }
+.head .acts .row { display: flex; align-items: center; gap: 2.3mm; font-size: 6.4pt; line-height: 1.15; width: 31mm; }
+.head .acts .ic { width: 4.6mm; height: 4.6mm; flex: none; color: var(--doc-dark); }
+.head .photo { position: absolute; right: 0; top: 0; width: 88mm; height: 74mm; }
+.head .corner { position: absolute; left: 0; top: 40mm; width: 60mm; height: 10mm; }
+.title { position: absolute; left: 8mm; top: 46mm; display: flex; align-items: center; }
+.title .devis { font: 800 46pt/0.95 "Montserrat"; color: var(--doc-text); letter-spacing: -.01em; }
+.title .no { font-size: 10.5pt; font-weight: 500; letter-spacing: .04em; margin-top: .6mm; }
+.title .rule { width: .4mm; height: 15mm; background: var(--doc-accent); margin: 0 5mm 0 7mm; }
+.title .tagline { width: 52mm; color: var(--doc-muted); line-height: 1.4; }
+
+.info { margin: 2mm 6mm 0; height: 23mm; background: #ECEFF4; border-radius: 3mm; display: flex; align-items: center; padding: 0 4mm; }
+.info .col { display: flex; gap: 3mm; padding: 0 4mm; height: 15mm; border-left: .25mm solid #D3D8E0; }
+.info .col:first-child { border-left: 0; padding-left: 0; }
+.info .badge { width: 7mm; height: 7mm; border-radius: 50%; background: var(--doc-dark); color: #fff; display: flex; align-items: center; justify-content: center; flex: none; }
+.info .badge .ic { width: 4mm; height: 4mm; }
+.info .glyph { width: 5mm; height: 5mm; color: var(--doc-dark); flex: none; }
+.info b { display: block; font-size: 6.4pt; text-transform: uppercase; letter-spacing: .03em; margin-bottom: 1.3mm; }
+.info p { font-size: 6.6pt; line-height: 1.5; }
+.info .mini { display: flex; align-items: center; gap: 1.5mm; }
+.info .mini .ic { width: 3mm; height: 3mm; color: var(--doc-dark); }
+
+.body { margin: 3mm 6mm 0; position: relative; }
+.why { position: absolute; right: 0; top: 0; width: 48mm; height: 115mm; background: #FBFBFB; border: .25mm solid #E6E8EE; border-radius: 2.3mm; padding: 4.5mm 3mm 0 3.5mm; }
+.why h3 { font-size: 8.4pt; font-weight: 700; margin-bottom: 4mm; }
+.why .item { display: flex; align-items: center; gap: 3mm; margin-bottom: 4.6mm; font-size: 5.9pt; line-height: 1.4; }
+.why .dot { width: 10.5mm; height: 10.5mm; border-radius: 50%; background: var(--doc-accent); color: #fff; display: flex; align-items: center; justify-content: center; flex: none; }
+.why .dot .ic { width: 5.4mm; height: 5.4mm; }
+.why .quote { margin-top: 6mm; text-align: center; transform: rotate(-8deg); font-family: "Great Vibes"; font-size: 15.5pt; line-height: 1.05; }
+.why .quote svg { width: 34mm; height: 3mm; display: block; margin: 1mm auto 0; }
+.table-wrap { margin-right: 52mm; }
+table.lines .label { font-size: 7.4pt; }
+
+.totals { margin: 4mm 6mm 0; width: 146mm; break-inside: avoid; }
+.band { position: relative; display: flex; align-items: center; border-radius: 2.3mm; overflow: hidden; }
+.band .ic { width: 6mm; height: 6mm; color: var(--doc-dark); margin: 0 5mm 0 4.5mm; flex: none; }
+.band.total { height: 11.3mm; background: var(--doc-accent-soft); }
+.band.total .label { font-weight: 800; font-size: 10.5pt; letter-spacing: .01em; }
+.band.total .dark { position: absolute; right: 0; top: 0; bottom: 0; width: 66mm; background: var(--doc-dark); color: #fff; display: flex; align-items: center; justify-content: flex-end; padding-right: 6mm; font-weight: 700; font-size: 14pt; }
+.band.total .dark::before { content: ""; position: absolute; left: -6mm; top: 0; bottom: 0; width: 12mm; background: var(--doc-dark); transform: skewX(-24deg); }
+.band.discount { height: 9.5mm; margin-top: 1.6mm; background: #F2F4F7; font-weight: 600; font-size: 7.2pt; }
+.band.discount .amount { margin-left: auto; padding-right: 7mm; font-weight: 700; font-size: 8.4pt; }
+.band.final { height: 10.5mm; margin-top: 1.6mm; background: var(--doc-accent-grad); font-weight: 600; font-size: 7.4pt; }
+.band.final .amount { margin-left: auto; padding-right: 6mm; font-weight: 800; font-size: 14.5pt; color: var(--doc-text); }
+
+.bottom { margin: 3.5mm 6mm 0; height: 30mm; position: relative; break-inside: avoid; }
+.conditions { position: absolute; z-index: 1; left: 1mm; top: 0; width: 114mm; height: 27mm; background: var(--doc-dark-2); color: #fff; border-radius: 3mm; padding: 3.5mm 4mm 0 15mm; }
+.conditions .doc { position: absolute; left: 4mm; top: 3.5mm; width: 7.5mm; height: 7.5mm; color: var(--doc-accent); }
+.conditions h3 { font-size: 6.6pt; font-weight: 700; text-transform: uppercase; letter-spacing: .03em; margin-bottom: 2mm; }
+.conditions ol { padding-left: 3.6mm; font-size: 5.6pt; line-height: 1.5; }
+.thanks { position: absolute; right: 2mm; top: -2mm; width: 72mm; text-align: center; }
+.thanks .script { font-size: 19pt; transform: rotate(-6deg); display: block; line-height: 1.1; }
+.thanks svg.curve-t { width: 60mm; height: 3mm; display: block; margin: -.5mm auto 0; }
+.thanks .team { font-size: 6.4pt; font-weight: 600; margin-top: 1.5mm; }
+.thanks .sign { height: 10mm; margin-top: 1mm; }
+.floral { position: absolute; left: -7mm; top: 13mm; width: 24mm; height: 24mm; z-index: 0; }
+{% endblock %}
+
+{% block content %}
+<section class="head">
+  {% include "documents/partials/brand.html" %}
+  {% if activities %}
+  <div class="acts">
+    {% for item in activities %}<div class="row">{{ item.svg|tint:p.dark }}<span>{{ item.label }}</span></div>{% endfor %}
+  </div>
+  {% endif %}
+  <svg class="photo" viewBox="0 0 88 74" preserveAspectRatio="none">
+    <defs>
+      <clipPath id="cut"><path d="M18 0 L88 0 L88 74 L44 74 Z"/></clipPath>
+      <linearGradient id="ph" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="{{ p.dark_2 }}"/><stop offset="1" stop-color="{{ p.dark }}"/></linearGradient>
+    </defs>
+    {% if hero_photo %}<image href="{{ hero_photo }}" x="0" y="0" width="88" height="74" preserveAspectRatio="xMidYMid slice" clip-path="url(#cut)"/>
+    {% else %}<path d="M18 0 L88 0 L88 74 L44 74 Z" fill="url(#ph)"/>{% include "documents/partials/bokeh.html" %}{% endif %}
+    <path d="M18 0 L44 74" stroke="{{ p.accent_grad.1 }}" stroke-width=".9"/>
+    <path d="M14.5 0 L40.5 74" stroke="{{ p.accent_grad.0 }}" stroke-width=".35" opacity=".7"/>
+  </svg>
+  <div class="title">
+    <div><p class="devis">{{ doc_label|default:"DEVIS" }}</p><p class="no">N° {{ quote.number|default:"—" }}</p></div>
+    <div class="rule"></div>
+    {% if tagline_fit.text %}<p class="tagline" style="font-size: {{ tagline_fit.size }}pt">{{ tagline_fit.text }}</p>{% endif %}
+  </div>
+</section>
+
+<section class="info">
+  <div class="col" style="width: 47mm"><span class="badge">{{ icon.user|tint:'#FFFFFF' }}</span><div><b>Client</b><p>{{ quote.client.name|default:"—" }}</p></div></div>
+  <div class="col" style="width: 45mm"><span class="glyph">{{ icon.phone|tint:p.dark }}</span><div><b>Téléphone</b><p>{{ quote.client.phone|default:"—" }}</p>{% if quote.client.email %}<p class="mini">{{ icon.mail|tint:p.dark }}{{ quote.client.email }}</p>{% endif %}</div></div>
+  <div class="col" style="width: 62mm"><span class="glyph">{{ icon.calendar|tint:p.dark }}</span><div><b>Événement</b><p>{{ quote.event.type }}</p>{% if event_date %}<p class="mini">{{ icon.calendar|tint:p.dark }}Date : {{ event_date }}</p>{% endif %}{% if quote.event.venue %}<p class="mini">{{ icon.pin|tint:p.dark }}Lieu : {{ quote.event.venue }}</p>{% endif %}</div></div>
+  <div class="col" style="flex: 1"><span class="glyph">{{ icon.users|tint:p.dark }}</span><div><p style="font-weight: 600">Nombre d’invités</p><p>{{ guests|default:"—" }}</p></div></div>
+</section>
+
+<section class="body">
+  {% if engagements %}
+  <aside class="why">
+    <h3>Pourquoi nous choisir ?</h3>
+    {% for item in engagements %}<div class="item"><span class="dot">{{ item.svg|tint:'#FFFFFF' }}</span><span>{{ item.label }}</span></div>{% endfor %}
+    {% if scripts.satisfaction %}<div class="quote">{{ scripts.satisfaction }}{% include "documents/partials/curve.html" with cls="why-curve" %}</div>{% endif %}
+  </aside>
+  {% endif %}
+  <div class="table-wrap">
+    {% include "documents/partials/table.html" with widths="10mm,63mm,21mm,27mm,25mm"|split row_height="12.3mm" icon_color=p.dark show_icons=True show_descriptions=True %}
+  </div>
+</section>
+
+<section class="totals">
+  <div class="band total">{{ icon.calculator|tint:p.dark }}<span class="label">TOTAL DES PRESTATIONS</span><span class="dark num">{{ subtotal }}</span></div>
+  {% if discount %}<div class="band discount">{{ icon.card|tint:p.dark }}<span>Remise commerciale</span><span class="amount num">-&nbsp;{{ discount }}</span></div>{% endif %}
+  <div class="band final">{{ icon.coins|tint:p.dark }}<span>Montant final après remise</span><span class="amount num">{{ total }}</span></div>
+</section>
+
+<section class="bottom">
+  <div class="conditions">
+    <span class="doc">{{ icon.document|tint:p.accent }}</span>
+    <h3>Conditions de paiement</h3>
+    <ol>{% for term in quote.payment_terms|slice:":5" %}<li>{{ term }}</li>{% endfor %}</ol>
+  </div>
+  <div class="thanks">
+    {% if scripts.thanks %}<span class="script">{{ scripts.thanks }}</span>{% include "documents/partials/curve.html" with cls="curve-t" %}{% endif %}
+    <p class="team">{{ team_signature }}</p>
+    {% if signature_url %}<img class="sign" src="{{ signature_url }}" alt="">{% endif %}
+  </div>
+  {% include "documents/partials/floral.html" with cls="floral" %}
+</section>
+{% endblock %}

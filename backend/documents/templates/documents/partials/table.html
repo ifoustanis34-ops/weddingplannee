@@ -1,0 +1,29 @@
+{% load documents %}<table class="lines">
+  <colgroup>{% for width in widths %}<col style="width: {{ width }}">{% endfor %}</colgroup>
+  <thead><tr>
+    <th>N°</th>
+    <th>{{ designation_title|default:"Désignation" }}</th>
+    <th>Quantité</th>
+    <th>Prix unitaire{% if not fcfa_in_cells %}<small>(FCFA)</small>{% endif %}</th>
+    <th>Montant{% if not fcfa_in_cells %}<small>(FCFA)</small>{% endif %}</th>
+  </tr></thead>
+  <tbody>
+  {% for line in lines %}
+    <tr style="height: {{ row_height }}">
+      <td>{{ line.index }}</td>
+      <td class="designation"><div class="cell">
+        {% if show_icons %}<span class="icon">{{ line.icon_svg|tint:icon_color }}</span>{% endif %}
+        <div class="text">
+          <p class="label" style="font-size: {{ line.label_fit.size }}pt">{{ line.label_fit.text }}</p>
+          {% if line.description and show_descriptions %}<p class="desc" style="font-size: {{ line.description_fit.size }}pt">{{ line.description_fit.text }}</p>{% endif %}
+        </div>
+      </div></td>
+      <td class="num">{{ line.quantity_label }}</td>
+      <td class="num">{% if fcfa_in_cells %}{{ line.unit_price_fcfa }}{% else %}{{ line.unit_price_label }}{% endif %}</td>
+      <td class="num">{% if fcfa_in_cells %}{{ line.amount_fcfa }}{% else %}{{ line.amount_label }}{% endif %}</td>
+    </tr>
+  {% empty %}
+    <tr style="height: 14mm"><td colspan="5" style="color: var(--doc-muted)">Aucune prestation pour le moment.</td></tr>
+  {% endfor %}
+  </tbody>
+</table>

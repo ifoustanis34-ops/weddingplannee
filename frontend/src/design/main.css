@@ -1,0 +1,167 @@
+@import 'tailwindcss';
+@import './tokens.css';
+
+/* Tailwind only references the Wedivo tokens: no default palette (gray, indigo…) is available. */
+@theme inline {
+  --color-*: initial;
+  --color-transparent: transparent;
+  --color-current: currentColor;
+  --color-white: #ffffff;
+  --color-bg: var(--bg);
+  --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
+  --color-surface-3: var(--surface-3);
+  --color-line: var(--line);
+  --color-line-2: var(--line-2);
+  --color-ink: var(--ink);
+  --color-ink-2: var(--ink-2);
+  --color-muted: var(--muted);
+  --color-violet: var(--violet);
+  --color-violet-ink: var(--violet-ink);
+  --color-violet-soft: var(--violet-soft);
+  --color-fuchsia: var(--fuchsia);
+  --color-fuchsia-soft: var(--fuchsia-soft);
+  --color-coral: var(--coral);
+  --color-coral-soft: var(--coral-soft);
+  --color-gold: var(--gold);
+  --color-gold-soft: var(--gold-soft);
+  --color-gold-bright: var(--gold-bright);
+  --color-green: var(--green);
+  --color-green-soft: var(--green-soft);
+  --color-red: var(--red);
+  --color-red-soft: var(--red-soft);
+  --color-grey-soft: var(--grey-soft);
+  --color-hero: var(--hero);
+  --color-hero-ink: var(--hero-ink);
+  --color-hero-muted: var(--hero-muted);
+  --color-scrim: var(--scrim);
+  --color-chart-income: var(--chart-income);
+  --color-chart-expense: var(--chart-expense);
+  --color-chart-profit: var(--chart-profit);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+  --color-chart-other: var(--chart-other);
+  --color-chart-grid: var(--chart-grid);
+  --color-tooltip: var(--tooltip-bg);
+  --color-tooltip-ink: var(--tooltip-ink);
+  --radius-wd-sm: var(--r-sm);
+  --radius-wd: var(--r);
+  --radius-wd-lg: var(--r-lg);
+  --font-sans: Manrope, 'Segoe UI', system-ui, sans-serif;
+  --font-display: Sora, Manrope, sans-serif;
+  --font-invitation: 'Cormorant Garamond', Georgia, serif;
+  --text-base: 14.5px;
+  --background-image-ribbon: var(--ribbon);
+  --shadow-wd: var(--shadow);
+  --shadow-wd-lg: var(--shadow-lg);
+  /* Shell breakpoint: the sidebar becomes a drawer at 960px and below (complement §5). */
+  --breakpoint-nav: 961px;
+}
+
+@layer base {
+  /* Tailwind 4 keeps the default cursor on buttons: every clickable thing shows the hand. */
+  button:not(:disabled),
+  [role='button']:not([aria-disabled='true']),
+  [role='tab'],
+  summary,
+  label:has(> input[type='file']),
+  label:has(> input[type='checkbox']),
+  select {
+    cursor: pointer;
+  }
+
+  html {
+    -webkit-font-smoothing: antialiased;
+  }
+  body {
+    background: var(--bg);
+    color: var(--ink);
+    font:
+      500 14.5px/1.55 Manrope,
+      'Segoe UI',
+      system-ui,
+      sans-serif;
+    margin: 0;
+    padding: env(safe-area-inset-top, 0) env(safe-area-inset-right, 0)
+      env(safe-area-inset-bottom, 0) env(safe-area-inset-left, 0);
+  }
+  h1,
+  h2,
+  h3 {
+    font-family: Sora, Manrope, sans-serif;
+    letter-spacing: -0.015em;
+  }
+  h1 {
+    font-size: 26px;
+    font-weight: 600;
+    line-height: 1.2;
+  }
+  h2 {
+    font-size: 17px;
+    font-weight: 600;
+  }
+  h3 {
+    font-size: 15px;
+    font-weight: 600;
+  }
+  @media (max-width: 960px) {
+    h1 {
+      font-size: 22px;
+    }
+  }
+  :focus-visible {
+    outline: 2px solid var(--violet);
+    outline-offset: 2px;
+    border-radius: 6px;
+  }
+  /* lucide icons: thin strokes (complement §2). CSS wins over the SVG presentation attribute. */
+  svg.lucide {
+    stroke-width: 1.8;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      transition-duration: 0.01ms !important;
+      animation-duration: 0.01ms !important;
+    }
+  }
+}
+
+@utility skeleton {
+  background: var(--surface-2);
+  border-radius: var(--r-sm);
+  animation: pulse 1.6s ease-in-out infinite;
+}
+
+@utility tabular {
+  font-variant-numeric: tabular-nums;
+}
+
+/* Amounts and figures: Sora, tabular digits (complement §3 `.num`). */
+@utility num {
+  font-family: Sora, Manrope, sans-serif;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.01em;
+}
+
+@keyframes wd-drawer-in {
+  from {
+    transform: translateX(40px);
+    opacity: 0;
+  }
+}
+@keyframes wd-modal-in {
+  from {
+    transform: scale(0.98);
+    opacity: 0;
+  }
+}
+@keyframes wd-fade-in {
+  from {
+    opacity: 0;
+  }
+}

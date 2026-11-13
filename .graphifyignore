@@ -1,0 +1,19 @@
+# Keep the knowledge graph to hand-written project code (graphify reads .gitignore too).
+node_modules/
+.venv/
+**/__pycache__/
+frontend/dist/
+frontend/test-results/
+frontend/playwright-report/
+backend/media/
+backend/staticfiles/
+backend/**/migrations/
+backend/templates/pdf/fonts/
+backend/image/
+graphify-out/
+*.png
+*.jpeg
+*.jpg
+*.woff
+*.lock
+package-lock.json

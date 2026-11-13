@@ -1,0 +1,598 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Wedivo — Prompt de développement pour IA</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@500;600;700&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#F5F4FA;--surface:#FFFFFF;--surface-2:#F1EFF8;--ink:#17153B;--ink-2:#4A4769;--muted:#7E7B99;--line:#E5E2F0;
+  --violet:#5126C2;--violet-soft:#EEE8FD;--fuchsia:#C42C7E;--coral:#E3622F;--gold:#F4A62A;--green:#0E8F69;--green-soft:#DFF4EC;--red:#D23A50;--red-soft:#FCE6EA;
+  --hero:#17153B;--code-bg:#14122E;--code-ink:#E7E4FF;
+  --ribbon:linear-gradient(118deg,#4A22B5 0%,#8E2BA8 42%,#E03E7D 70%,#F68A45 100%);
+  box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);color-scheme:light;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0D0C20;--surface:#16152E;--surface-2:#1E1C3A;--ink:#F2F1FA;--ink-2:#C6C3DE;--muted:#8C89AD;--line:#29274A;--violet:#A58AFF;--violet-soft:#29225A;--green:#3DD3A0;--green-soft:#10302A;--red:#FF6F85;--red-soft:#3B1822;--hero:#221F4C;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#0D0C20;--surface:#16152E;--surface-2:#1E1C3A;--ink:#F2F1FA;--ink-2:#C6C3DE;--muted:#8C89AD;--line:#29274A;--violet:#A58AFF;--violet-soft:#29225A;--green:#3DD3A0;--green-soft:#10302A;--red:#FF6F85;--red-soft:#3B1822;--hero:#221F4C;color-scheme:dark}
+*,*::before,*::after{box-sizing:inherit}
+html{scroll-padding-top:calc(72px + env(safe-area-inset-top,0px))}
+body{margin:0;background:var(--bg);color:var(--ink);font:500 15.5px/1.65 Manrope,"Segoe UI",system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+h1,h2,h3{font-family:Sora,Manrope,sans-serif;letter-spacing:-.015em;margin:0;color:var(--ink)}
+code{font:600 .86em/1.4 "SFMono-Regular",Menlo,Consolas,monospace;background:var(--surface-2);padding:1px 6px;border-radius:5px}
+.bar{position:sticky;top:0;z-index:10;display:flex;align-items:center;gap:12px;padding:12px clamp(16px,4vw,40px);padding-top:calc(12px + env(safe-area-inset-top,0px));background:color-mix(in srgb,var(--bg) 88%,transparent);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:11;background:var(--bg)}
+.wm{font-family:Sora,sans-serif;font-weight:700;font-size:19px;letter-spacing:-.03em;display:flex;align-items:center;gap:9px}
+.wm i{width:22px;height:22px;border-radius:7px;background:var(--ribbon);display:inline-block}
+.bar .sp{flex:1}
+.btn{display:inline-flex;align-items:center;gap:8px;height:40px;padding:0 16px;border-radius:10px;border:1px solid var(--line);background:var(--surface);color:var(--ink);font:700 14px Manrope,sans-serif;cursor:pointer;white-space:nowrap}
+.btn:hover{background:var(--surface-2)}
+.btn.primary{background:var(--violet);border-color:var(--violet);color:#fff}
+.btn.primary:hover{filter:brightness(1.08)}
+.btn.sm{height:32px;padding:0 12px;font-size:13px}
+:focus-visible{outline:2px solid var(--violet);outline-offset:2px}
+.wrap{display:grid;grid-template-columns:240px minmax(0,1fr);gap:40px;max-width:1200px;margin:0 auto;padding:32px clamp(16px,4vw,40px) 80px}
+.toc{position:sticky;top:84px;align-self:start;display:flex;flex-direction:column;gap:1px;font-size:13.5px;max-height:calc(100vh - 110px);overflow:auto}
+.toc a{padding:6px 10px;border-radius:8px;color:var(--ink-2);text-decoration:none;font-weight:600}
+.toc a:hover{background:var(--surface-2);color:var(--ink)}
+@media (max-width:900px){.wrap{grid-template-columns:1fr}.toc{display:none}.bar .hide-m{display:none}}
+.hero{background:var(--hero);color:#fff;border-radius:22px;padding:clamp(24px,4vw,40px);position:relative;overflow:hidden;margin-bottom:28px}
+.hero::after{content:"";position:absolute;right:-80px;bottom:-110px;width:320px;height:320px;border-radius:50%;border:42px solid transparent;background:var(--ribbon) border-box;-webkit-mask:linear-gradient(#000 0 0) padding-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask-composite:exclude;opacity:.85}
+.hero h1{color:#fff;font-size:clamp(26px,3.6vw,38px);line-height:1.15;max-width:22ch;font-weight:600}
+.hero p{color:#C9C5EA;max-width:60ch;margin:12px 0 0;position:relative;z-index:1}
+.hero .how{display:flex;gap:10px;flex-wrap:wrap;margin-top:22px;position:relative;z-index:1}
+.hero .how .btn{background:#fff;border-color:#fff;color:#17153B}
+.hero .how .btn.ghost{background:rgba(255,255,255,.1);border-color:transparent;color:#fff}
+.howto{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:30px}
+@media (max-width:760px){.howto{grid-template-columns:1fr}}
+.howto div{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:16px 18px}
+.howto b{display:block;font-family:Sora;font-weight:600;margin-bottom:4px}
+.howto span{color:var(--muted);font-size:14px}
+#prompt section{background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:clamp(20px,3vw,30px);margin-bottom:18px}
+#prompt h2{font-size:20px;margin-bottom:12px;display:flex;gap:10px;align-items:baseline}
+#prompt h2 .n{font-size:13px;color:var(--violet);font-weight:700;min-width:22px}
+#prompt h3{font-size:15.5px;margin:20px 0 8px}
+#prompt p{margin:0 0 10px;max-width:78ch}
+#prompt ul,#prompt ol{margin:6px 0 12px;padding-left:22px;max-width:80ch}
+#prompt li{margin:4px 0}
+#prompt li::marker{color:var(--muted)}
+.rule{border-left:3px solid var(--violet);background:var(--violet-soft);padding:12px 16px;border-radius:0 12px 12px 0;margin:12px 0;max-width:80ch}
+.warn{border-left-color:var(--red);background:var(--red-soft)}
+.tw{overflow-x:auto;margin:10px 0 14px;-webkit-overflow-scrolling:touch}
+table{border-collapse:collapse;width:100%;min-width:560px;font-size:14px}
+th{text-align:left;font-size:12.5px;color:var(--muted);font-weight:700;padding:9px 10px;border-bottom:1px solid var(--line);white-space:nowrap}
+td{padding:9px 10px;border-bottom:1px solid var(--line);vertical-align:top}
+td:first-child{font-weight:700;white-space:nowrap}
+pre{background:var(--code-bg);color:var(--code-ink);padding:16px 18px;border-radius:12px;overflow-x:auto;font:500 13px/1.6 "SFMono-Regular",Menlo,Consolas,monospace;margin:10px 0 14px}
+.swatches{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px;margin:10px 0 14px}
+.sw{border:1px solid var(--line);border-radius:12px;overflow:hidden;font-size:13px}
+.sw i{display:block;height:44px}
+.sw div{padding:8px 10px}
+.sw b{display:block;font-family:Sora;font-weight:600;font-size:13px}
+.sw span{color:var(--muted);font-family:Menlo,Consolas,monospace;font-size:12px}
+.step{border:1px solid var(--line);border-radius:14px;padding:16px 18px;margin:12px 0;background:var(--surface)}
+.step-h{display:flex;align-items:center;gap:12px;margin-bottom:8px}
+.step-h b{font-family:Sora;font-weight:600}
+.step-h .btn{margin-left:auto}
+.step pre{margin:8px 0 0;white-space:pre-wrap}
+.toast{position:fixed;left:50%;bottom:calc(24px + env(safe-area-inset-bottom,0px));transform:translateX(-50%) translateY(20px);background:var(--hero);color:#fff;padding:12px 18px;border-radius:12px;font-weight:700;opacity:0;transition:.2s;pointer-events:none;z-index:20}
+.toast.on{opacity:1;transform:translateX(-50%)}
+</style>
+</head>
+<body>
+<header class="bar">
+  <span class="wm"><i></i>Wedivo</span>
+  <span class="hide-m" style="color:var(--muted);font-weight:600;font-size:14px">Prompt de développement</span>
+  <span class="sp"></span>
+  <button class="btn" id="themeBtn" aria-label="Changer de thème">Thème</button>
+  <button class="btn primary" data-copy="prompt">Copier le prompt complet</button>
+</header>
+
+<div class="wrap">
+<nav class="toc" aria-label="Sommaire">
+  <a href="#s0">Mode d’emploi</a>
+  <a href="#s1">1. Rôle et mission</a>
+  <a href="#s2">2. Contexte produit</a>
+  <a href="#s3">3. Stack technique</a>
+  <a href="#s4">4. Structure du dépôt</a>
+  <a href="#s5">5. Multi-tenant</a>
+  <a href="#s6">6. Design system</a>
+  <a href="#s7">7. Modules fonctionnels</a>
+  <a href="#s8">8. Modèle de données</a>
+  <a href="#s9">9. API REST</a>
+  <a href="#s10">10. Tâches de fond</a>
+  <a href="#s11">11. Sécurité et rôles</a>
+  <a href="#s12">12. Qualité et tests</a>
+  <a href="#s13">13. Déploiement</a>
+  <a href="#s14">14. Règles de travail</a>
+  <a href="#s15">15. Définition de terminé</a>
+  <a href="#steps">Prompts par étape</a>
+</nav>
+
+<main>
+<div class="hero" id="s0">
+  <h1>Prompt de développement de la plateforme Wedivo</h1>
+  <p>Ce document est un prompt prêt à donner à une IA de code (Claude Code, Cursor, Windsurf…). Il décrit le produit, l’architecture, le design et l’ordre de travail pour construire le SaaS multi-entreprise avec Vue 3, Django, PostgreSQL, Redis et Nginx.</p>
+  <div class="how"><button class="btn" data-copy="prompt">Copier le prompt complet</button><a class="btn ghost" href="#steps">Voir les prompts par étape</a></div>
+</div>
+
+<div class="howto">
+  <div><b>Étape 1</b><span>Copiez le prompt complet et enregistrez-le à la racine du projet sous <code>CLAUDE.md</code> ou <code>.cursorrules</code>. L’IA s’y référera à chaque session.</span></div>
+  <div><b>Étape 2</b><span>Lancez ensuite les prompts par étape, un par un, dans l’ordre. Validez chaque étape avant de passer à la suivante.</span></div>
+  <div><b>Étape 3</b><span>Joignez le logo et le prototype HTML de la plateforme pour que l’IA reproduise fidèlement les écrans.</span></div>
+</div>
+
+<div id="prompt">
+
+<section id="s1"><h2><span class="n">1</span>Rôle et mission</h2>
+<p>Tu es un ingénieur logiciel senior full-stack, expert en Vue 3, Django REST Framework, PostgreSQL, Redis et Nginx, et en conception de produits SaaS multi-tenant de type fintech. Tu travailles avec soin, par petites étapes vérifiables, et tu écris du code de production : typé, testé, sécurisé et documenté.</p>
+<p>Ta mission : construire <b>Wedivo</b>, une plateforme SaaS destinée aux wedding planners (marché principal : Afrique francophone, devise FCFA). Chaque entreprise cliente crée son propre compte et obtient un espace isolé. L’objectif du produit n’est pas d’être un simple logiciel de gestion : chaque fonctionnalité doit faire gagner du temps au wedding planner, l’aider à mieux maîtriser ses coûts ou augmenter ses revenus.</p>
+<div class="rule"><b>Principe directeur.</b> Avant d’ajouter une fonctionnalité, vérifie qu’elle répond à au moins une question : fait-elle gagner du temps ? Aide-t-elle à contrôler les coûts ? Aide-t-elle à générer des revenus ? Sinon, elle n’entre pas dans le MVP.</div>
+</section>
+
+<section id="s2"><h2><span class="n">2</span>Contexte produit</h2>
+<h3>Utilisateurs</h3>
+<ul>
+<li><b>Propriétaire</b> de l’agence : crée l’espace, gère l’abonnement, l’équipe et voit toutes les données, y compris les finances.</li>
+<li><b>Wedding planner</b> : gère les prospects, devis, mariages, tâches et prestataires.</li>
+<li><b>Assistant</b> : exécute les tâches, met à jour les prospects et les mariages, sans accès aux marges.</li>
+<li><b>Comptable</b> : accède aux paiements, dépenses et marges, en lecture sur le reste.</li>
+<li><b>Invité</b> (externe, sans compte) : reçoit une invitation, confirme sa présence via un lien public.</li>
+</ul>
+<h3>Problèmes à résoudre</h3>
+<ul>
+<li>Les demandes arrivent par WhatsApp, Facebook, Instagram et téléphone : des prospects sont oubliés.</li>
+<li>Un devis prend environ deux heures à préparer. Objectif : vingt minutes.</li>
+<li>Des prospects et des clients ne sont pas relancés (exemple observé : 32 personnes sans relance).</li>
+<li>Le planner ne sait pas précisément ce qui est encaissé, ce qui reste à recevoir et ce que chaque mariage rapporte.</li>
+<li>Plusieurs mariages en parallèle, beaucoup de prestataires et d’échéances : risques d’oubli.</li>
+</ul>
+<h3>Phasage</h3>
+<div class="tw"><table><thead><tr><th>Phase</th><th>Modules</th><th>Objectif</th></tr></thead><tbody>
+<tr><td>Phase 1 (MVP)</td><td>Création de compte entreprise, équipe et rôles, prospects et clients, catalogue, devis PDF, relances programmées (email), contrats et paiements, tableau de bord</td><td>Convertir plus de prospects, réduire le temps commercial</td></tr>
+<tr><td>Phase 2</td><td>Mariages, tâches, calendrier, prestataires, dépenses et marges</td><td>Organisation des mariages et maîtrise des coûts</td></tr>
+<tr><td>Phase 3</td><td>Invitations électroniques, PDF et QR codes, confirmations de présence, contrôle à l’entrée, WhatsApp Business, Mobile Money</td><td>Différenciation et services en plus</td></tr>
+</tbody></table></div>
+<div class="rule warn"><b>Ne jamais promettre ce qui n’est pas intégré.</b> Les relances par email sont automatiques. WhatsApp exige l’API WhatsApp Business et des modèles approuvés par Meta : tant que l’intégration n’existe pas, l’interface propose un message à copier et l’action reste manuelle.</div>
+</section>
+
+<section id="s3"><h2><span class="n">3</span>Stack technique</h2>
+<div class="tw"><table><thead><tr><th>Couche</th><th>Choix</th><th>Notes</th></tr></thead><tbody>
+<tr><td>Frontend</td><td>Vue 3 (Composition API, <code>&lt;script setup lang="ts"&gt;</code>), Vite, TypeScript strict</td><td>SPA, chargement différé par module</td></tr>
+<tr><td>État et données</td><td>Pinia, Vue Router 4, TanStack Query (Vue), Axios</td><td>Pinia pour la session ; TanStack Query pour toutes les données serveur</td></tr>
+<tr><td>UI</td><td>Tailwind CSS configuré sur les tokens Wedivo + composants maison</td><td>Pas de librairie de composants lourde ; icônes lucide-vue-next</td></tr>
+<tr><td>Formulaires</td><td>VeeValidate + Zod</td><td>Mêmes règles que le backend</td></tr>
+<tr><td>Graphiques</td><td>Apache ECharts (vue-echarts)</td><td>Encaissements, pipeline</td></tr>
+<tr><td>Backend</td><td>Python 3.12, Django 5.2 LTS, Django REST Framework</td><td>Gunicorn avec workers Uvicorn</td></tr>
+<tr><td>Auth</td><td>djangorestframework-simplejwt, tokens en cookies httpOnly</td><td>Argon2 pour les mots de passe</td></tr>
+<tr><td>Documentation API</td><td>drf-spectacular (OpenAPI 3)</td><td>Types TypeScript générés avec openapi-typescript</td></tr>
+<tr><td>Base de données</td><td>PostgreSQL 16</td><td>UUID, Row-Level Security, index par organisation</td></tr>
+<tr><td>Cache et files</td><td>Redis 7, Celery 5 + Celery beat</td><td>Cache, broker, limites de débit, verrous</td></tr>
+<tr><td>PDF</td><td>WeasyPrint (gabarits HTML/CSS)</td><td>Devis, contrats, reçus, invitations</td></tr>
+<tr><td>QR codes</td><td>segno</td><td>Contenu signé HMAC</td></tr>
+<tr><td>Fichiers</td><td>Stockage S3 compatible (MinIO en local) via django-storages</td><td>URLs signées à durée limitée</td></tr>
+<tr><td>Email</td><td>django-anymail (Brevo, Mailgun ou SES)</td><td>Webhooks de délivrabilité</td></tr>
+<tr><td>Serveur web</td><td>Nginx</td><td>TLS, wildcard <code>*.wedivo.app</code>, statiques, reverse proxy, limites</td></tr>
+<tr><td>Conteneurs</td><td>Docker, Docker Compose</td><td>Un fichier pour le dev, un pour la prod</td></tr>
+<tr><td>Tests</td><td>pytest-django, factory_boy, Vitest, Vue Test Utils, Playwright</td><td>Voir section 12</td></tr>
+<tr><td>Observabilité</td><td>Sentry, logs JSON structurés</td><td>Identifiant d’organisation dans chaque log</td></tr>
+</tbody></table></div>
+<p>Utilise des versions stables et récentes de chaque bibliothèque, épinglées précisément dans <code>requirements.txt</code> (ou <code>pyproject.toml</code>) et <code>package-lock.json</code>.</p>
+</section>
+
+<section id="s4"><h2><span class="n">4</span>Structure du dépôt</h2>
+<pre>wedivo/
+├── backend/
+│   ├── config/              # settings/{base,dev,prod}.py, urls.py, asgi.py, celery.py
+│   ├── core/                # TenantModel, TenantManager, middleware, permissions, pagination, audit, utils
+│   ├── accounts/            # User, Membership, rôles, invitations d’équipe, auth JWT
+│   ├── organizations/       # Organization, abonnement, paramètres, numérotation des documents
+│   ├── crm/                 # Prospect, Interaction
+│   ├── catalog/             # ServiceCategory, ServiceItem
+│   ├── quotes/              # Quote, QuoteLine, services PDF
+│   ├── contracts/           # Contract, PaymentSchedule, Payment
+│   ├── finance/             # Expense, VendorPayable, services de calcul
+│   ├── reminders/           # ReminderRule, ReminderJob, canaux d’envoi
+│   ├── events/              # Wedding, Task
+│   ├── vendors/             # Vendor, VendorAssignment
+│   ├── invitations/         # InvitationTemplate, Guest, CheckIn
+│   ├── notifications/       # emails transactionnels, notifications in-app
+│   ├── templates/pdf/       # gabarits WeasyPrint
+│   └── tests/
+├── frontend/
+│   ├── src/
+│   │   ├── app/             # main.ts, router, guards, layouts (AuthLayout, AppLayout)
+│   │   ├── design/          # tokens.css, tailwind preset, composants W*
+│   │   ├── api/             # client Axios, intercepteurs, types OpenAPI générés
+│   │   ├── stores/          # session, organisation, préférences (thème)
+│   │   ├── composables/     # useMoney, useDate, useToast, usePermissions
+│   │   └── modules/         # auth, dashboard, crm, quotes, reminders, finance,
+│   │                        # events, calendar, vendors, invitations, settings
+│   └── tests/
+├── infra/
+│   ├── nginx/               # nginx.conf, conf.d/wedivo.conf
+│   ├── docker-compose.dev.yml
+│   └── docker-compose.prod.yml
+├── .env.example
+├── Makefile                 # make dev, make test, make migrate, make seed, make lint
+└── README.md</pre>
+<p>Chaque app Django contient : <code>models.py</code>, <code>serializers.py</code>, <code>services.py</code> (logique métier), <code>selectors.py</code> (lectures complexes), <code>views.py</code> (fines), <code>urls.py</code>, <code>permissions.py</code>, <code>tasks.py</code> si besoin, <code>tests/</code>. Chaque module Vue contient : <code>pages/</code>, <code>components/</code>, <code>api.ts</code> (hooks TanStack Query), <code>routes.ts</code>, <code>types.ts</code>.</p>
+</section>
+
+<section id="s5"><h2><span class="n">5</span>Multi-tenant : un espace par entreprise</h2>
+<p>Stratégie : <b>schéma PostgreSQL partagé + colonne <code>organization_id</code> + Row-Level Security</b>. Chaque entreprise a l’adresse <code>slug.wedivo.app</code>.</p>
+<ol>
+<li>Toutes les tables métier héritent d’un modèle abstrait <code>TenantModel</code> : <code>id</code> UUID, <code>organization</code> (FK indexée), <code>created_at</code>, <code>updated_at</code>, <code>created_by</code>.</li>
+<li>Un <code>TenantMiddleware</code> résout l’organisation à partir du sous-domaine (ou de l’en-tête <code>X-Organization</code> en développement), la met en cache Redis 5 minutes et la stocke dans un <code>contextvar</code>.</li>
+<li>Le middleware vérifie que l’utilisateur connecté a un <code>Membership</code> actif dans cette organisation ; sinon réponse 403.</li>
+<li>Un <code>TenantManager</code> filtre automatiquement chaque queryset sur l’organisation courante. Un manager <code>all_tenants</code> séparé, réservé aux tâches d’administration, permet de lever le filtre explicitement.</li>
+<li>À chaque requête, exécuter <code>SET LOCAL app.current_org = '&lt;uuid&gt;'</code> dans la transaction ; une migration crée les politiques RLS sur chaque table métier.</li>
+<li>Les tâches Celery reçoivent toujours l’<code>organization_id</code> en argument et réactivent le contexte avant toute requête.</li>
+<li>Les clés de cache Redis sont toujours préfixées : <code>org:{id}:...</code>.</li>
+<li>Un utilisateur peut appartenir à plusieurs organisations ; l’interface permet de changer d’espace.</li>
+</ol>
+<pre>ALTER TABLE crm_prospect ENABLE ROW LEVEL SECURITY;
+ALTER TABLE crm_prospect FORCE ROW LEVEL SECURITY;
+CREATE POLICY tenant_isolation ON crm_prospect
+  USING (organization_id = current_setting('app.current_org', true)::uuid);</pre>
+<div class="rule warn"><b>Test obligatoire.</b> Pour chaque endpoint, un test vérifie qu’un utilisateur de l’organisation A ne peut ni lire, ni modifier, ni supprimer une ressource de l’organisation B (réponse 404, jamais 403, pour ne pas révéler l’existence de la ressource).</div>
+<h3>Parcours de création de compte entreprise</h3>
+<ol>
+<li>Assistant en 3 étapes : (1) entreprise : nom, ville, pays, nombre de mariages par an ; (2) compte : nom complet, email, téléphone, mot de passe ; (3) espace : sous-domaine proposé automatiquement à partir du nom (modifiable, vérification de disponibilité en direct) et choix de l’offre.</li>
+<li><code>POST /api/v1/auth/signup</code> crée dans une seule transaction : l’organisation, l’utilisateur, le membership « owner », un catalogue d’exemple, les règles de relance par défaut et la numérotation des documents.</li>
+<li>Email de vérification envoyé par Celery. Essai de 14 jours sur l’offre Pro.</li>
+<li>Redirection vers le tableau de bord avec une liste de démarrage : compléter le catalogue, ajouter des prospects, inviter l’équipe.</li>
+<li>Sous-domaines réservés interdits : <code>www, app, api, admin, static, mail, support, docs, status</code>.</li>
+</ol>
+</section>
+
+<section id="s6"><h2><span class="n">6</span>Design system (inspiré du logo)</h2>
+<p>Style recherché : <b>SaaS fintech</b> sobre, précis et rassurant, avec une touche chaleureuse liée au mariage. Le logo est un W formé d’un ruban violet qui se transforme en cœur magenta-corail, surmonté d’une étoile dorée ; le logotype « Wedivo » est en marine très foncé avec un point doré sur le i. Slogan : « Planifiez · Gérez · Célébrez ».</p>
+<div class="swatches">
+<div class="sw"><i style="background:#17153B"></i><div><b>Encre</b><span>#17153B</span></div></div>
+<div class="sw"><i style="background:#5126C2"></i><div><b>Violet (action)</b><span>#5126C2</span></div></div>
+<div class="sw"><i style="background:#C42C7E"></i><div><b>Fuchsia</b><span>#C42C7E</span></div></div>
+<div class="sw"><i style="background:#E3622F"></i><div><b>Corail</b><span>#E3622F</span></div></div>
+<div class="sw"><i style="background:#F4A62A"></i><div><b>Or</b><span>#F4A62A</span></div></div>
+<div class="sw"><i style="background:#0E8F69"></i><div><b>Vert (succès)</b><span>#0E8F69</span></div></div>
+<div class="sw"><i style="background:#F5F4FA"></i><div><b>Fond</b><span>#F5F4FA</span></div></div>
+<div class="sw"><i style="background:linear-gradient(118deg,#4A22B5,#8E2BA8 42%,#E03E7D 70%,#F68A45)"></i><div><b>Ruban</b><span>dégradé</span></div></div>
+</div>
+<pre>:root {
+  --bg:#F5F4FA; --surface:#FFFFFF; --surface-2:#F1EFF8; --line:#E5E2F0;
+  --ink:#17153B; --ink-2:#4A4769; --muted:#85829F;
+  --violet:#5126C2; --violet-soft:#EEE8FD;
+  --fuchsia:#C42C7E; --fuchsia-soft:#FCE6F1;
+  --coral:#E3622F;  --coral-soft:#FEEBE2;
+  --gold:#B97A0E;   --gold-soft:#FDF2DC; --gold-bright:#F4A62A;
+  --green:#0E8F69;  --green-soft:#DFF4EC;
+  --red:#D23A50;    --red-soft:#FCE6EA;
+  --hero:#17153B;
+  --ribbon:linear-gradient(118deg,#4A22B5 0%,#8E2BA8 42%,#E03E7D 70%,#F68A45 100%);
+  --r-sm:8px; --r:12px; --r-lg:18px;
+}
+/* Thème sombre : --bg:#0D0C20; --surface:#16152E; --surface-2:#1E1C3A; --line:#29274A;
+   --ink:#F2F1FA; --ink-2:#C6C3DE; --violet:#9F82FF; --green:#3DD3A0; --hero:#221F4C */</pre>
+<h3>Règles visuelles</h3>
+<ul>
+<li><b>Typographies</b> : Sora (titres et montants, chiffres tabulaires <code>font-variant-numeric: tabular-nums</code>) et Manrope (interface et texte). Échelle : 12, 13, 14.5 (base), 15.5, 17, 20, 26, 40.</li>
+<li><b>Le ruban</b> est l’élément signature : il est réservé au bloc « Solde à recevoir » du tableau de bord (fond encre avec rubans courbes), à l’indicateur du menu actif, aux barres de progression des mariages et à la courbe des encaissements. Ne pas l’utiliser ailleurs.</li>
+<li>Bouton principal : violet plein. Boutons secondaires : fond blanc, bordure fine. Hauteur 40 px, rayon 10 px.</li>
+<li>Montants toujours en FCFA, séparateur de milliers espace fine : <code>1 500 000 FCFA</code>. Format court sur les indicateurs : <code>6,3 M</code>. Stockage en entiers.</li>
+<li>Dates en français : « 14 nov. 2026 ». Fuseau par organisation (par défaut <code>Africa/Abidjan</code>).</li>
+<li>Statuts sous forme de pastilles colorées : nouveau (violet), contacté (or), devis envoyé (fuchsia), négociation (corail), confirmé (vert), perdu (gris).</li>
+<li>Pas de texte en majuscules pour les libellés, pas de surcharge d’ombres : bordures fines, une ombre légère seulement sur les éléments flottants (tiroirs, modales).</li>
+<li>Thème clair et sombre (préférence système + bascule manuelle mémorisée).</li>
+<li>Rédaction : phrases courtes, verbes d’action, même nom pour une action du bouton jusqu’au message de confirmation (« Envoyer le devis » → « Devis envoyé »). Les messages d’erreur disent quoi corriger.</li>
+</ul>
+<h3>Mise en page</h3>
+<ul>
+<li>Bureau : barre latérale fixe de 252 px (logo, sélecteur d’entreprise, navigation groupée Pilotage / Commercial / Organisation / Espace, profil en bas) et barre supérieure (recherche globale Ctrl+K, thème, notifications).</li>
+<li>Mobile (moins de 960 px) : menu latéral escamotable et barre d’onglets en bas : Accueil, Prospects, Devis, Finances, Plus. Respect des zones sûres iOS (<code>env(safe-area-inset-*)</code>).</li>
+<li>Les détails s’ouvrent dans un tiroir latéral (fiche prospect, mariage, contrat) ; les créations rapides dans une modale.</li>
+<li>Accessibilité : contraste AA, focus visible, navigation clavier complète, <code>aria-live</code> pour les notifications, respect de <code>prefers-reduced-motion</code>.</li>
+<li>Composants de base à créer : WButton, WInput, WSelect, WTextarea, WSwitch, WBadge, WCard, WTable (tri, pagination, défilement horizontal sur mobile), WDrawer, WModal, WToast, WTabs, WEmptyState, WMoney, WProgress, WKanban, WCommandPalette.</li>
+</ul>
+</section>
+
+<section id="s7"><h2><span class="n">7</span>Modules fonctionnels</h2>
+<p>Pour chaque module : écrans, règles métier, automatisations, critères d’acceptation.</p>
+
+<h3>7.1 Tableau de bord (Phase 1)</h3>
+<ul>
+<li>Message d’accueil avec le nombre de relances du jour et le prochain mariage.</li>
+<li>Bloc « Solde à recevoir » (somme des contrats moins les paiements reçus), avec : déjà encaissé, contrats signés, marge prévisionnelle. Boutons « Enregistrer un paiement » et « Voir l’échéancier ».</li>
+<li>Indicateurs : prospects actifs, taux de conversion (confirmés / (confirmés + perdus)), devis en attente et montant en jeu, temps gagné estimé.</li>
+<li>Graphique des encaissements sur 6 mois ; pipeline par statut (nombre et budget) ; relances du jour avec action « Marquer faite » ; prochains mariages avec avancement.</li>
+<li>Les données viennent d’un seul endpoint <code>/dashboard/summary</code> mis en cache Redis 60 s et invalidé à chaque paiement, devis ou changement de statut.</li>
+</ul>
+
+<h3>7.2 Prospects et clients (Phase 1)</h3>
+<ul>
+<li>Vue kanban par statut (nouveau, contacté, devis envoyé, négociation, client confirmé, perdu) avec glisser-déposer et mise à jour optimiste ; vue tableau alternative avec tri et filtres.</li>
+<li>Champs : nom ou couple, téléphone, email, canal d’origine (WhatsApp, Facebook, Instagram, téléphone, recommandation, autre), budget annoncé, date du mariage, nombre d’invités, besoins, responsable, prochaine relance.</li>
+<li>Fiche en tiroir : informations, historique des échanges (appel, message, rendez-vous, note), changement de statut, programmation d’une relance, boutons « Appeler » et « Créer un devis ».</li>
+<li>Recherche plein texte, filtre par canal et par responsable ; import CSV/XLSX avec correspondance des colonnes et détection des doublons (téléphone ou email).</li>
+<li>Tout changement de statut crée une entrée d’historique. Un prospect passé à « perdu » demande un motif.</li>
+<li><b>Accepté si</b> : un prospect créé apparaît immédiatement dans « Nouveau » ; le déplacer met à jour le statut côté serveur ; en cas d’erreur la carte revient à sa place avec un message.</li>
+</ul>
+
+<h3>7.3 Catalogue et devis (Phase 1)</h3>
+<ul>
+<li>Catalogue : prestations par catégorie (coordination, décoration, restauration, animation, image, logistique, invitations), unité (forfait, unité, invité, journée, soirée), prix unitaire, actif ou non.</li>
+<li>Éditeur de devis : client (recherche parmi les prospects), date et nombre d’invités, ajout de lignes depuis le catalogue en un clic (quantité proposée selon l’unité : « invité » = nombre d’invités), lignes libres, quantités modifiables, remise en %, acompte en %, conditions de paiement.</li>
+<li>Aperçu du PDF en direct à côté de l’éditeur (sous l’éditeur sur mobile). Totaux calculés en direct côté client et recalculés côté serveur à l’enregistrement (le serveur fait foi).</li>
+<li>Numérotation automatique par organisation et par année : <code>DV-2026-0048</code>, sans doublon (verrou Redis ou séquence PostgreSQL).</li>
+<li>Statuts : brouillon, envoyé, accepté, refusé, expiré (validité configurable, 30 jours par défaut).</li>
+<li>« Envoyer le devis » : génère le PDF (Celery), l’envoie par email avec un lien public de consultation, enregistre la date d’envoi et planifie les relances.</li>
+<li>« Convertir en contrat » (devis accepté) : crée le contrat, l’échéancier (acompte, versements, solde 7 jours avant le mariage, modifiable) et la fiche mariage, et passe le prospect en « client confirmé ».</li>
+<li>Dupliquer un devis ; modèles de devis réutilisables.</li>
+<li><b>Accepté si</b> : un devis de 3 prestations se crée en moins de 2 minutes ; le PDF reprend le logo, les mentions de l’entreprise et les montants exacts.</li>
+</ul>
+
+<h3>7.4 Relances programmées (Phase 1)</h3>
+<ul>
+<li>Règles configurables (activables individuellement) : devis sans réponse (J+3 puis J+7), prospect sans échange depuis 7 jours (tâche interne), échéance de paiement (J-2 et jour J), rendez-vous (veille à 18 h).</li>
+<li>Modèles de messages avec variables : <code>{prenom}</code>, <code>{date_mariage}</code>, <code>{montant}</code>, <code>{numero_devis}</code>, <code>{lien_devis}</code>, <code>{nom_entreprise}</code>.</li>
+<li>File de relances : à faire aujourd’hui, à venir, faites. Actions : marquer faite, reporter, annuler, envoyer maintenant.</li>
+<li>Bandeau d’alerte quand des prospects sont sans relance depuis plus de 7 jours, avec action groupée « Programmer leur relance ».</li>
+<li>Avant chaque envoi, le job revérifie la condition (un devis accepté ou un paiement reçu entre-temps annule la relance). Idempotence : un même job ne peut pas partir deux fois.</li>
+<li>Canaux : email (automatique), tâche interne, WhatsApp (manuel avec message à copier tant que l’intégration Business n’est pas connectée).</li>
+<li>Envois uniquement entre 8 h et 20 h dans le fuseau de l’organisation.</li>
+</ul>
+
+<h3>7.5 Contrats, paiements et finances (Phase 1, marges en Phase 2)</h3>
+<ul>
+<li>Liste des contrats : client, date du mariage, montant, encaissé, solde, marge estimée, barre de progression des paiements.</li>
+<li>Enregistrer un paiement : contrat, montant, date, mode (virement, espèces, Orange Money, MTN MoMo, Wave, chèque), référence, justificatif. Le paiement solde les échéances dans l’ordre ; un reçu PDF est envoyé au client ; les rappels devenus inutiles sont annulés.</li>
+<li>Un paiement ne peut pas dépasser le solde restant (sinon message clair). Un paiement saisi par erreur peut être annulé (jamais supprimé), avec trace dans l’audit.</li>
+<li>Détail du contrat : montant du contrat, dépenses estimées, marge prévisionnelle (montant et %), encaissé, solde, échéancier avec « Marquer payé ».</li>
+<li>Exemple de référence pour les tests : contrat 1 500 000, dépenses 900 000, marge 600 000, encaissé 500 000, solde 1 000 000 FCFA.</li>
+<li>Mention permanente : « La marge prévisionnelle n’est pas le bénéfice net comptable de l’entreprise ».</li>
+<li>Dépenses par mariage et montants dus aux prestataires ; export CSV et Excel.</li>
+</ul>
+
+<h3>7.6 Mariages, tâches et calendrier (Phase 2)</h3>
+<ul>
+<li>Fiche mariage : couple, date, lieu, nombre d’invités, budget, contrat lié, prestataires associés, tâches, avancement (tâches faites / total), compte à rebours J-x.</li>
+<li>Tâches : titre, responsable (membre de l’équipe), échéance, statut, commentaire. Modèle de liste de tâches standard appliquable à la création. Badges « En retard » et « Bientôt ».</li>
+<li>Calendrier mensuel et liste agenda : mariages, tâches, échéances de paiement, rendez-vous ; filtre par membre ; sur mobile, points de couleur dans la grille et liste détaillée en dessous.</li>
+<li>Alertes in-app et email avant les échéances des tâches (J-2).</li>
+</ul>
+
+<h3>7.7 Prestataires (Phase 2)</h3>
+<ul>
+<li>Répertoire par catégorie (décoration, traiteur, photographe, vidéaste, DJ, salle, gâteau, location de matériel, transport) : coordonnées, évaluation sur 5, nombre de collaborations, montant dû.</li>
+<li>Association à un mariage avec la prestation convenue, son coût et son statut de paiement ; historique des collaborations.</li>
+</ul>
+
+<h3>7.8 Invitations et QR codes (Phase 3)</h3>
+<ul>
+<li>Éditeur d’invitation : prénoms, date, heure, lieu, message, thème de couleurs ; aperçu en direct.</li>
+<li>Liste d’invités (import CSV possible), avec nombre de personnes par invitation. Chaque invitation a un code unique (<code>WDV-XX-0001</code>) et un QR code signé HMAC.</li>
+<li>Génération du PDF par invité, envoi par email, page publique de confirmation (confirme / décline / nombre de personnes).</li>
+<li>Statistiques : envoyées, confirmées, déclinées, en attente ; rappel automatique aux invités sans réponse.</li>
+<li>Mode « Contrôle à l’entrée » optimisé mobile : scan caméra ou saisie du code ; résultats : entrée valide, déjà utilisé (avec l’heure du premier passage), invitation déclinée, code inconnu.</li>
+<li>La génération (PDF, QR) et l’envoi sont deux fonctionnalités distinctes, développées et testées séparément.</li>
+</ul>
+
+<h3>7.9 Paramètres (Phase 1)</h3>
+<ul>
+<li>Entreprise : nom, logo, sous-domaine, ville, pays, devise (XOF, XAF, EUR), fuseau, mentions légales sur les documents, préfixe de numérotation.</li>
+<li>Équipe : liste des membres, invitation par email avec rôle, changement de rôle, désactivation. Tableau des droits par rôle.</li>
+<li>Catalogue, modèles de messages, règles de relance.</li>
+<li>Abonnement : offres Essentiel, Pro, Agence (prix à configurer en base, pas dans le code), période d’essai, limites par offre (nombre d’utilisateurs, modules accessibles).</li>
+<li>Intégrations : email d’envoi, WhatsApp Business (Phase 3), Mobile Money (Phase 3), Google Agenda (plus tard).</li>
+</ul>
+
+<h3>7.10 Recherche globale</h3>
+<p>Palette Ctrl+K : pages, prospects, devis, contrats, mariages, prestataires. Recherche côté serveur avec <code>pg_trgm</code>, limitée à l’organisation courante.</p>
+</section>
+
+<section id="s8"><h2><span class="n">8</span>Modèle de données</h2>
+<p>Tous les modèles métier héritent de <code>TenantModel</code>. Montants en <code>BigIntegerField</code> (FCFA sans décimales). Dates de mariage en <code>DateField</code>, horodatages en UTC.</p>
+<div class="tw"><table><thead><tr><th>Modèle</th><th>Champs principaux</th><th>Relations et contraintes</th></tr></thead><tbody>
+<tr><td>Organization</td><td>slug (unique), name, logo, country, city, currency, timezone, plan, trial_ends_at, quote_prefix, legal_mentions, is_active</td><td>Pas tenant (racine)</td></tr>
+<tr><td>User</td><td>email (unique, identifiant), full_name, phone, is_verified</td><td>Modèle utilisateur personnalisé dès la première migration</td></tr>
+<tr><td>Membership</td><td>role (owner, planner, assistant, accountant), is_active, invited_at, joined_at</td><td>User ↔ Organization, unique (user, organization)</td></tr>
+<tr><td>Prospect</td><td>name, phone, email, source, status, budget, wedding_date, guest_count, needs, lost_reason, next_follow_up_at</td><td>owner → User ; index (organization, status)</td></tr>
+<tr><td>Interaction</td><td>kind (call, message, meeting, note, status_change), content, occurred_at</td><td>→ Prospect, author → User</td></tr>
+<tr><td>ServiceCategory / ServiceItem</td><td>name, order · name, unit, unit_price, is_active</td><td>ServiceItem → ServiceCategory</td></tr>
+<tr><td>Quote</td><td>number (unique par org), status, issue_date, valid_until, discount_pct, deposit_pct, subtotal, discount_amount, total, sent_at, accepted_at, pdf_file, public_token</td><td>→ Prospect</td></tr>
+<tr><td>QuoteLine</td><td>label, unit, unit_price, quantity, amount, position</td><td>→ Quote, service_item (nullable)</td></tr>
+<tr><td>Contract</td><td>number, total, signed_at, wedding_date, status</td><td>→ Quote (1-1), → Prospect</td></tr>
+<tr><td>PaymentSchedule</td><td>label, amount, due_date, is_paid</td><td>→ Contract</td></tr>
+<tr><td>Payment</td><td>amount, method, paid_at, reference, receipt_file, is_cancelled</td><td>→ Contract, recorded_by → User</td></tr>
+<tr><td>Wedding</td><td>title, date, venue, guest_count, budget, status</td><td>→ Contract (nullable)</td></tr>
+<tr><td>Task</td><td>title, due_date, status, notes</td><td>→ Wedding, assignee → User</td></tr>
+<tr><td>Vendor</td><td>name, category, phone, email, rating, notes</td><td>—</td></tr>
+<tr><td>VendorAssignment</td><td>service, cost, paid_amount</td><td>→ Wedding, → Vendor</td></tr>
+<tr><td>Expense</td><td>label, amount, date, is_paid</td><td>→ Wedding, vendor (nullable)</td></tr>
+<tr><td>ReminderRule</td><td>trigger, delay_days, channel, template, is_active</td><td>—</td></tr>
+<tr><td>ReminderJob</td><td>scheduled_for, status (pending, sent, done, cancelled, failed), channel, payload, sent_at</td><td>Cible générique : prospect, quote, payment_schedule ou task</td></tr>
+<tr><td>Guest</td><td>name, email, phone, party_size, code (unique), rsvp_status, rsvp_at</td><td>→ Wedding</td></tr>
+<tr><td>CheckIn</td><td>scanned_at, device</td><td>→ Guest, scanned_by → User</td></tr>
+<tr><td>AuditLog</td><td>action, target_type, target_id, changes (JSON), ip</td><td>actor → User</td></tr>
+</tbody></table></div>
+<p>Prévoir des <code>CheckConstraint</code> (montants ≥ 0, pourcentages entre 0 et 100) et des index sur les colonnes filtrées. Fournir une commande <code>python manage.py seed_demo</code> qui crée l’organisation « Maison Élégance Events » (Abidjan) avec des prospects, devis, contrats, mariages et prestataires réalistes.</p>
+</section>
+
+<section id="s9"><h2><span class="n">9</span>API REST</h2>
+<p>Préfixe <code>/api/v1</code>. JSON en snake_case côté API, conversion en camelCase côté front. Pagination par curseur, filtres via django-filter, erreurs au format :</p>
+<pre>{ "code": "payment_exceeds_balance",
+  "message": "Le montant dépasse le solde restant (1 000 000 FCFA).",
+  "fields": { "amount": ["Maximum 1 000 000"] } }</pre>
+<div class="tw"><table><thead><tr><th>Méthode</th><th>Endpoint</th><th>Rôle</th></tr></thead><tbody>
+<tr><td>POST</td><td>/auth/signup · /auth/login · /auth/refresh · /auth/logout</td><td>Création de compte, session JWT en cookies</td></tr>
+<tr><td>GET</td><td>/auth/slug-available?slug=</td><td>Disponibilité du sous-domaine</td></tr>
+<tr><td>POST</td><td>/auth/verify-email · /auth/password-reset</td><td>Vérification et réinitialisation</td></tr>
+<tr><td>GET, PATCH</td><td>/organization · /organization/members · /organization/invitations</td><td>Paramètres et équipe</td></tr>
+<tr><td>CRUD</td><td>/prospects · /prospects/{id}/interactions</td><td>Prospects et historique</td></tr>
+<tr><td>PATCH</td><td>/prospects/{id}/status</td><td>Changement de statut (kanban)</td></tr>
+<tr><td>POST</td><td>/prospects/import</td><td>Import CSV/XLSX</td></tr>
+<tr><td>CRUD</td><td>/catalog/categories · /catalog/items</td><td>Catalogue</td></tr>
+<tr><td>CRUD</td><td>/quotes</td><td>Devis et lignes (imbriquées)</td></tr>
+<tr><td>POST</td><td>/quotes/{id}/send · /accept · /refuse · /duplicate · /convert</td><td>Cycle de vie du devis</td></tr>
+<tr><td>GET</td><td>/quotes/{id}/pdf · /public/quotes/{token}</td><td>PDF et page publique</td></tr>
+<tr><td>GET</td><td>/contracts · /contracts/{id}</td><td>Contrats et échéancier</td></tr>
+<tr><td>POST</td><td>/contracts/{id}/payments · /payments/{id}/cancel</td><td>Paiements</td></tr>
+<tr><td>GET</td><td>/finance/summary · /finance/export</td><td>Totaux, marges, export</td></tr>
+<tr><td>GET, PATCH</td><td>/reminders/rules · /reminders/jobs</td><td>Règles et file de relances</td></tr>
+<tr><td>POST</td><td>/reminders/jobs/{id}/done · /snooze · /send-now · /bulk-schedule</td><td>Actions sur les relances</td></tr>
+<tr><td>CRUD</td><td>/weddings · /weddings/{id}/tasks · /vendors · /expenses</td><td>Organisation (Phase 2)</td></tr>
+<tr><td>GET</td><td>/calendar?from=&amp;to=</td><td>Éléments du calendrier</td></tr>
+<tr><td>CRUD, POST</td><td>/weddings/{id}/guests · /invitations/send · /checkin</td><td>Invitations (Phase 3)</td></tr>
+<tr><td>GET, POST</td><td>/public/rsvp/{code}</td><td>Confirmation de présence publique</td></tr>
+<tr><td>GET</td><td>/dashboard/summary · /search?q=</td><td>Tableau de bord, recherche</td></tr>
+</tbody></table></div>
+<p>Schéma OpenAPI sur <code>/api/schema</code>, documentation sur <code>/api/docs</code> (accès restreint en production).</p>
+</section>
+
+<section id="s10"><h2><span class="n">10</span>Redis et tâches de fond</h2>
+<ul>
+<li>Redis base 0 : broker Celery. Files : <code>default</code>, <code>pdf</code>, <code>emails</code>, <code>reminders</code>.</li>
+<li>Redis base 1 : cache (organisation par slug, résumé du tableau de bord, résumé financier).</li>
+<li>Redis base 2 : limites de débit (connexion, signup, envois), liste de révocation des refresh tokens, verrous.</li>
+</ul>
+<pre>beat_schedule = {
+  "dispatch-reminders":   {"task": "reminders.tasks.dispatch_due_jobs", "schedule": crontab(minute="*/15")},
+  "payment-due-notices":  {"task": "contracts.tasks.notify_due_payments", "schedule": crontab(hour=8, minute=0)},
+  "flag-stale-prospects": {"task": "crm.tasks.flag_stale_prospects", "schedule": crontab(hour=7, minute=30)},
+  "expire-quotes":        {"task": "quotes.tasks.expire_quotes", "schedule": crontab(hour=1, minute=0)},
+  "trial-ending":         {"task": "organizations.tasks.notify_trial_ending", "schedule": crontab(hour=9, minute=0)},
+}</pre>
+<p>Toutes les tâches sont idempotentes, avec retries exponentiels (3 essais), journalisation et alerte Sentry en cas d’échec définitif.</p>
+</section>
+
+<section id="s11"><h2><span class="n">11</span>Sécurité et rôles</h2>
+<div class="tw"><table><thead><tr><th>Droit</th><th>Propriétaire</th><th>Planner</th><th>Assistant</th><th>Comptable</th></tr></thead><tbody>
+<tr><td>Prospects, devis</td><td>Oui</td><td>Oui</td><td>Oui (sans suppression)</td><td>Lecture</td></tr>
+<tr><td>Paiements, marges, exports</td><td>Oui</td><td>Lecture des soldes</td><td>Non</td><td>Oui</td></tr>
+<tr><td>Mariages, tâches, prestataires</td><td>Oui</td><td>Oui</td><td>Oui</td><td>Lecture</td></tr>
+<tr><td>Équipe, paramètres, abonnement</td><td>Oui</td><td>Non</td><td>Non</td><td>Non</td></tr>
+</tbody></table></div>
+<ul>
+<li>Permissions vérifiées côté serveur (classes DRF par rôle et par offre) ; le front masque seulement ce qui est interdit.</li>
+<li>Access token 15 min, refresh 7 jours avec rotation, cookies httpOnly, Secure, SameSite=Lax ; protection CSRF.</li>
+<li>Argon2, limite de 5 tentatives de connexion par 15 min, vérification de l’email avant les envois.</li>
+<li>Liens publics (devis, RSVP) avec jetons aléatoires non devinables ; QR codes signés HMAC.</li>
+<li>Journal d’audit : paiements, annulations, changements de rôle, suppressions, exports.</li>
+<li>En-têtes : HSTS, CSP stricte, X-Frame-Options, Referrer-Policy. Secrets uniquement dans les variables d’environnement.</li>
+<li>Suppression logique pour les données métier ; export complet des données d’une organisation sur demande.</li>
+</ul>
+</section>
+
+<section id="s12"><h2><span class="n">12</span>Qualité et tests</h2>
+<ul>
+<li>Backend : pytest-django, couverture minimale de 85 % sur <code>services.py</code> et les permissions ; tests d’isolation multi-tenant sur chaque endpoint ; tests des calculs (totaux, remise, acompte, solde, marge) avec l’exemple de référence.</li>
+<li>Frontend : Vitest pour composables et composants de base ; Playwright pour les parcours : création de compte, création et envoi d’un devis, conversion en contrat, enregistrement d’un paiement, kanban.</li>
+<li>Outils : ruff, black, mypy (backend) ; ESLint, Prettier, vue-tsc (frontend) ; pre-commit.</li>
+<li>CI (GitHub Actions) : lint, tests, build, analyse des dépendances.</li>
+<li>Performance : pas de requête N+1 (select_related, prefetch_related), réponses API sous 300 ms pour les listes paginées, premier affichage de la SPA rapide sur mobile en 3G.</li>
+</ul>
+</section>
+
+<section id="s13"><h2><span class="n">13</span>Déploiement</h2>
+<p>Services Docker Compose : <code>nginx</code>, <code>frontend</code> (build statique servi par Nginx), <code>api</code> (Gunicorn + Uvicorn), <code>worker</code>, <code>beat</code>, <code>db</code> (PostgreSQL 16), <code>redis</code>, <code>minio</code> (en local).</p>
+<pre>server {
+  listen 443 ssl http2;
+  server_name ~^(?&lt;tenant&gt;[a-z0-9-]+)\.wedivo\.app$;
+  ssl_certificate     /etc/letsencrypt/live/wedivo.app/fullchain.pem;
+  ssl_certificate_key /etc/letsencrypt/live/wedivo.app/privkey.pem;
+  root /usr/share/nginx/html;
+  gzip on;
+
+  location /api/ {
+    limit_req zone=api burst=40 nodelay;
+    proxy_pass http://api:8000;
+    proxy_set_header Host $host;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    proxy_set_header X-Forwarded-Proto $scheme;
+  }
+  location /assets/ { expires 1y; add_header Cache-Control "public, immutable"; }
+  location / { try_files $uri /index.html; }
+}</pre>
+<ul>
+<li>Certificat wildcard Let’s Encrypt (challenge DNS).</li>
+<li>Sauvegardes PostgreSQL quotidiennes, rétention 30 jours, procédure de restauration testée.</li>
+<li>Migrations exécutées automatiquement au déploiement, avant le redémarrage de l’API.</li>
+<li>Environnements : dev, staging, production ; <code>.env.example</code> documenté.</li>
+</ul>
+</section>
+
+<section id="s14"><h2><span class="n">14</span>Règles de travail pour l’IA</h2>
+<ol>
+<li>Travaille par étapes (voir les prompts par étape). Au début de chaque étape, présente un plan court : fichiers créés ou modifiés, choix techniques. Puis implémente.</li>
+<li>N’invente pas de fonctionnalités hors de ce document. Si une information manque, choisis l’option la plus simple, signale l’hypothèse dans le résumé et continue.</li>
+<li>La logique métier vit dans les services Django, jamais dans les vues ni dans les composants Vue.</li>
+<li>Tout code qui lit ou écrit des données métier respecte l’isolation par organisation.</li>
+<li>Écris les tests en même temps que le code. Une étape n’est pas terminée si les tests échouent.</li>
+<li>Textes de l’interface en français, centralisés dans des fichiers de traduction (vue-i18n) pour permettre l’anglais plus tard. Code, noms de variables et commentaires en anglais.</li>
+<li>Pas de données en dur dans les composants : tout passe par l’API. Pas de prix d’abonnement dans le code.</li>
+<li>Gère les états de chargement (squelettes), d’erreur (message et action) et vides (invitation à agir) sur chaque écran.</li>
+<li>Commits petits et nommés en convention Conventional Commits.</li>
+<li>À la fin de chaque étape, fournis : résumé, commandes pour lancer et tester, limites connues, prochaine étape.</li>
+</ol>
+</section>
+
+<section id="s15"><h2><span class="n">15</span>Définition de terminé (MVP Phase 1)</h2>
+<ul>
+<li><code>make dev</code> lance toute la plateforme en local ; <code>make seed</code> charge les données de démonstration.</li>
+<li>Une agence peut créer son compte, obtenir son sous-domaine, inviter un membre et se connecter.</li>
+<li>Elle peut ajouter des prospects, les déplacer dans le kanban, programmer des relances.</li>
+<li>Elle peut créer un devis depuis le catalogue, l’envoyer par email en PDF, voir les relances partir automatiquement, le convertir en contrat.</li>
+<li>Elle peut enregistrer des paiements et voir le solde et la marge se mettre à jour sur le tableau de bord.</li>
+<li>Les données de deux agences sont strictement isolées (tests verts).</li>
+<li>L’interface respecte le design system, fonctionne sur mobile et en thème sombre.</li>
+<li>Tous les tests et le lint passent en CI ; le README explique l’installation et le déploiement.</li>
+</ul>
+</section>
+</div>
+
+<section id="steps" style="background:transparent;border:0;padding:0;margin-top:34px">
+<h2 style="font-size:22px;margin-bottom:6px">Prompts d’exécution par étape</h2>
+<p style="color:var(--muted);margin-bottom:8px;max-width:70ch">À donner un par un, après avoir placé le prompt complet dans le projet. Attendez la fin et la validation de chaque étape avant la suivante.</p>
+<div id="stepList"></div>
+</section>
+</main>
+</div>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script>
+const STEPS=[
+['Étape 1 — Socle du projet','Lis le fichier de spécifications Wedivo à la racine. Crée le monorepo décrit en section 4 : backend Django 5.2 (settings dev/prod, django-environ, DRF, drf-spectacular, Celery), frontend Vue 3 + Vite + TypeScript strict + Tailwind avec le preset des tokens de la section 6, dossier infra avec docker-compose.dev.yml (nginx, api, worker, beat, db PostgreSQL 16, redis 7, minio), Makefile (dev, test, lint, migrate, seed) et .env.example. Configure ruff, black, mypy, ESLint, Prettier, pre-commit et une CI GitHub Actions. Vérifie que make dev démarre tout et qu’une page d’accueil Vue appelle /api/v1/health avec succès. Termine par un résumé et les commandes.'],
+['Étape 2 — Multi-tenant et comptes entreprises','Implémente la section 5 : modèle User personnalisé (email comme identifiant), Organization, Membership avec rôles, TenantModel, TenantManager, TenantMiddleware (sous-domaine et en-tête X-Organization en dev), contextvar, politiques Row-Level Security par migration, permissions par rôle. Ajoute les endpoints d’authentification (signup en transaction, login, refresh, logout, slug-available, vérification d’email, réinitialisation) avec JWT en cookies httpOnly et limites Redis. Écris les tests d’isolation entre deux organisations. Ajoute la commande seed_demo (organisation Maison Élégance Events à Abidjan).'],
+['Étape 3 — Design system et coquille de l’application','Construis le design system de la section 6 : tokens.css (clair et sombre), composants W* listés, typographies Sora et Manrope, composable useMoney (FCFA, format court en M), useDate (français, fuseau de l’organisation), useToast. Crée AuthLayout et AppLayout : barre latérale groupée avec indicateur actif en dégradé ruban, sélecteur d’entreprise, barre supérieure avec palette Ctrl+K et bascule de thème, barre d’onglets mobile, zones sûres iOS. Crée les écrans de connexion et l’assistant de création de compte en 3 étapes reliés à l’API, avec validation VeeValidate + Zod. Ajoute des tests Vitest pour les composants de base.'],
+['Étape 4 — Prospects et clients','Implémente le module 7.2 complet : modèles Prospect et Interaction, services, endpoints (CRUD, changement de statut, import CSV/XLSX avec détection des doublons), recherche pg_trgm. Côté front : kanban avec glisser-déposer et mise à jour optimiste, vue tableau, filtres, tiroir de fiche avec historique et programmation de relance, modale de création. Tests backend et test Playwright du kanban.'],
+['Étape 5 — Catalogue et devis','Implémente le module 7.3 : catalogue, devis et lignes, numérotation sans doublon, calculs côté serveur, gabarit PDF WeasyPrint aux couleurs Wedivo avec logo de l’organisation, génération et envoi par Celery, page publique du devis avec acceptation, duplication, conversion en contrat (contrat, échéancier, fiche mariage, prospect confirmé). Côté front : liste avec onglets de statut et éditeur avec aperçu en direct. Teste les calculs, la numérotation concurrente et le parcours complet en Playwright.'],
+['Étape 6 — Relances programmées','Implémente le module 7.4 et la section 10 : ReminderRule, ReminderJob, règles par défaut créées au signup, modèles avec variables, tâche Celery dispatch_due_jobs toutes les 15 min avec revérification de la condition, idempotence par verrou Redis, plage horaire 8 h–20 h selon le fuseau. Écran Relances : règles activables, file à faire / à venir / faites, bandeau des prospects sans relance avec action groupée, message WhatsApp à copier. Tests des cas d’annulation automatique.'],
+['Étape 7 — Paiements, finances et tableau de bord','Implémente le module 7.5 et 7.1 : contrats, échéancier, paiements avec répartition sur les échéances, annulation tracée, reçu PDF, résumé financier en cache Redis invalidé à chaque paiement, export CSV/Excel, endpoint dashboard/summary. Écrans Finances (tuiles, tableau des contrats, tiroir de détail avec la mention sur la marge) et Tableau de bord (bloc solde à recevoir sur fond encre avec rubans, indicateurs, graphique ECharts des encaissements, pipeline, relances du jour, prochains mariages). Teste avec l’exemple 1 500 000 / 900 000 / 500 000.'],
+['Étape 8 — Paramètres, équipe et abonnement','Implémente le module 7.9 : profil de l’entreprise et logo, invitations d’équipe par email avec rôle, tableau des droits, gestion du catalogue et des modèles de messages, offres stockées en base avec limites (utilisateurs, modules) appliquées côté serveur et par garde de route côté front, période d’essai et notification de fin d’essai. Le MVP Phase 1 doit alors satisfaire la section 15 : vérifie chaque point et liste ce qui manque.'],
+['Étape 9 — Phase 2 : mariages, calendrier, prestataires','Implémente les modules 7.6 et 7.7 : mariages, tâches avec modèle standard, alertes d’échéance, calendrier mensuel et agenda (mariages, tâches, paiements), prestataires, associations et dépenses alimentant la marge par mariage. Tests et parcours Playwright.'],
+['Étape 10 — Phase 3 : invitations, QR codes, déploiement','Implémente le module 7.8 : invités, codes uniques, QR signés HMAC avec segno, PDF par invité, envoi par email, page RSVP publique, statistiques, mode contrôle à l’entrée mobile (scan caméra et saisie). Puis finalise la section 13 : docker-compose.prod.yml, configuration Nginx wildcard avec TLS, sauvegardes, Sentry, et documente la mise en production dans le README.']
+];
+const esc=s=>s.replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
+document.getElementById('stepList').innerHTML=STEPS.map((s,i)=>`<div class="step"><div class="step-h"><b>${esc(s[0])}</b><button class="btn sm" data-step="${i}">Copier</button></div><pre>${esc(s[1])}</pre></div>`).join('');
+const toastEl=document.getElementById('toast');
+function toast(m){toastEl.textContent=m;toastEl.classList.add('on');clearTimeout(toast.t);toast.t=setTimeout(()=>toastEl.classList.remove('on'),2200)}
+async function copy(text,msg){
+  try{await navigator.clipboard.writeText(text);toast(msg)}
+  catch(e){const ta=document.createElement('textarea');ta.value=text;ta.style.position='fixed';ta.style.opacity='0';document.body.appendChild(ta);ta.select();
+    try{document.execCommand('copy');toast(msg)}catch(_){toast('Sélectionnez le texte et copiez-le manuellement.')}ta.remove()}
+}
+document.addEventListener('click',e=>{
+  const c=e.target.closest('[data-copy]');
+  if(c){copy('# Spécifications Wedivo — prompt de développement\n\n'+document.getElementById('prompt').innerText,'Prompt complet copié');return}
+  const s=e.target.closest('[data-step]');
+  if(s){const st=STEPS[+s.dataset.step];copy(st[0]+'\n\n'+st[1],st[0].split(' — ')[0]+' copiée')}
+});
+document.getElementById('themeBtn').addEventListener('click',()=>{
+  const r=document.documentElement;const dark=r.dataset.theme?r.dataset.theme==='dark':matchMedia('(prefers-color-scheme: dark)').matches;
+  r.dataset.theme=dark?'light':'dark';try{localStorage.setItem('wedivo-doc-theme',r.dataset.theme)}catch(e){}
+});
+try{const t=localStorage.getItem('wedivo-doc-theme');if(t)document.documentElement.dataset.theme=t}catch(e){}
+</script>
+</body>
+</html>

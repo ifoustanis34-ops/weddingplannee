@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<title>Reçu {{ payment.receipt_number }}</title>
+<style>
+  @font-face { font-family: Manrope; font-weight: 400; src: url("fonts/manrope-latin-400-normal.woff"); }
+  @font-face { font-family: Manrope; font-weight: 600; src: url("fonts/manrope-latin-600-normal.woff"); }
+  @font-face { font-family: Manrope; font-weight: 700; src: url("fonts/manrope-latin-700-normal.woff"); }
+  @font-face { font-family: Sora; font-weight: 600; src: url("fonts/sora-latin-600-normal.woff"); }
+  @font-face { font-family: Sora; font-weight: 700; src: url("fonts/sora-latin-700-normal.woff"); }
+  @page { size: A4; margin: 18mm 16mm 20mm;
+    @bottom-left { content: "{{ organization.name|cut:'"'|cut:'\\' }} · Reçu {{ payment.receipt_number }}"; font: 8pt Manrope; color: #85829f; } }
+  body { font: 9.5pt/1.5 Manrope, "DejaVu Sans", sans-serif; color: #17153b; margin: 0; }
+  header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12mm; }
+  .brand { display: flex; align-items: center; gap: 10px; }
+  .brand img { height: 46px; }
+  .initial { width: 42px; height: 42px; border-radius: 10px; background: #17153b; color: #fff; font: 700 18pt/42px Sora; text-align: center; }
+  .name { font: 700 14pt Sora; }
+  .muted { color: #85829f; font-size: 8.5pt; }
+  .doc { text-align: right; }
+  .doc h1 { font: 600 20pt Sora; margin: 0; }
+  .doc .number { color: #5126c2; font: 700 11pt Sora; }
+  .amount-box { border: 1.5px solid #17153b; border-radius: 12px; padding: 14px 18px; margin-bottom: 8mm; display: flex; justify-content: space-between; align-items: center; }
+  .amount-box .value { font: 700 20pt Sora; font-variant-numeric: tabular-nums; }
+  .cards { display: flex; gap: 8mm; margin-bottom: 8mm; }
+  .card { flex: 1; border: 1px solid #e5e2f0; border-radius: 10px; padding: 10px 12px; }
+  .label { color: #85829f; font-size: 7.5pt; font-weight: 700; margin-bottom: 3px; }
+  table { width: 100%; border-collapse: collapse; }
+  th { text-align: left; font-size: 7.5pt; color: #85829f; padding: 6px 8px; border-bottom: 1.5px solid #17153b; }
+  td { padding: 7px 8px; border-bottom: 1px solid #e5e2f0; font-variant-numeric: tabular-nums; }
+  .right { text-align: right; }
+  .totals { margin-left: auto; width: 80mm; margin-top: 6mm; }
+  .totals td { border: none; padding: 3px 8px; }
+  .totals .strong td { font: 700 11pt Sora; border-top: 1.5px solid #17153b; padding-top: 7px; }
+  footer { margin-top: 10mm; color: #85829f; font-size: 7.5pt; white-space: pre-line; }
+</style>
+</head>
+<body>
+  <header>
+    <div class="brand">
+      {% if logo_url %}<img src="{{ logo_url }}" alt="">{% else %}<div class="initial">{{ organization.name|first }}</div>{% endif %}
+      <div><div class="name">{{ organization.name }}</div><div class="muted">{{ organization.city }}</div></div>
+    </div>
+    <div class="doc">
+      <h1>Reçu de paiement</h1>
+      <div class="number">{{ payment.receipt_number }}</div>
+      <div class="muted">Contrat {{ contract.number }}</div>
+    </div>
+  </header>
+
+  <div class="amount-box">
+    <div><div class="label">Montant reçu</div><div class="muted">{{ method }}{% if payment.reference %} · réf. {{ payment.reference }}{% endif %} · le {{ paid_at }}</div></div>
+    <div class="value">{{ amount }}</div>
+  </div>
+
+  <div class="cards">
+    <div class="card"><div class="label">Reçu de</div><strong>{{ client.name }}</strong>{% if client.phone %}<div>{{ client.phone }}</div>{% endif %}{% if client.email %}<div>{{ client.email }}</div>{% endif %}</div>
+    <div class="card"><div class="label">Mariage</div><strong>{{ wedding_date }}</strong></div>
+  </div>
+
+  <table>
+    <thead><tr><th>Échéance</th><th>Date</th><th class="right">Montant</th><th class="right">Situation</th></tr></thead>
+    <tbody>
+      {% for line in schedule %}<tr><td>{{ line.label }}</td><td>{{ line.due_date }}</td><td class="right">{{ line.amount }}</td><td class="right">{{ line.status }}</td></tr>{% endfor %}
+    </tbody>
+  </table>
+
+  <table class="totals">
+    <tr><td>Montant du contrat</td><td class="right">{{ contract_total }}</td></tr>
+    <tr><td>Total encaissé</td><td class="right">{{ collected }}</td></tr>
+    <tr class="strong"><td>Reste à payer</td><td class="right">{{ balance }}</td></tr>
+  </table>
+
+  {% if organization.legal_mentions %}<footer>{{ organization.legal_mentions }}</footer>{% endif %}
+</body>
+</html>

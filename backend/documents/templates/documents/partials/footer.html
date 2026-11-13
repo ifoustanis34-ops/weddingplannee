@@ -1,0 +1,15 @@
+{% load documents %}<div class="footer">
+  <svg class="curve" viewBox="0 0 210 6" preserveAspectRatio="none"><path d="M0 6 C 70 6, 140 5, 210 0 L 210 6 Z" fill="{{ p.dark }}"/><path d="M0 5.2 C 70 5.6, 140 4.4, 210 .2" fill="none" stroke="{{ p.accent_grad.1 }}" stroke-width=".5"/></svg>
+  <div class="cols">
+    <div class="col">
+      {% if phone %}<div class="row">{{ icon.phone|tint:'#FFFFFF' }}<span>{{ phone }}</span></div>{% endif %}
+      {% if agency.email %}<div class="row">{{ icon.mail|tint:'#FFFFFF' }}<span>{{ agency.email }}</span></div>{% endif %}
+    </div>
+    {% if agency.address %}<div class="col"><div class="row">{{ icon.pin|tint:'#FFFFFF' }}<span>{{ agency.address }}</span></div></div>{% endif %}
+    {% if social_handle %}<div class="col"><div class="icons">{% for svg in social_icons %}{{ svg|tint:'#FFFFFF' }}{% endfor %}</div><div class="row">{{ social_handle }}</div></div>{% endif %}
+    {% if footer_brand %}<div class="col end" style="border-left: 0"><p class="script" style="text-align: right; color: #fff; font-size: 13pt">{{ agency.trade_name }}</p>{% if agency.slogan %}<p class="script" style="text-align: right; font-size: 10pt; color: #fff">{{ agency.slogan }}</p>{% endif %}</div>
+    {% elif scripts.footer %}<div class="col end"><p class="script">{{ scripts.footer }}</p></div>{% endif %}
+  </div>
+  {% if agency.show_wedivo_mention %}<div class="wedivo">Réalisé avec Wedivo</div>{% endif %}
+  {% if multipage %}<span class="pageno"></span>{% endif %}
+</div>

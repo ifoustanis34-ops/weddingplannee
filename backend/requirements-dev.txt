@@ -1,0 +1,15 @@
+# Development and CI tooling
+pytest==9.1.1
+pytest-django==4.14.0
+pytest-cov==7.1.0
+factory-boy==3.3.3
+# Visual fidelity test of the documents (SSIM, docs/specs/devis-billets.md §12)
+numpy==2.5.4
+# Decodes the QR codes and Code 128 barcodes of the tickets in the tests
+zxing-cpp==3.1.1
+ruff==0.17.1
+black==26.10.1
+mypy==1.19.1
+django-stubs==5.2.9
+djangorestframework-stubs==3.16.9
+pre-commit==4.7.0

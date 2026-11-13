@@ -1,0 +1,55 @@
+[project]
+name = "wedivo-backend"
+version = "0.1.0"
+requires-python = ">=3.12"
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+extend-exclude = ["*/migrations/*"]
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "B", "UP", "DJ", "S", "SIM", "RUF"]
+ignore = [
+    "S101",
+    "RUF001", "RUF002", "RUF003",  # French typography uses the ’ apostrophe on purpose
+    "RUF012",  # DRF class attributes (permission_classes...) are lists by convention
+]
+
+[tool.ruff.lint.per-file-ignores]
+"config/settings/*.py" = ["F405"]
+"conftest.py" = ["S105", "S106"]
+"tests/*" = ["S105", "S106"]
+"*/tests/*" = ["S105", "S106"]
+"core/management/commands/seed_demo.py" = ["S105"]
+"core/management/commands/seed_e2e.py" = ["S105"]
+
+[tool.black]
+line-length = 100
+target-version = ["py312"]
+
+[tool.mypy]
+python_version = "3.12"
+strict = true
+plugins = ["mypy_django_plugin.main", "mypy_drf_plugin.main"]
+exclude = ["migrations/"]
+
+[[tool.mypy.overrides]]
+module = ["environ.*", "celery.*", "drf_spectacular.*", "corsheaders.*", "django_filters.*", "openpyxl.*", "weasyprint", "weasyprint.*", "segno", "segno.*", "pypdfium2", "pypdfium2.*", "zxingcpp", "pywebpush", "pywebpush.*", "py_vapid", "py_vapid.*"]
+ignore_missing_imports = true
+
+[[tool.mypy.overrides]]
+module = ["conftest", "tests.*", "*.tests.*"]
+disallow_untyped_calls = false
+
+[[tool.mypy.overrides]]
+module = ["factory", "factory.*"]
+implicit_reexport = true
+
+[tool.django-stubs]
+django_settings_module = "config.settings.test"
+
+[tool.pytest.ini_options]
+DJANGO_SETTINGS_MODULE = "config.settings.test"
+python_files = ["test_*.py"]
+addopts = "-q"

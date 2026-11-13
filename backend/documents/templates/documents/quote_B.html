@@ -1,0 +1,150 @@
+{% extends "documents/quote_base.html" %}
+{% load documents %}
+{% comment %} Devis B « Élégance » — docs/rendus/analyse-devis.md §3 (A4: vertical blocks −5.7 %). {% endcomment %}
+
+{% block footer_height %}39mm{% endblock %}
+
+{% block style %}
+.head { position: relative; height: 47mm; }
+.head .brand { position: absolute; left: 9mm; top: 9mm; }
+.head .brand .logo { height: 21mm; width: 24mm; }
+.head .photo { position: absolute; left: 86mm; top: 0; width: 124mm; height: 49mm; }
+.head .panel { position: absolute; right: 0; top: 6mm; width: 55mm; height: 42mm; padding: 5mm 5mm 0 13mm; color: #fff; font-size: 7.4pt; line-height: 1.55; }
+.head .panel .rule { width: 12mm; height: .4mm; background: var(--doc-accent); margin: 2.5mm 0 1.5mm; }
+.head .panel .script { font-size: 13.5pt; color: var(--doc-accent-2); transform: rotate(-6deg); display: block; }
+
+.main { position: relative; min-height: 200mm; }
+.side { position: absolute; left: 6mm; top: 1mm; width: 49mm; height: 197mm; background: #F9F8F7; border-radius: 4mm; overflow: hidden; }
+.side .inner { padding: 0 3mm 0 3mm; }
+.side .devis { font: 800 28pt/1 "Montserrat"; color: var(--doc-text); }
+.side .no { font-size: 9pt; font-weight: 500; margin-top: 1mm; }
+.side .tagline { font-style: italic; color: var(--doc-dark); margin-top: 4mm; line-height: 1.45; }
+.side .facts { margin-top: 5mm; border-top: .25mm solid #E3E1DC; }
+.side .fact { display: flex; gap: 3mm; padding: 3mm 0; border-bottom: .25mm solid #E3E1DC; font-size: 6.6pt; }
+.side .fact .ic { width: 5.5mm; height: 5.5mm; flex: none; }
+.side .fact b { display: block; font-weight: 700; margin-bottom: .6mm; }
+.side .priority { font-size: 15pt; line-height: 1.05; margin-top: 5mm; transform: rotate(-8deg); }
+.side .priority svg { width: 36mm; height: 3mm; display: block; margin-top: 1mm; }
+.side .photo { position: absolute; left: 0; bottom: 0; width: 49mm; height: 78mm; }
+
+.right { margin: 7mm 5mm 0 61mm; }
+table.lines .ic { color: var(--doc-accent); }
+table.lines .desc { color: var(--doc-accent-1); }
+.totals { margin-top: 9mm; break-inside: avoid; }
+.band { position: relative; display: flex; align-items: center; border-radius: 2.3mm; overflow: hidden; }
+.band.total { height: 12mm; background: var(--doc-accent-grad); }
+.band.total .ic { width: 7mm; height: 7mm; margin: 0 4mm 0 5mm; }
+.band.total .label { font-weight: 800; font-size: 10.5pt; }
+.band.total .dark { position: absolute; right: 0; top: 0; bottom: 0; width: 64mm; background: var(--doc-dark); color: #fff; display: flex; align-items: center; justify-content: flex-end; padding-right: 6mm; font-weight: 700; font-size: 15pt; }
+.band.total .dark::before { content: ""; position: absolute; left: -6mm; top: 0; bottom: 0; width: 12mm; background: var(--doc-dark); transform: skewX(-24deg); }
+.band.discount { height: 7.5mm; margin-top: 1.5mm; background: #F2F5F9; font-size: 6.8pt; font-weight: 600; }
+.band.discount .ic { width: 4.5mm; height: 4.5mm; margin: 0 4mm 0 6mm; }
+.band.discount .amount { margin-left: auto; padding-right: 6mm; font-weight: 700; }
+.band.final { height: 12mm; margin-top: 1.5mm; background: var(--doc-dark); color: #fff; border-radius: 3mm; }
+.band.final .script { font-size: 17pt; margin-left: 6mm; }
+.band.final .line { width: 18mm; height: .3mm; background: var(--doc-accent); margin: 0 4mm; }
+.band.final .amount { margin-left: auto; padding-right: 6mm; font-weight: 800; font-size: 17pt; color: var(--doc-accent-2); }
+.cards { display: flex; gap: 3mm; margin-top: 1.5mm; break-inside: avoid; }
+.card { background: #F2F5F9; border: .25mm solid #E3E8EF; border-radius: 3mm; padding: 3mm 4mm; height: 32mm; }
+.card.conditions { width: 76mm; }
+.card.conditions h3 { display: flex; align-items: center; gap: 2.5mm; font-size: 8pt; font-weight: 700; margin-bottom: 3mm; }
+.card.conditions h3 .ic { width: 6mm; height: 6mm; }
+.card.conditions ol { padding-left: 3.6mm; font-size: 5.8pt; line-height: 1.55; }
+.card.conditions li { margin-bottom: 1mm; }
+.card.thanks { flex: 1; text-align: center; background: #F7F8FA; }
+.card.thanks .script { font-size: 16pt; line-height: 1.1; transform: rotate(-5deg); display: block; }
+.card.thanks .text { font-size: 6.4pt; margin-top: 3mm; line-height: 1.5; padding: 0 3mm; }
+.card.thanks .team { font-weight: 700; font-size: 6.6pt; margin-top: 2mm; }
+.card.thanks .sign { height: 8mm; }
+
+.footer-b { position: running(footer); width: 210mm; height: var(--footer-h); }
+.footer-b .footer { position: absolute; left: 0; bottom: 0; height: 22mm; }
+.footer-b .footer .cols { padding-top: 6.5mm; }
+.engagements { display: flex; height: 12mm; align-items: center; margin: 0 6mm; overflow: hidden; }
+.engagements .item { flex: 1; display: flex; align-items: center; gap: 2.5mm; padding: 0 3mm; border-left: .25mm solid #D9D3C6; font-size: 5.8pt; line-height: 1.4; }
+.engagements .item:first-child { border-left: 0; }
+.engagements .ic { width: 7mm; height: 7mm; flex: none; }
+{% endblock %}
+
+{% block content %}
+<section class="head">
+  {% include "documents/partials/brand.html" %}
+  <svg class="photo" viewBox="0 0 124 49" preserveAspectRatio="none">
+    <defs>
+      <clipPath id="cut"><path d="M0 0 L124 0 L124 49 L8 49 C 4 40, 2 20, 0 0 Z"/></clipPath>
+      <linearGradient id="ph" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="{{ p.dark_2 }}"/><stop offset="1" stop-color="{{ p.dark }}"/></linearGradient>
+      <linearGradient id="fade" x1="0" x2="1"><stop offset="0" stop-color="{{ p.paper }}" stop-opacity="1"/><stop offset=".12" stop-color="{{ p.paper }}" stop-opacity="0"/></linearGradient>
+    </defs>
+    {% if hero_photo %}<image href="{{ hero_photo }}" x="0" y="0" width="124" height="49" preserveAspectRatio="xMidYMid slice" clip-path="url(#cut)"/>
+    {% else %}<path d="M0 0 L124 0 L124 49 L8 49 C 4 40, 2 20, 0 0 Z" fill="url(#ph)"/>{% include "documents/partials/bokeh.html" %}{% endif %}
+    <rect x="0" y="0" width="124" height="49" fill="url(#fade)"/>
+    <path d="M70 6 L124 6 L124 48 L58 48 Z" fill="{{ p.dark }}"/>
+    <path d="M58 48 L70 6" stroke="{{ p.accent_grad.1 }}" stroke-width=".5"/>
+  </svg>
+  <div class="panel">
+    {% for item in activities %}<p>{{ item.label }}</p>{% endfor %}
+    <div class="rule"></div>
+    {% if scripts.detail %}<span class="script">{{ scripts.detail }}</span>{% endif %}
+  </div>
+</section>
+
+<section class="main">
+  <aside class="side">
+    <div class="inner">
+      <p class="devis">{{ doc_label|default:"DEVIS" }}</p>
+      <p class="no">N° {{ quote.number|default:"—" }}</p>
+      {% if tagline_fit.text %}<p class="tagline" style="font-size: {{ tagline_fit.size }}pt">{{ tagline_fit.text }}</p>{% endif %}
+      <div class="facts">
+        <div class="fact">{{ icon.calendar|tint:p.dark }}<div><b>Date d’émission</b>{{ issue_date }}</div></div>
+        <div class="fact">{{ icon.user|tint:p.dark }}<div><b>Client</b>{{ quote.client.name|default:"—" }}</div></div>
+        {% if quote.event.venue %}<div class="fact">{{ icon.pin|tint:p.dark }}<div><b>Lieu</b>{{ quote.event.venue }}</div></div>{% endif %}
+        {% if guests %}<div class="fact">{{ icon.users|tint:p.dark }}<div><b>Nombre d’invités</b>{{ guests }}</div></div>{% endif %}
+      </div>
+      {% if scripts.priority %}<div class="priority script">{{ scripts.priority }}{% include "documents/partials/curve.html" with cls="prio-curve" %}</div>{% endif %}
+    </div>
+    <svg class="photo" viewBox="0 0 49 78" preserveAspectRatio="none">
+      <defs>
+        <clipPath id="sidecut"><path d="M0 8 C 20 0, 40 6, 49 18 L49 78 L0 78 Z"/></clipPath>
+        <linearGradient id="ph2" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="{{ p.dark_2 }}"/><stop offset="1" stop-color="{{ p.dark }}"/></linearGradient>
+      </defs>
+      {% if side_photo %}<image href="{{ side_photo }}" x="0" y="0" width="49" height="78" preserveAspectRatio="xMidYMid slice" clip-path="url(#sidecut)"/>
+      {% else %}<path d="M0 8 C 20 0, 40 6, 49 18 L49 78 L0 78 Z" fill="url(#ph2)"/>{% endif %}
+      <path d="M0 8 C 20 0, 40 6, 49 18" fill="none" stroke="{{ p.accent_grad.1 }}" stroke-width=".8"/>
+    </svg>
+  </aside>
+
+  <div class="right">
+    {% include "documents/partials/table.html" with widths="10mm,63mm,18mm,27mm,26mm"|split row_height="12.2mm" icon_color=p.accent show_icons=True show_descriptions=True designation_title="Prestations" %}
+    <div class="totals">
+      <div class="band total">{{ icon.coins|tint:p.dark }}<span class="label">TOTAL DES PRESTATIONS</span><span class="dark num">{{ subtotal }}</span></div>
+      {% if discount %}<div class="band discount">{{ icon.tag|tint:p.dark }}<span>Remise commerciale</span><span class="amount num">-&nbsp;{{ discount }}</span></div>{% endif %}
+      <div class="band final"><span class="script">Montant final après remise</span><span class="line"></span><span class="amount num">{{ total }}</span></div>
+    </div>
+    <div class="cards">
+      <div class="card conditions">
+        <h3>{{ icon.wallet|tint:p.dark }}Conditions de paiement</h3>
+        <ol>{% for term in quote.payment_terms|slice:":5" %}<li>{{ term }}</li>{% endfor %}</ol>
+      </div>
+      <div class="card thanks">
+        {% if scripts.thanks %}<span class="script">{{ scripts.thanks }}</span>{% endif %}
+        <p class="text">{{ thanks_text }}</p>
+        <p class="team">{{ team_signature }}</p>
+        {% if signature_url %}<img class="sign" src="{{ signature_url }}" alt="">{% endif %}
+      </div>
+    </div>
+  </div>
+</section>
+
+
+{% endblock %}
+
+{% block footer %}
+<div class="footer-b">
+  {% if engagements %}
+  <div class="engagements">
+    {% for item in engagements %}<div class="item">{{ item.svg|tint:p.accent }}<span>{{ item.label }}</span></div>{% endfor %}
+  </div>
+  {% endif %}
+  {% include "documents/partials/footer.html" with footer_brand=True %}
+</div>
+{% endblock %}

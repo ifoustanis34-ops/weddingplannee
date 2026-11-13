@@ -1,0 +1,109 @@
+{
+  "_note": "Données visibles sur les images de référence (devis/, billets/). Servent au test de fidélité (docs/specs/devis-billets.md §12). Les montants des images sont faux : 'computed' donne ceux que Wedivo calculera.",
+  "agency": {
+    "trade_name": "M'PLANNER",
+    "activity": "Gestion & organisation d'événements",
+    "slogan": "Vos rêves, notre organisation",
+    "activities": ["Mariages", "Anniversaires", "Soirées privées", "Événements professionnels"],
+    "quote_tagline": "Une organisation sur mesure pour faire de votre événement un moment inoubliable.",
+    "engagements": [
+      "Qualité du matériel et décoration haut de gamme",
+      "Une équipe expérimentée et à votre écoute",
+      "Respect des délais et du planning",
+      "Un accompagnement personnalisé"
+    ],
+    "engagements_b": [
+      "Équipe professionnelle et dédiée",
+      "Décoration élégante et raffinée",
+      "Respect des délais et du planning",
+      "Accompagnement personnalisé"
+    ],
+    "scripts": {
+      "satisfaction": "Votre satisfaction est notre plus belle réussite !",
+      "detail": "Chaque détail compte…",
+      "detail_sub": "Nous créons des instants uniques, à votre image.",
+      "priority": "Votre événement, notre priorité !",
+      "thanks": "Merci pour votre confiance !",
+      "thanks_text": "Nous mettons tout en œuvre pour faire de votre événement un moment unique et inoubliable.",
+      "footer": "Ensemble, rendons vos événements uniques !"
+    },
+    "signatory": "L'équipe M'PLANNER",
+    "signatory_role": "La Gestionnaire",
+    "phones": ["+237 6 12 34 56 78"],
+    "email": "contact@mplanner.cm",
+    "email_variant_a_c": "contact@mplanner.cm",
+    "address": "Bafoussam, Cameroun",
+    "address_d": "M'PLANNER – Cameroun",
+    "website": "mplanner.cm",
+    "socials": {"facebook": "@mplanner", "instagram": "@mplanner", "tiktok": "@mplanner", "whatsapp": "@mplanner"},
+    "footer_keywords": ["Événements", "Mariages", "Cérémonies", "Entreprises"],
+    "palette": "nuit-or"
+  },
+  "partner": {
+    "name": "SAGUIE ETEMO",
+    "activity": "Wedding Planner & Event Design",
+    "signatory_role": "La Responsable"
+  },
+  "quote": {
+    "number": "DE-2025-0048",
+    "issue_date": "2027-02-14",
+    "client": {"name": "M. & Mme Diallo", "phone": "+237 6 12 34 56 78", "email": "diallo@mail.com", "email_d": "diallo@gmail.com"},
+    "event": {"type": "Mariage", "date": "2027-02-14", "venue": "Salle des Fêtes – Bafoussam", "guests": 250},
+    "lines": [
+      {"label": "Location de tables (10 personnes)", "description": "Tables rondes + chaises élégantes", "icon": "table", "quantity": 20, "unit_price": 5000},
+      {"label": "Location de chaises", "description": "Chaises en tissu + housses", "icon": "chair", "quantity": 250, "unit_price": 1000},
+      {"label": "Décoration de la salle", "description": "Centres de tables, fleurs, éclairage", "icon": "flower", "quantity": 1, "unit_price": 300000},
+      {"label": "Décoration des tables", "description": "Nappes, chemins de table, accessoires", "icon": "arch", "quantity": 20, "unit_price": 7500},
+      {"label": "Arche nuptiale & espace photo", "description": "Arche, fond photo, accessoires", "icon": "camera", "quantity": 1, "unit_price": 100000},
+      {"label": "Fleurs & accessoires", "description": "Bouquets, boutonnières, décor floral", "icon": "bouquet", "quantity": 1, "unit_price": 125000},
+      {"label": "Installation & démontage", "description": "Sonorisation, éclairage, mise en place", "icon": "tools", "quantity": 1, "unit_price": 75000},
+      {"label": "Coordination du jour J", "description": "Suivi et gestion de l'événement", "icon": "calendar-check", "quantity": 1, "unit_price": 150000}
+    ],
+    "discount_amount": 50000,
+    "discount_pct": 4,
+    "deposit_pct": 50,
+    "as_shown_on_images": {"subtotal_c_d": 1200000, "total_c_d": 1150000, "total_a_b_before_discount": 1150000, "final_a_b": 1100000, "deposit_d": 575000, "balance_d": 575000},
+    "computed": {"subtotal": 1250000, "discount": 50000, "total": 1200000, "deposit": 600000, "balance": 600000},
+    "payment_terms": [
+      "50% à la signature du devis pour la réservation de la date.",
+      "50% le jour de l'événement.",
+      "Tout changement après validation du devis peut entraîner une modification des tarifs.",
+      "Le devis est valable 15 jours à compter de la date d'émission."
+    ],
+    "terms_d": [
+      "Ce devis est valable pendant 30 jours à compter de la date d'émission.",
+      "Les prix sont exprimés en Francs CFA (FCFA).",
+      "Toute annulation doit être notifiée par écrit au moins 15 jours avant la date de l'événement.",
+      "Le solde est à régler au plus tard 7 jours avant la date de l'événement.",
+      "Des frais supplémentaires peuvent s'appliquer en cas de modification des prestations."
+    ],
+    "schedule_d": [
+      {"label": "Acompte à la réservation", "pct": 50, "when": "À la signature du devis"},
+      {"label": "Solde restant", "pct": 50, "when": "Au plus tard 7 jours avant l'événement"}
+    ],
+    "templates": {"A": "prestige", "B": "elegance", "C": "classique", "D": "partenariat"}
+  },
+  "tickets": {
+    "common": {
+      "title": "Invitation officielle",
+      "subtitle": "À notre mariage",
+      "intro": "Avec l'amour comme guide et la volonté de bâtir un avenir ensemble, nous avons la joie de vous inviter à célébrer notre union.",
+      "date": "2025-05-24T15:00",
+      "date_label": "Samedi 24 mai 2025 à 15h00",
+      "venue": "Salle des fêtes Le Grand Royaume",
+      "city": "Yaoundé, Cameroun",
+      "dress_code": "Tenue élégante (au choix)",
+      "stub_title": "Billet d'invitation",
+      "stub_subtitle": "Événement mariage",
+      "scan_hint": "Scannez ce code QR pour valider votre entrée",
+      "stub_script": "Merci de confirmer votre présence",
+      "code": "000248",
+      "guest_example": {"name": "Famille Kouassi", "seats": 4}
+    },
+    "or-noir": {"partner_1": "David", "partner_2": "Grâce", "panel_text": "Deux cœurs une même histoire", "bottom_slogan": "Amour • Engagement • Éternité", "script_line": "Votre présence est un bonheur pour nous !", "stub_footer": "Ensemble pour toujours", "monogram": false},
+    "bleu-royal": {"partner_1": "Daniel", "partner_2": "Estelle", "panel_text": "Un amour une vie ensemble", "bottom_slogan": "Bienvenue à notre histoire", "script_line": "Votre présence est un honneur pour nous !", "stub_footer": "Ensemble pour toujours", "monogram": false},
+    "emeraude": {"partner_1": "Samuel", "partner_2": "Chimène", "panel_text": null, "bottom_slogan": "Union ♡ Amour ♡ Pour la vie", "script_line": "Votre présence est un honneur pour nous !", "stub_footer": "Ensemble pour toujours", "monogram": true},
+    "emeraude-manuscrit": {"partner_1": "Samuel", "partner_2": "Chimène", "panel_text": "Amour • Engagement • Pour toujours", "bottom_slogan": null, "script_line": "Votre présence est un honneur pour nous !", "stub_footer": "Union pour la vie", "monogram": false},
+    "portrait-emeraude": {"partner_1": "Samuel", "partner_2": "Chimène", "date_row": "Samedi | 24 | Mai 2025 à 15h00", "script_line": "Votre présence est un honneur pour nous !", "stub_footer": "Union pour la vie", "monogram": false}
+  }
+}

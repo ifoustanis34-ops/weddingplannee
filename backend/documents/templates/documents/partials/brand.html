@@ -1,0 +1,12 @@
+<div class="brand">
+  {% if logo_url %}<img class="logo" src="{{ logo_url }}" alt="">{% else %}<div class="monogram">{{ agency.monogram }}</div>{% endif %}
+  <div class="who">
+    <p class="name" style="font-size: {{ name_fit.size }}pt">{{ name_fit.text }}</p>
+    {% if agency.activity %}<p class="activity">{{ agency.activity }}</p>{% endif %}
+    {% if agency.slogan %}
+      <p class="slogan">{{ agency.slogan }}</p>
+      {% include "documents/partials/curve.html" with cls="slogan-curve" %}
+    {% endif %}
+    {% if partner and not hide_partner_line %}<p class="partner-line">En partenariat avec <b>{{ partner.name }}</b>{% if partner.activity %} · {{ partner.activity }}{% endif %}</p>{% endif %}
+  </div>
+</div>

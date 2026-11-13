@@ -1,0 +1,174 @@
+{% load l10n documents %}{% localize off %}<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<title>Billet {{ code }}</title>
+{% comment %}
+  Billet « Ticket détachable », 200 × 118 mm — docs/rendus/analyse-billet.md (positions in mm
+  from the top left corner). Main part 0 → 139 mm, stub 139 → 200 mm.
+{% endcomment %}
+<style>
+@font-face { font-family: "Montserrat"; font-weight: 400; src: url("{{ fonts.m400 }}"); }
+@font-face { font-family: "Montserrat"; font-weight: 500; src: url("{{ fonts.m500 }}"); }
+@font-face { font-family: "Montserrat"; font-weight: 600; src: url("{{ fonts.m600 }}"); }
+@font-face { font-family: "Montserrat"; font-weight: 700; src: url("{{ fonts.m700 }}"); }
+@font-face { font-family: "Playfair Display"; font-weight: 900; src: url("{{ fonts.p900 }}"); }
+@font-face { font-family: "Great Vibes"; src: url("{{ fonts.gv }}"); }
+
+:root { {{ palette_css }} }
+@page { size: 200mm 118mm; margin: 0; background: {{ p.paper }}; }
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; }
+body { font-family: "Montserrat", sans-serif; color: var(--doc-text); width: 200mm; height: 118mm; position: relative; overflow: hidden; }
+p { margin: 0; }
+.abs { position: absolute; }
+.ic { width: 1em; height: 1em; display: block; }
+.caps { text-transform: uppercase; }
+.script { font-family: "Great Vibes", cursive; }
+.center { text-align: center; }
+
+/* Outline, perforation and notches */
+.outline { position: absolute; left: 0; top: 0; width: 200mm; height: 118mm; }
+
+/* Main part */
+.photo { left: 0; top: 0; width: 60mm; height: 118mm; }
+.panel { left: 0; top: 0; width: 40mm; height: 46mm; }
+.panel-text { left: 4mm; top: 16.5mm; width: 23mm; color: #fff; font-size: 6.6pt; font-weight: 500; letter-spacing: .2em; line-height: 1.75; text-transform: uppercase; text-align: center; }
+.panel-rings { left: 12mm; top: 4.5mm; width: 10mm; height: 10mm; }
+.panel-rings .ic, .stub-heart .ic { width: 100%; height: 100%; }
+.panel-rule { left: 12mm; top: 34mm; width: 10mm; height: .35mm; background: var(--doc-accent); }
+.band { left: 0; top: 100mm; width: 82mm; height: 18mm; }
+.band-text { left: 1mm; top: 107.5mm; width: 74mm; font-size: 11pt; color: var(--doc-accent-2); }
+.band-text.caps-text { font-family: "Montserrat"; font-size: 6.2pt; font-weight: 500; letter-spacing: .22em; text-transform: uppercase; top: 108.5mm; color: #fff; }
+
+.title { left: 50mm; top: 8mm; width: 89mm; font-size: 9.6pt; font-weight: 500; letter-spacing: .22em; white-space: nowrap; }
+.title .rule { display: inline-block; width: 9mm; height: .3mm; background: var(--doc-accent); vertical-align: middle; margin: 0 2.5mm; }
+.subtitle { left: 50mm; top: 13.6mm; width: 89mm; font-size: 7.4pt; font-weight: 500; letter-spacing: .2em; }
+.intro { left: 57mm; top: 19.2mm; width: 75mm; line-height: 1.32; font-weight: 500; }
+.name-1 { left: 50mm; top: 33mm; width: 87mm; font-family: "Playfair Display"; font-weight: 900; line-height: 1; color: var(--doc-text); }
+.amp { left: 50mm; top: 43.5mm; width: 89mm; font-size: 32pt; line-height: 1; color: var(--doc-accent); }
+.name-2 { left: 50mm; top: 51.5mm; width: 89mm; line-height: 1; color: var(--doc-text); }
+.monogram { left: 124mm; top: 26mm; width: 12mm; height: 12mm; border: .5mm solid var(--doc-accent); border-radius: 50%; font: 400 13pt/11mm "Great Vibes"; color: var(--doc-accent); text-align: center; }
+.ornament { left: 76mm; top: 68mm; width: 38mm; height: 3mm; }
+.cols { left: 53mm; top: 72mm; width: 85mm; height: 21mm; display: table; table-layout: fixed; }
+.cols .col { display: table-cell; text-align: center; vertical-align: top; padding: 0 1.2mm; border-left: .25mm solid #D9CDB5; font-size: 7.4pt; line-height: 1.28; }
+.cols .col.date { width: 21mm; } .cols .col.venue { width: 33mm; }
+.cols .col:first-child { border-left: 0; }
+.cols .ic { width: 5mm; height: 5mm; margin: 0 auto 1.4mm; }
+.cols .label { font-size: 6pt; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; margin-bottom: 1mm; }
+.line-heart { left: 62mm; top: 95mm; width: 64mm; height: 3mm; }
+.script-line { left: 63mm; top: 97.5mm; width: 62mm; font-size: 15pt; line-height: 1.05; }
+.leaves-top { left: 124mm; top: 30mm; width: 13mm; height: 23mm; }
+.leaves-bottom { left: 119mm; top: 92mm; width: 16mm; height: 22mm; }
+
+/* Stub */
+.stub-head { left: 141mm; top: 1.5mm; width: 57mm; height: 17mm; }
+.stub-title { left: 141mm; top: 7.2mm; width: 57mm; color: #fff; font-size: 8.4pt; font-weight: 500; letter-spacing: .15em; }
+.stub-sub { left: 141mm; top: 12.3mm; width: 57mm; color: var(--doc-accent-2); font-size: 6pt; font-weight: 500; letter-spacing: .2em; }
+.stub-heart { left: 167mm; top: 3mm; width: 5mm; height: 4mm; }
+.badge { left: 151mm; top: 19.5mm; width: 37mm; height: 5mm; border-radius: 1mm; background: var(--doc-accent-grad); font-size: 8.2pt; font-weight: 700; line-height: 5mm; color: var(--doc-dark); letter-spacing: .03em; }
+.guest { left: 143mm; top: 25.6mm; width: 53mm; font-weight: 600; line-height: 1.2; }
+.qr-frame { left: 155.75mm; top: 29.2mm; width: 27.5mm; height: 27.5mm; border: .45mm solid var(--doc-accent); border-radius: 2mm; background: #fff; }
+.qr { left: 157mm; top: 30.45mm; width: 25mm; height: 25mm; }
+.qr svg { width: 25mm; height: 25mm; display: block; }
+.hint { left: 152mm; top: 57.8mm; width: 38mm; font-size: 6.3pt; line-height: 1.3; padding-left: 6mm; }
+.hint .ic { position: absolute; left: 0; top: .2mm; width: 4.4mm; height: 4.4mm; }
+.card { left: 146mm; top: 65mm; width: 45mm; height: 30mm; background: var(--doc-soft); border: .25mm solid #E6DECF; border-radius: 2mm; padding: 2mm 2mm 0 2.5mm; }
+.card .row { position: relative; padding-left: 6mm; margin-bottom: 1.4mm; font-size: 6.5pt; line-height: 1.25; }
+.card .row .ic { position: absolute; left: 0; top: .3mm; width: 4.2mm; height: 4.2mm; }
+.card .label { font-size: 5.4pt; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; }
+.thanks { left: 144mm; top: 95.5mm; width: 45mm; font-size: 11pt; line-height: 1.05; }
+.stub-foot { left: 141mm; top: 106.5mm; width: 57mm; height: 10mm; }
+.stub-foot-text { left: 141mm; top: 112.3mm; width: 57mm; color: #fff; font-size: 5.8pt; font-weight: 500; letter-spacing: .22em; text-transform: uppercase; }
+.foot-heart { left: 167.5mm; top: 107.8mm; width: 4mm; height: 3.4mm; }
+.barcode { left: 191.5mm; top: 25mm; width: 6mm; height: 58mm; }
+.barcode svg { width: 6mm; height: 58mm; display: block; }
+.vcode { left: 175mm; top: 92mm; width: 40mm; height: 4mm; transform: rotate(-90deg); transform-origin: center; font-size: 7.4pt; font-weight: 700; color: var(--doc-accent); letter-spacing: .05em; text-align: center; }
+
+.watermark { left: 0; top: 46mm; width: 200mm; font: 800 54pt "Montserrat"; letter-spacing: .1em; text-align: center; color: #9AA0A6; opacity: .45; transform: rotate(-14deg); }
+</style>
+</head>
+<body>
+
+{# --- Photo of the main part, fading into the paper (a palette gradient until photos exist, R4b) --- #}
+<svg class="abs photo" viewBox="0 0 60 118" preserveAspectRatio="none">
+  <defs>
+    <linearGradient id="fade" x1="0" x2="1"><stop offset=".55" stop-color="{{ p.paper }}" stop-opacity="0"/><stop offset="1" stop-color="{{ p.paper }}" stop-opacity="1"/></linearGradient>
+    <linearGradient id="ph" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="{{ p.accent_soft }}"/><stop offset="1" stop-color="{{ p.soft }}"/></linearGradient>
+  </defs>
+  {% if photo %}<image href="{{ photo }}" x="0" y="0" width="60" height="118" preserveAspectRatio="xMidYMid slice"/>
+  {% else %}<rect width="60" height="118" fill="url(#ph)"/>
+    <g fill="none" stroke="{{ p.accent }}" stroke-width=".5" opacity=".6"><circle cx="22" cy="86" r="7"/><circle cx="31" cy="88" r="7"/><path d="M14 60 c 6 -10 16 -12 22 -6 M18 52 c 4 -8 12 -10 18 -4"/></g>
+  {% endif %}
+  <rect width="60" height="118" fill="url(#fade)"/>
+</svg>
+
+{# --- Dark panel top left and band at the bottom, with their gold ribbons --- #}
+{% if d.panel_text %}
+<svg class="abs panel" viewBox="0 0 40 46" preserveAspectRatio="none">
+  <path d="M0 0 H40 C 36 18, 26 34, 0 46 Z" fill="{{ p.dark }}"/>
+  <path d="M40 0 C 36 18, 26 34, 0 46" fill="none" stroke="{{ p.accent_grad.1 }}" stroke-width="1.1"/>
+  <path d="M38 0 C 34 17, 24 32, 0 43.5" fill="none" stroke="{{ p.accent_grad.0 }}" stroke-width=".35"/>
+</svg>
+<div class="abs panel-rings">{{ icon.rings|tint:p.accent_grad.1 }}</div>
+<p class="abs panel-text">{{ d.panel_text }}</p>
+<div class="abs panel-rule"></div>
+{% endif %}
+{% if d.bottom_slogan %}
+<svg class="abs band" viewBox="0 0 82 18" preserveAspectRatio="none">
+  <path d="M0 4 C 30 2, 60 6, 82 18 H0 Z" fill="{{ p.dark }}"/>
+  <path d="M0 4 C 30 2, 60 6, 82 18" fill="none" stroke="{{ p.accent_grad.1 }}" stroke-width="1"/>
+</svg>
+<p class="abs band-text center {% if '•' not in d.bottom_slogan and '♡' not in d.bottom_slogan %}{% else %}{% endif %} script">{{ d.bottom_slogan }}</p>
+{% endif %}
+
+{# --- Centre --- #}
+<p class="abs title center caps"><span class="rule"></span>{{ d.title }}<span class="rule"></span></p>
+<p class="abs subtitle center caps">{{ d.subtitle }}</p>
+<p class="abs intro center" style="font-size: {{ intro.size }}pt">{{ intro.text }}</p>
+<p class="abs name-1 center" style="font-size: {{ name_1.size }}pt">{{ name_1.text }}</p>
+<p class="abs amp center script">&amp;</p>
+<p class="abs name-2 center script" style="font-size: {{ name_2.size }}pt">{{ name_2.text }}</p>
+{% if monogram %}<p class="abs monogram">{{ monogram }}</p>{% endif %}
+<svg class="abs ornament" viewBox="0 0 38 3"><path d="M0 1.5 H16 M22 1.5 H38" stroke="{{ p.accent }}" stroke-width=".3"/><path d="M19 2.8 C 17 1.6, 17.3 .2, 18.3 .2 C 18.7 .2, 19 .6, 19 .8 C 19 .6, 19.3 .2, 19.7 .2 C 20.7 .2, 21 1.6, 19 2.8 Z" fill="{{ p.accent }}"/></svg>
+<div class="abs cols">
+  <div class="col date">{{ icon.calendar|tint:p.accent }}<p class="label">Date</p><p>{{ when.day }}<br>{{ when.date }}{% if when.time %}<br>{{ when.time }}{% endif %}</p></div>
+  <div class="col venue">{{ icon.pin|tint:p.accent }}<p class="label">Lieu</p><p>{{ d.venue|default:"À préciser" }}{% if d.address %}<br>{{ d.address }}{% endif %}</p></div>
+  <div class="col">{{ icon.dress|tint:p.accent }}<p class="label">Code vestimentaire</p><p>{{ d.dress_code|default:"Libre" }}</p></div>
+</div>
+<svg class="abs line-heart" viewBox="0 0 64 3"><path d="M0 1.5 H29 M35 1.5 H64" stroke="{{ p.accent }}" stroke-width=".25"/><path d="M32 2.8 C 30 1.6, 30.3 .2, 31.3 .2 C 31.7 .2, 32 .6, 32 .8 C 32 .6, 32.3 .2, 32.7 .2 C 33.7 .2, 34 1.6, 32 2.8 Z" fill="{{ p.accent }}"/></svg>
+<p class="abs script-line center script">{{ d.script_line }}</p>
+<svg class="abs leaves-top" viewBox="0 0 16 28" fill="none" stroke="{{ p.accent }}" stroke-width=".45"><path d="M3 27 C 6 18, 10 10, 14 2"/><path d="M6 19 c -3 -2 -4 -5 -3 -8 c 3 2 4 5 3 8z"/><path d="M9 13 c 3 -1 5 -4 5 -7 c -3 1 -5 4 -5 7z"/><path d="M11 8 c -2 -2 -2 -5 0 -7 c 2 2 2 5 0 7z"/><path d="M7 22 c 3 -1 6 0 7 2 c -3 1 -6 0 -7 -2z"/></svg>
+<svg class="abs leaves-bottom" viewBox="0 0 16 22" fill="none" stroke="{{ p.accent }}" stroke-width=".45"><path d="M2 21 C 7 15, 11 9, 15 2"/><path d="M6 15 c -3 -1 -5 -4 -4 -7 c 3 1 4 4 4 7z"/><path d="M10 10 c 3 0 5 -3 5 -6 c -3 0 -5 3 -5 6z"/><path d="M4 19 c 3 -2 7 -1 8 1 c -3 2 -7 1 -8 -1z"/></svg>
+
+{# --- Stub --- #}
+<svg class="abs stub-head" viewBox="0 0 57 17" preserveAspectRatio="none"><path d="M3 0 H54 L57 3 V14 L54 17 H3 L0 14 V3 Z" fill="{{ p.dark }}"/><path d="M3.6 1 H53.4 L56 3.6 V13.4 L53.4 16 H3.6 L1 13.4 V3.6 Z" fill="none" stroke="{{ p.accent }}" stroke-width=".3"/></svg>
+<svg class="abs stub-heart" viewBox="0 0 10 8"><path d="M5 7.5 C 1 5, .5 1.5, 2.5 .8 C 3.8 .4, 5 1.4, 5 2.2 C 5 1.4, 6.2 .4, 7.5 .8 C 9.5 1.5, 9 5, 5 7.5 Z" fill="none" stroke="{{ p.accent_grad.1 }}" stroke-width=".7"/></svg>
+<p class="abs stub-title center caps">{{ d.stub_title }}</p>
+<p class="abs stub-sub center caps">{{ d.stub_subtitle }}</p>
+<p class="abs badge center">N° {{ code }}</p>
+<p class="abs guest center" style="font-size: {{ guest_line.size }}pt">{{ guest_line.text }}{% if category %} · {{ category }}{% endif %}{% if table %} · Table {{ table }}{% endif %}</p>
+<div class="abs qr-frame"></div>
+<div class="abs qr">{{ qr_svg|safe }}</div>
+<div class="abs hint">{{ icon.smartphone|tint:p.accent }}Scannez ce code QR pour valider votre entrée</div>
+<div class="abs card">
+  <div class="row">{{ icon.calendar|tint:p.accent }}<p class="label">Date</p><p>{{ when.full }}</p></div>
+  <div class="row">{{ icon.pin|tint:p.accent }}<p class="label">Lieu</p><p>{{ d.venue|default:"À préciser" }}{% if d.address %}, {{ d.address }}{% endif %}</p></div>
+  <div class="row">{{ icon.dress|tint:p.accent }}<p class="label">Code vestimentaire</p><p>{{ d.dress_code|default:"Libre" }}</p></div>
+</div>
+<p class="abs thanks center script">{{ d.stub_script }}</p>
+<svg class="abs stub-foot" viewBox="0 0 57 11" preserveAspectRatio="none"><path d="M3 0 H54 L57 3 V11 H0 V3 Z" fill="{{ p.dark }}"/></svg>
+<svg class="abs foot-heart" viewBox="0 0 10 8"><path d="M5 7.5 C 1 5, .5 1.5, 2.5 .8 C 3.8 .4, 5 1.4, 5 2.2 C 5 1.4, 6.2 .4, 7.5 .8 C 9.5 1.5, 9 5, 5 7.5 Z" fill="none" stroke="{{ p.accent_grad.1 }}" stroke-width=".7"/></svg>
+<p class="abs stub-foot-text center">{{ d.stub_footer }}</p>
+<div class="abs barcode">{{ barcode_svg|safe }}</div>
+<p class="abs vcode">N° {{ code }}</p>
+
+{# --- Outline: gold edge, perforation at 139 mm with its two notches --- #}
+<svg class="outline" viewBox="0 0 200 118">
+  <path d="M4 .6 H136.5 A2.5 2.5 0 0 0 141.5 .6 H196.5 L199.4 3.5 V114.5 L196.5 117.4 H141.5 A2.5 2.5 0 0 0 136.5 117.4 H3.5 L.6 114.5 V4 A3.4 3.4 0 0 1 4 .6 Z" fill="none" stroke="{{ p.accent_grad.1 }}" stroke-width=".5"/>
+  <path d="M139 3.4 V114.6" stroke="{{ p.accent }}" stroke-width=".3" stroke-dasharray="1.2 1.1"/>
+</svg>
+
+{% if watermark %}<p class="abs watermark">{{ watermark }}</p>{% endif %}
+</body>
+</html>{% endlocalize %}

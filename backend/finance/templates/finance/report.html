@@ -1,0 +1,59 @@
+{% comment %} Report PDF (reservations-stock.md §6.5): the agency's palette and logo, sober tables. {% endcomment %}<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<title>{{ report.title }}</title>
+<style>
+@font-face { font-family: "M"; src: url("{{ fonts.m400 }}"); font-weight: 400; }
+@font-face { font-family: "M"; src: url("{{ fonts.m600 }}"); font-weight: 600; }
+@font-face { font-family: "M"; src: url("{{ fonts.m700 }}"); font-weight: 700; }
+@font-face { font-family: "P"; src: url("{{ fonts.p700 }}"); font-weight: 700; }
+@page {
+  size: A4 landscape; margin: 14mm 14mm 16mm;
+  @bottom-left { content: "{{ agency }} · {{ report.title }}"; font: 7pt "M"; color: {{ p.muted }}; }
+  @bottom-right { content: "Page " counter(page) " sur " counter(pages); font: 7pt "M"; color: {{ p.muted }}; }
+}
+body { font-family: "M"; font-size: 8.5pt; color: {{ p.text }}; margin: 0; }
+header { display: table; width: 100%; border-bottom: 2pt solid {{ p.accent }}; padding-bottom: 4mm; }
+header > div { display: table-cell; vertical-align: middle; }
+header .logo img { max-height: 16mm; max-width: 45mm; }
+header .title { text-align: right; }
+h1 { font-family: "P"; font-size: 19pt; color: {{ p.dark }}; margin: 0; }
+.period { color: {{ p.muted }}; margin-top: 1mm; }
+.headline { margin: 5mm 0; display: table; width: 100%; }
+.headline > div { display: table-cell; background: {{ p.soft }}; padding: 3mm 4mm; border-left: 2pt solid {{ p.accent }}; }
+.headline .label { font-size: 7.5pt; color: {{ p.muted }}; text-transform: none; }
+.headline .value { font-size: 15pt; font-weight: 700; color: {{ p.dark }}; }
+.headline .gap { width: 4mm; background: none; border: 0; padding: 0; }
+table { width: 100%; border-collapse: collapse; }
+th { background: {{ p.dark }}; color: #fff; font-weight: 600; text-align: left; padding: 2.2mm 2.5mm; font-size: 7.5pt; }
+td { padding: 2mm 2.5mm; border-bottom: .4pt solid #e5e2f0; }
+tbody tr:nth-child(even) td { background: {{ p.soft }}; }
+.num { text-align: right; white-space: nowrap; font-variant-numeric: tabular-nums; }
+tfoot td { font-weight: 700; border-top: 1pt solid {{ p.dark }}; border-bottom: 0; }
+.empty { color: {{ p.muted }}; padding: 6mm 0; }
+.note { color: {{ p.muted }}; font-size: 7pt; margin-top: 4mm; }
+</style>
+</head>
+<body>
+<header>
+  <div class="logo">{% if logo %}<img src="{{ logo }}" alt="">{% else %}<b>{{ agency }}</b>{% endif %}</div>
+  <div class="title"><h1>{{ report.title }}</h1>{% if period %}<p class="period">{{ period }}</p>{% endif %}</div>
+</header>
+{% if headline %}<div class="headline">
+  <div><p class="label">{{ headline.label }}</p><p class="value">{{ headline.current }}</p></div>
+  {% if headline.previous %}<div class="gap"></div>
+  <div><p class="label">Période précédente</p><p class="value">{{ headline.previous }}</p></div>
+  <div class="gap"></div>
+  <div><p class="label">Évolution</p><p class="value">{{ headline.variation }}</p><p class="label">{{ previous }}</p></div>{% endif %}
+</div>{% endif %}
+{% if rows %}
+<table>
+  <thead><tr>{% for c in columns %}<th class="{% if c.num %}num{% endif %}">{{ c.label }}</th>{% endfor %}</tr></thead>
+  <tbody>{% for row in rows %}<tr>{% for cell in row %}<td class="{% if cell.num %}num{% endif %}">{{ cell.text }}</td>{% endfor %}</tr>{% endfor %}</tbody>
+  {% if total_row %}<tfoot><tr>{% for cell in total_row %}<td class="{% if cell.num %}num{% endif %}">{{ cell.text }}</td>{% endfor %}</tr></tfoot>{% endif %}
+</table>
+{% else %}<p class="empty">Aucune donnée sur la période.</p>{% endif %}
+<p class="note">Édité le {{ generated }} par Wedivo. La marge n’est pas le bénéfice net comptable de l’entreprise.</p>
+</body>
+</html>

@@ -1,0 +1,142 @@
+{% load l10n %}{% localize off %}<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<title>{{ doc_name|default:"Devis" }} {{ quote.number }}</title>
+<style>
+@font-face { font-family: "Montserrat"; font-weight: 400; src: url("{{ fonts.m400 }}"); }
+@font-face { font-family: "Montserrat"; font-weight: 400; font-style: italic; src: url("{{ fonts.m400i }}"); }
+@font-face { font-family: "Montserrat"; font-weight: 500; src: url("{{ fonts.m500 }}"); }
+@font-face { font-family: "Montserrat"; font-weight: 500; font-style: italic; src: url("{{ fonts.m500i }}"); }
+@font-face { font-family: "Montserrat"; font-weight: 600; src: url("{{ fonts.m600 }}"); }
+@font-face { font-family: "Montserrat"; font-weight: 700; src: url("{{ fonts.m700 }}"); }
+@font-face { font-family: "Montserrat"; font-weight: 800; src: url("{{ fonts.m800 }}"); }
+@font-face { font-family: "Playfair Display"; font-weight: 700; src: url("{{ fonts.p700 }}"); }
+@font-face { font-family: "Playfair Display"; font-weight: 900; src: url("{{ fonts.p900 }}"); }
+@font-face { font-family: "Great Vibes"; src: url("{{ fonts.gv }}"); }
+@font-face { font-family: "Allura"; src: url("{{ fonts.al }}"); }
+
+:root { {{ palette_css }} --footer-h: {% block footer_height %}19mm{% endblock %}; }
+
+@page {
+  size: A4;
+  margin: 0 0 var(--footer-h) 0;
+  background: {{ p.paper }};
+}
+@page {
+  margin-top: 21mm;
+  @top-left { content: element(pageheader); width: 100%; vertical-align: top; }
+}
+@page :first { margin-top: 0; @top-left { content: none; } }
+@page { @bottom-left { content: element(footer); width: 210mm; height: var(--footer-h); padding: 0; vertical-align: top; } }
+
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; }
+body {
+  font-family: "Montserrat", sans-serif; font-size: 7.5pt; line-height: 1.35;
+  color: var(--doc-text); background: var(--doc-paper);
+}
+p, h1, h2, h3, ol, ul { margin: 0; padding: 0; }
+.ic { width: 1em; height: 1em; display: inline-block; vertical-align: -0.15em; }
+.script { font-family: "Great Vibes", cursive; font-weight: 400; }
+.allura { font-family: "Allura", cursive; font-weight: 400; }
+.caps { text-transform: uppercase; letter-spacing: .12em; }
+.gold-text { color: var(--doc-accent); }
+.gold-rule { height: .35mm; background: var(--doc-accent-grad); }
+.num { font-variant-numeric: tabular-nums; white-space: nowrap; }
+.nowrap { white-space: nowrap; }
+.avoid { break-inside: avoid; }
+
+/* Agency header (logo, name, activity, slogan) */
+.brand { display: flex; align-items: center; gap: 3mm; }
+.brand .logo { height: 23mm; width: 26mm; object-fit: contain; }
+.brand .monogram {
+  width: 22mm; height: 22mm; border-radius: 50%; border: .7mm solid var(--doc-accent);
+  display: flex; align-items: center; justify-content: center; flex: none;
+  font: 900 26pt/1 "Playfair Display", serif; color: {% if agency.monogram_color %}{{ agency.monogram_color }}{% else %}var(--doc-dark){% endif %};
+}
+.brand .name { font-weight: 800; color: var(--doc-text); line-height: 1; letter-spacing: .01em; }
+.brand .activity { font-size: 5.6pt; font-weight: 600; letter-spacing: .13em; text-transform: uppercase; color: var(--doc-text); margin-top: 1.3mm; }
+.brand .slogan { font-family: "Allura", cursive; font-size: 15pt; line-height: 1.1; color: var(--doc-accent); margin-top: 1mm; }
+.brand .slogan-curve { display: block; width: 52mm; height: 2.4mm; margin-top: -.6mm; }
+.partner-line { font-size: 6.5pt; margin-top: 1mm; color: var(--doc-muted); }
+.partner-line b { color: var(--doc-text); }
+
+/* Lines table */
+table.lines { width: 100%; border-collapse: separate; border-spacing: 0; }
+table.lines thead { display: table-header-group; }
+table.lines th {
+  background: var(--doc-dark); color: #fff; font-weight: 700; font-size: 6.4pt;
+  text-transform: uppercase; letter-spacing: .04em; padding: 0 1.5mm; height: 10mm; text-align: center;
+  border-left: .25mm solid rgba(255,255,255,.18);
+}
+table.lines th:first-child { border-left: 0; border-top-left-radius: 2.3mm; }
+table.lines th:last-child { border-top-right-radius: 2.3mm; }
+table.lines th small { display: block; font-size: 5pt; font-weight: 600; letter-spacing: 0; }
+table.lines td { padding: 0 1.5mm; text-align: center; border-left: .25mm solid #E3E6EC; vertical-align: middle; }
+table.lines td:first-child { border-left: 0; font-weight: 600; }
+table.lines tbody tr { break-inside: avoid; }
+table.lines tbody tr:nth-child(odd) td { background: #FBFBFD; }
+table.lines tbody tr:nth-child(even) td { background: var(--doc-soft); }
+table.lines tbody tr:last-child td:first-child { border-bottom-left-radius: 2.3mm; }
+table.lines tbody tr:last-child td:last-child { border-bottom-right-radius: 2.3mm; }
+table.lines .designation { text-align: left; }
+/* Table layout, not flex: WeasyPrint's flex layout is several times slower in table cells. */
+table.lines .designation .cell { display: table; width: 100%; }
+table.lines .designation .icon, table.lines .designation .text { display: table-cell; vertical-align: middle; }
+table.lines .designation .icon { width: 9.5mm; }
+table.lines .designation .ic { width: 7mm; height: 7mm; display: block; color: var(--doc-dark); }
+table.lines .label { font-weight: 700; color: var(--doc-text); line-height: 1.2; }
+table.lines .desc { color: var(--doc-muted); line-height: 1.25; margin-top: .4mm; }
+table.lines tbody td.num { font-weight: 500; }
+
+/* Running header of the next pages (multi-page quotes, §3) */
+.pageheader { position: running(pageheader); display: flex; align-items: center; justify-content: space-between; padding: 6mm 8mm 0; font-size: 7pt; }
+.pageheader .who { font-weight: 800; letter-spacing: .03em; }
+.pageheader .what { color: var(--doc-muted); }
+.pageheader .what b { color: var(--doc-text); }
+
+/* Footer: on every page, at the bottom (fixed elements repeat on each page) */
+.footer {
+  position: running(footer); width: 210mm; height: var(--footer-h);
+  background: var(--doc-dark); color: #fff; font-size: 6.6pt;
+}
+.footer .curve { position: absolute; left: 0; top: -4.5mm; width: 210mm; height: 6mm; }
+/* Table layout, not flex: much faster in WeasyPrint, and the footer has fixed sizes. */
+.footer .cols { display: table; width: 192mm; margin: 0 9mm; padding-top: var(--footer-pad, 5mm); }
+.footer .col { display: table-cell; vertical-align: middle; padding: 0 5mm; border-left: .25mm solid rgba(255,255,255,.35); white-space: nowrap; }
+.footer .col:first-child { border-left: 0; padding-left: 0; }
+.footer .col.end { width: 100%; text-align: right; white-space: normal; }
+.footer .row { margin: .8mm 0; }
+.footer .row .ic { vertical-align: middle; margin-right: 2mm; }
+.footer .ic { width: 3.6mm; height: 3.6mm; color: #fff; }
+.footer .icons .ic { margin-right: 1.4mm; }
+.footer .script { font-size: 12.5pt; line-height: 1.05; color: var(--doc-accent-2); }
+.footer .wedivo { position: absolute; left: 0; right: 0; bottom: 1mm; text-align: center; font-size: 4.6pt; color: rgba(255,255,255,.5); }
+.footer .pageno { position: absolute; right: 8mm; bottom: 1.6mm; font-size: 6pt; font-weight: 500; color: var(--doc-accent-2); }
+.footer .pageno::after { content: "Page " counter(page) " sur " counter(pages); }
+
+/* Watermark (§5): drafts and accepted quotes */
+.watermark {
+  position: fixed; top: 120mm; left: 0; width: 210mm; text-align: center; transform: rotate(-32deg);
+  font: 800 70pt "Montserrat"; letter-spacing: .08em; color: var(--doc-dark); opacity: .07;
+}
+.watermark.accepted { color: var(--doc-accent); opacity: .12; font-size: 56pt; }
+
+/* Photo placeholder: a soft gradient of the palette while no photo is set (R4b). */
+.photo-fill { background: radial-gradient(circle at 30% 30%, var(--doc-accent-soft) 0%, var(--doc-dark-2) 55%, var(--doc-dark) 100%); }
+.photo-fill .sparkle { color: var(--doc-accent-2); opacity: .55; }
+
+{% block style %}{% endblock %}
+</style>
+</head>
+{% load documents %}<body class="tpl-{{ s.template }}">
+{% if watermark %}<div class="watermark{% if s.status == 'accepted' %} accepted{% endif %}">{{ watermark }}</div>{% endif %}
+<div class="pageheader">
+  <span class="who">{{ agency.trade_name }}</span>
+  <span class="what">{{ doc_name|default:"Devis" }} <b>N° {{ quote.number|default:"—" }}</b> · suite</span>
+</div>
+{% block footer %}{% include "documents/partials/footer.html" %}{% endblock %}
+{% block content %}{% endblock %}
+</body>
+</html>{% endlocalize %}

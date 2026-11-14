@@ -8,6 +8,7 @@ import { useRoute, useRouter } from 'vue-router'
 import { toApiError } from '@/api/errors'
 import { type AccountStatus, platformApi } from '@/api/platform'
 import { formatDate, formatDateTime } from '@/composables/useDate'
+import { useMediaQuery } from '@/composables/useMediaQuery'
 import { WAvatar, WBadge, WButton, WCard, WChips, WEmptyState, WInput } from '@/design'
 
 import AccountCreateModal from '../components/AccountCreateModal.vue'
@@ -18,6 +19,7 @@ import ConsolePager from '../components/ConsolePager.vue'
 const { t } = useI18n()
 const route = useRoute()
 const router = useRouter()
+const compact = useMediaQuery('(max-width: 639px)')
 
 const STATUSES: AccountStatus[] = [
   '',
@@ -120,7 +122,54 @@ watch(createOpen, (isOpen) => {
         :title="t('platform.accounts.empty')"
       />
       <template v-else>
-        <div class="mt-4 overflow-x-auto">
+        <!-- Phones: one card per account -->
+        <ul v-if="compact" class="mt-4 flex flex-col gap-2.5">
+          <li v-for="account in accounts.data.value.results" :key="account.id">
+            <button
+              type="button"
+              class="w-full rounded-wd border border-line p-3.5 text-left active:bg-surface-2"
+              :class="!account.isActive && 'opacity-60'"
+              @click="open(account.id)"
+            >
+              <span class="flex items-center gap-3">
+                <WAvatar :name="account.fullName" />
+                <span class="min-w-0">
+                  <span class="block font-bold break-words">{{ account.fullName }}</span>
+                  <span class="block truncate text-[12.5px] text-muted">{{ account.email }}</span>
+                </span>
+              </span>
+              <span class="mt-2.5 block text-[13px] text-ink-2">
+                <template v-if="account.memberships.length">
+                  <span
+                    v-for="membership in account.memberships"
+                    :key="membership.id"
+                    class="block truncate"
+                  >
+                    <span class="font-semibold">{{ membership.organizationName }}</span>
+                    <span class="text-muted"> · {{ membership.roleLabel }}</span>
+                  </span>
+                </template>
+                <span v-else class="text-muted">{{ t('platform.accounts.noAgency') }}</span>
+              </span>
+              <span class="mt-2.5 flex flex-wrap items-center justify-between gap-2">
+                <span class="flex flex-wrap gap-1.5">
+                  <WBadge :tone="account.isActive ? 'green' : 'red'">{{
+                    account.isActive
+                      ? t('platform.accounts.badges.active')
+                      : t('platform.accounts.badges.inactive')
+                  }}</WBadge>
+                  <WBadge v-if="account.isPlatformAdmin" tone="violet">{{
+                    t('platform.accounts.badges.admin')
+                  }}</WBadge>
+                </span>
+                <span class="text-[12.5px] text-muted">{{
+                  account.lastLogin ? formatDateTime(account.lastLogin) : t('platform.common.never')
+                }}</span>
+              </span>
+            </button>
+          </li>
+        </ul>
+        <div v-else class="mt-4 overflow-x-auto">
           <table class="w-full min-w-[820px] border-collapse text-[14px]">
             <caption class="sr-only">
               {{

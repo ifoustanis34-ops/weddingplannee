@@ -76,6 +76,11 @@
   html {
     -webkit-font-smoothing: antialiased;
   }
+  /* A screen-reader caption is absolutely positioned: anchored to its table, it stays inside the
+     table's scroll container instead of widening the whole page on mobile. */
+  table:has(> caption.sr-only) {
+    position: relative;
+  }
   body {
     background: var(--bg);
     color: var(--ink);

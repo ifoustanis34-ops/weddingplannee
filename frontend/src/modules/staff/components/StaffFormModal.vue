@@ -47,6 +47,8 @@ const blank = (): Required<StaffInput> => ({
   isActive: true,
 })
 const form = ref(blank())
+// Server field errors (camelCase keys, api/errors.ts), shown under each field.
+const errors = ref<Record<string, string | undefined>>({})
 const photo = ref<File | null>(null)
 const preview = ref<string | null>(null)
 function pick(event: Event): void {
@@ -64,6 +66,7 @@ watch(open, (value) => {
   if (!value) return
   const m = props.member
   granted.value = false
+  errors.value = {}
   photo.value = null
   preview.value = m?.photoUrl ?? null
   form.value = m
@@ -132,6 +135,7 @@ async function submit(): Promise<void> {
     delete input.payRate
     delete input.payMode
   }
+  errors.value = {}
   try {
     const member = await save.mutateAsync(input)
     if (photo.value) {
@@ -147,7 +151,13 @@ async function submit(): Promise<void> {
     emit('saved', member)
     open.value = false
   } catch (error) {
-    toast.error(toApiError(error).message)
+    const apiError = toApiError(error)
+    errors.value = Object.fromEntries(
+      Object.entries(apiError.fields).map(([field, messages]) => [field, messages[0]]),
+    )
+    // The message always shows; with field errors it says which field to fix.
+    const first = Object.values(errors.value)[0]
+    toast.error(first ? `${apiError.message} ${first}` : apiError.message)
   }
 }
 </script>
@@ -211,6 +221,7 @@ async function submit(): Promise<void> {
       </div>
       <WInput
         v-model="form.fullName"
+        :error="errors.fullName"
         class="sm:col-span-2"
         :label="t('staff.form.name')"
         required
@@ -218,6 +229,7 @@ async function submit(): Promise<void> {
       />
       <WInput
         v-model="form.position"
+        :error="errors.position"
         :label="t('staff.form.position')"
         list="staff-positions"
         required
@@ -228,20 +240,41 @@ async function submit(): Promise<void> {
       </datalist>
       <WInput
         v-model="form.department"
+        :error="errors.department"
         :label="t('staff.form.department')"
         :placeholder="t('staff.form.departmentPlaceholder')"
         maxlength="80"
       />
-      <WSelect v-model="form.kind" :label="t('staff.form.kind')" :options="kindOptions" />
+      <WSelect
+        v-model="form.kind"
+        :error="errors.kind"
+        :label="t('staff.form.kind')"
+        :options="kindOptions"
+      />
       <p v-if="member?.employeeNumber" class="self-end pb-2.5 text-[13px] text-ink-2">
         {{ t('staff.form.number') }} <b class="num">{{ member.employeeNumber }}</b>
       </p>
-      <WInput v-model="form.phone" type="tel" :label="t('staff.form.phone')" />
-      <WInput v-model="form.mobileMoney" :label="t('staff.form.mobileMoney')" />
+      <WInput
+        v-model="form.phone"
+        :error="errors.phone"
+        type="tel"
+        :label="t('staff.form.phone')"
+      />
+      <WInput
+        v-model="form.mobileMoney"
+        :error="errors.mobileMoney"
+        :label="t('staff.form.mobileMoney')"
+      />
       <template v-if="seesPay">
-        <WSelect v-model="form.payMode" :label="t('staff.form.payMode')" :options="payOptions" />
+        <WSelect
+          v-model="form.payMode"
+          :error="errors.payMode"
+          :label="t('staff.form.payMode')"
+          :options="payOptions"
+        />
         <WInput
           v-model.number="form.payRate"
+          :error="errors.payRate"
           type="number"
           min="0"
           inputmode="numeric"
@@ -250,17 +283,20 @@ async function submit(): Promise<void> {
       </template>
       <WInput
         v-model="skills"
+        :error="errors.skills"
         class="sm:col-span-2"
         :label="t('staff.form.skills')"
         :placeholder="t('staff.form.skillsPlaceholder')"
       />
       <WInput
         v-model="form.emergencyContact"
+        :error="errors.emergencyContact"
         class="sm:col-span-2"
         :label="t('staff.form.emergency')"
       />
       <WTextarea
         v-model="form.notes"
+        :error="errors.notes"
         class="sm:col-span-2"
         :label="t('staff.form.notes')"
         :rows="2"

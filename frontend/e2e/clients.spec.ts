@@ -38,7 +38,8 @@ test('clients: create, find, archive, bring back, delete', async ({ page }) => {
   await page.getByLabel('Rechercher un client').fill(name)
   await expect(page.getByText('Aucun client ne correspond à cette recherche.')).toBeVisible()
   await page.getByRole('switch', { name: 'Afficher les archives' }).click()
-  await page.getByRole('cell', { name }).click()
+  // A table row on desktop, a card on phones: the name opens the sheet in both.
+  await page.getByRole('main').getByText(name, { exact: true }).click()
   await sheet.getByRole('button', { name: 'Sortir des archives' }).click()
   await expect(page.getByText('Client sorti des archives.')).toBeVisible()
 

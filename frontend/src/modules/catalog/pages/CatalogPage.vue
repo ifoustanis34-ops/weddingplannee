@@ -71,7 +71,7 @@ async function remove(kind: 'item' | 'category', id: string): Promise<void> {
           {{ embedded ? t('settings.catalog.subtitle') : t('catalog.subtitle') }}
         </p>
       </div>
-      <div v-if="canEdit" class="flex gap-2">
+      <div v-if="canEdit" class="flex flex-wrap gap-2">
         <WButton variant="secondary" @click="categoryOpen = true"
           ><Plus class="size-4" aria-hidden="true" />{{ t('catalog.addCategory') }}</WButton
         >

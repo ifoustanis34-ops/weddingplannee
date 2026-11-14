@@ -61,8 +61,11 @@ const goodNews = computed(() =>
       />
     </header>
 
-    <div class="grid gap-[18px] min-[1101px]:grid-cols-[260px_minmax(0,1fr)]">
-      <nav :aria-label="t('reports.choose')">
+    <!-- One bounded column on mobile: the report list scrolls sideways instead of widening the page. -->
+    <div
+      class="grid grid-cols-[minmax(0,1fr)] gap-[18px] min-[1101px]:grid-cols-[260px_minmax(0,1fr)]"
+    >
+      <nav class="min-w-0" :aria-label="t('reports.choose')">
         <ul class="flex gap-1.5 overflow-x-auto min-[1101px]:flex-col">
           <li v-for="key in REPORT_TYPES" :key="key" class="shrink-0">
             <button

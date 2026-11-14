@@ -7,6 +7,7 @@ import { useI18n } from 'vue-i18n'
 import type { Role } from '@/api/auth'
 import { toApiError } from '@/api/errors'
 import { type Member, organizationApi } from '@/api/organization'
+import { useMediaQuery } from '@/composables/useMediaQuery'
 import { useToast } from '@/composables/useToast'
 import { WAvatar, WBadge, WButton, WCard, WEmptyState, WSelect } from '@/design'
 import { useSessionStore } from '@/stores/session'
@@ -20,6 +21,7 @@ const { t } = useI18n()
 const toast = useToast()
 const session = useSessionStore()
 const queryClient = useQueryClient()
+const compact = useMediaQuery('(max-width: 639px)')
 const slug = computed(() => session.currentOrganization?.slug)
 
 const members = useQuery({
@@ -130,6 +132,70 @@ const rightLabel = (right: Right) => t(`settings.team.rights.values.${right}`)
         :title="t('settings.team.loadError')"
         :description="toApiError(members.error.value).message"
       />
+      <!-- Phones: one card per member, role and actions within reach -->
+      <ul v-else-if="compact" class="flex flex-col gap-2.5">
+        <li
+          v-for="member in members.data.value"
+          :key="member.id"
+          class="rounded-wd border border-line p-3.5"
+          :class="!member.isActive && 'opacity-70'"
+        >
+          <div class="flex items-center gap-3">
+            <WAvatar :name="member.fullName" />
+            <div class="min-w-0 flex-1">
+              <p class="font-bold break-words">{{ member.fullName }}</p>
+              <p class="truncate text-[12.5px] text-muted">{{ member.email }}</p>
+            </div>
+            <WBadge :tone="member.isActive ? 'green' : 'grey'">{{
+              member.isActive ? t('settings.team.active') : t('settings.team.inactive')
+            }}</WBadge>
+          </div>
+          <p v-if="member.role === 'owner'" class="mt-3 font-semibold">{{ member.roleLabel }}</p>
+          <WSelect
+            v-else
+            class="mt-3"
+            :model-value="member.role"
+            :label="t('settings.team.roleOf', { name: member.fullName })"
+            hide-label
+            :options="roleOptions"
+            :disabled="updateMember.isPending.value || !member.isActive"
+            @update:model-value="(role) => changeRole(member, role as Member['role'])"
+          />
+          <div v-if="member.role !== 'owner'" class="mt-2.5 flex flex-wrap justify-end gap-2">
+            <WButton v-if="member.isActive" size="sm" variant="ghost" @click="openAccount(member)"
+              ><KeyRound class="size-[15px]" aria-hidden="true" />{{
+                t('settings.team.setPassword')
+              }}</WButton
+            >
+            <WButton
+              size="sm"
+              variant="ghost"
+              :class="member.isActive && 'text-red'"
+              @click="setActive(member, !member.isActive)"
+              >{{
+                member.isActive ? t('settings.team.deactivate') : t('settings.team.reactivate')
+              }}</WButton
+            >
+          </div>
+        </li>
+        <li
+          v-for="invitation in invitations.data.value ?? []"
+          :key="invitation.id"
+          class="flex items-center gap-3 rounded-wd border border-dashed border-line-2 p-3.5"
+        >
+          <WAvatar :name="invitation.email" />
+          <div class="min-w-0 flex-1">
+            <p class="truncate font-bold">{{ invitation.email }}</p>
+            <p class="text-[12.5px] text-muted">{{ invitation.roleLabel }}</p>
+          </div>
+          <WButton
+            size="sm"
+            variant="ghost"
+            @click="cancelInvitation(invitation.id, invitation.email)"
+            >{{ t('settings.team.cancelInvitation') }}</WButton
+          >
+        </li>
+      </ul>
       <div v-else class="overflow-x-auto">
         <table class="w-full min-w-[640px] border-collapse text-[14px]">
           <caption class="sr-only">

@@ -8,6 +8,7 @@ import { useRoute, useRouter } from 'vue-router'
 import { toApiError } from '@/api/errors'
 import { type AgencyStatus, platformApi } from '@/api/platform'
 import { formatDate } from '@/composables/useDate'
+import { useMediaQuery } from '@/composables/useMediaQuery'
 import { WButton, WCard, WChips, WEmptyState, WInput } from '@/design'
 
 import AgencyBadges from '../components/AgencyBadges.vue'
@@ -19,6 +20,7 @@ import ConsolePager from '../components/ConsolePager.vue'
 const { t } = useI18n()
 const route = useRoute()
 const router = useRouter()
+const compact = useMediaQuery('(max-width: 639px)')
 
 const STATUSES: AgencyStatus[] = ['', 'active', 'lifetime', 'trial', 'trial_over', 'suspended']
 const statusOptions = computed(() =>
@@ -112,7 +114,38 @@ watch(createOpen, (isOpen) => {
         :title="t('platform.agencies.empty')"
       />
       <template v-else>
-        <div class="mt-4 overflow-x-auto">
+        <!-- Phones: one card per agency -->
+        <ul v-if="compact" class="mt-4 flex flex-col gap-2.5">
+          <li v-for="agency in agencies.data.value.results" :key="agency.id">
+            <button
+              type="button"
+              class="w-full rounded-wd border border-line p-3.5 text-left active:bg-surface-2"
+              @click="open(agency.id)"
+            >
+              <span class="flex items-start justify-between gap-3">
+                <span class="min-w-0">
+                  <span class="block font-bold break-words">{{ agency.name }}</span>
+                  <span class="block truncate text-[12.5px] text-muted"
+                    >{{ agency.slug }} · {{ agency.city }}, {{ agency.country }}</span
+                  >
+                </span>
+                <span class="shrink-0 text-[13px] font-semibold">{{ agency.planLabel }}</span>
+              </span>
+              <span class="mt-2 block truncate text-[13px] text-ink-2">{{
+                agency.ownerEmail ?? t('platform.agencies.noOwner')
+              }}</span>
+              <span class="mt-2.5 flex flex-wrap items-center justify-between gap-2">
+                <AgencyBadges :agency="agency" />
+                <span class="text-[12.5px] text-muted"
+                  >{{ agency.membersCount }}
+                  {{ t('platform.agencies.columns.members').toLowerCase() }} ·
+                  {{ formatDate(agency.createdAt) }}</span
+                >
+              </span>
+            </button>
+          </li>
+        </ul>
+        <div v-else class="mt-4 overflow-x-auto">
           <table class="w-full min-w-[820px] border-collapse text-[14px]">
             <caption class="sr-only">
               {{

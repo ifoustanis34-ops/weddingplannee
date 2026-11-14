@@ -3,6 +3,8 @@ import { ArrowDown, ArrowUp, ArrowUpDown, ChevronLeft, ChevronRight } from '@luc
 import { computed, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 
+import { useMediaQuery } from '@/composables/useMediaQuery'
+
 export interface TableColumn {
   key: string
   label: string
@@ -35,6 +37,14 @@ const emit = defineEmits<{ 'row-click': [row: Row] }>()
 const sort = defineModel<SortState | null>('sort', { default: null })
 const page = ref(1)
 const { t } = useI18n()
+
+// Phones: one card per row (first column as title, the others as label / value), instead of a
+// table cut on the right.
+const compact = useMediaQuery('(max-width: 639px)')
+const titleColumn = computed(() => props.columns[0])
+const detailColumns = computed(() => props.columns.slice(1).filter((column) => column.label))
+const actionColumns = computed(() => props.columns.slice(1).filter((column) => !column.label))
+const sortableColumns = computed(() => props.columns.filter((column) => column.sortable))
 
 const collator = new Intl.Collator('fr', { numeric: true, sensitivity: 'base' })
 
@@ -93,7 +103,79 @@ const alignClass = (column: TableColumn) =>
 
 <template>
   <div>
-    <div class="overflow-x-auto [-webkit-overflow-scrolling:touch]">
+    <!-- Phones: cards -->
+    <div v-if="compact">
+      <div v-if="sortableColumns.length" class="mb-2 flex flex-wrap gap-1.5">
+        <button
+          v-for="column in sortableColumns"
+          :key="column.key"
+          type="button"
+          class="inline-flex h-8 items-center gap-1 rounded-full border px-3 text-[12.5px] font-bold"
+          :class="
+            sort?.key === column.key
+              ? 'border-ink bg-ink text-surface'
+              : 'border-line-2 bg-surface text-ink-2'
+          "
+          :aria-pressed="sort?.key === column.key"
+          @click="toggleSort(column)"
+        >
+          {{ column.label }}
+          <ArrowUp
+            v-if="sort?.key === column.key && sort.direction === 'asc'"
+            class="size-3.5"
+            aria-hidden="true"
+          />
+          <ArrowDown v-else-if="sort?.key === column.key" class="size-3.5" aria-hidden="true" />
+        </button>
+      </div>
+      <ul :aria-label="caption" class="flex flex-col gap-2.5">
+        <template v-if="loading">
+          <li v-for="n in 3" :key="`skeleton-${n}`" class="skeleton h-28 rounded-wd" />
+        </template>
+        <li v-else-if="!visible.length">
+          <slot name="empty">
+            <p class="py-6 text-center text-muted">{{ t('table.empty') }}</p>
+          </slot>
+        </li>
+        <li
+          v-for="row in visible"
+          v-else
+          :key="String(row[rowKey])"
+          class="rounded-wd border border-line bg-surface p-3.5"
+          :class="clickableRows ? 'cursor-pointer active:bg-surface-2' : undefined"
+          @click="emit('row-click', row)"
+        >
+          <div v-if="titleColumn" class="min-w-0">
+            <slot :name="`cell-${titleColumn.key}`" :row="row" :value="row[titleColumn.key]">
+              <span class="font-bold">{{ row[titleColumn.key] ?? '—' }}</span>
+            </slot>
+          </div>
+          <dl
+            v-if="detailColumns.length"
+            class="mt-2.5 grid grid-cols-[auto_minmax(0,1fr)] gap-x-3 gap-y-1.5 text-[13.5px]"
+          >
+            <template v-for="column in detailColumns" :key="column.key">
+              <dt class="text-muted">{{ column.label }}</dt>
+              <dd class="min-w-0 text-right break-words">
+                <slot :name="`cell-${column.key}`" :row="row" :value="row[column.key]">
+                  {{ row[column.key] ?? '—' }}
+                </slot>
+              </dd>
+            </template>
+          </dl>
+          <div
+            v-if="actionColumns.length"
+            class="mt-2.5 flex flex-wrap justify-end gap-2 border-t border-line pt-2.5"
+          >
+            <template v-for="column in actionColumns" :key="column.key">
+              <slot :name="`cell-${column.key}`" :row="row" :value="row[column.key]" />
+            </template>
+          </div>
+        </li>
+      </ul>
+    </div>
+
+    <div v-else class="overflow-x-auto [-webkit-overflow-scrolling:touch]">
       <table class="w-full min-w-[640px] border-collapse text-[14px]">
         <caption class="sr-only">
           {{

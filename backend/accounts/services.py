@@ -117,6 +117,9 @@ def login(email: str, password: str, *, ip: str | None) -> User:
             "invalid_credentials", "Email ou mot de passe incorrect.", status_code=401
         )
     ratelimit.reset("login", f"{ip}:{email}", window=LOGIN_WINDOW)
+    # « Dernière connexion » of the platform console.
+    user.last_login = timezone.now()
+    user.save(update_fields=["last_login"])
     return user
 
 
@@ -400,13 +403,15 @@ def update_profile(user: User, *, full_name: str | None, phone: str | None) -> d
 
 def change_password(user: User, *, current: str, new: str) -> None:
     """Their own password: the current one first, then a safe new one, different from it."""
-    if not user.check_password(current):
+    # A temporary password is often pasted from a message: spaces around it do not count.
+    pasted = user.must_change_password and current.strip() != current
+    if not user.check_password(current) and not (pasted and user.check_password(current.strip())):
         raise BusinessError(
             "invalid",
             "Le mot de passe actuel n’est pas le bon.",
             {"current_password": ["Mot de passe incorrect."]},
         )
-    if current == new:
+    if current.strip() == new.strip():
         raise BusinessError(
             "invalid",
             "Choisissez un mot de passe différent de l’actuel.",

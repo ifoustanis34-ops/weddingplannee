@@ -21,6 +21,8 @@ export interface SessionUser {
   isVerified: boolean
   /** Account opened by the owner with a temporary password: choose your own first. */
   mustChangePassword: boolean
+  /** Wedivo team (« super-admin »): opens the platform console /plateforme. */
+  isPlatformAdmin: boolean
 }
 
 export interface OrganizationSummary {

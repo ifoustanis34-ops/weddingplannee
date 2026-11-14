@@ -26,6 +26,8 @@ const organization = useQuery({
 })
 const current = computed(() => organization.data.value?.plan)
 const trialDays = computed(() => {
+  // Lifetime access (given by the Wedivo team): no trial to count down.
+  if (organization.data.value?.lifetimeAccess) return null
   const ends = organization.data.value?.trialEndsAt
   if (!ends) return null
   const days = daysBetween(new Date(), ends, organization.data.value?.timezone ?? DEFAULT_TIMEZONE)

@@ -62,9 +62,20 @@ class SlugAvailabilitySerializer(serializers.Serializer[Any]):
 
 
 class UserSerializer(serializers.ModelSerializer[User]):
+    # Wedivo team (« super-admin », CLAUDE.md: ``is_staff``): opens the platform console.
+    is_platform_admin = serializers.BooleanField(source="is_staff", read_only=True)
+
     class Meta:
         model = User
-        fields = ["id", "email", "full_name", "phone", "is_verified", "must_change_password"]
+        fields = [
+            "id",
+            "email",
+            "full_name",
+            "phone",
+            "is_verified",
+            "must_change_password",
+            "is_platform_admin",
+        ]
         read_only_fields = fields
 
 

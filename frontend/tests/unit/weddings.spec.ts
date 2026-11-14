@@ -149,6 +149,7 @@ function signIn(role: Role): void {
     phone: '',
     isVerified: true,
     mustChangePassword: false,
+    isPlatformAdmin: false,
   }
   session.organizations = [
     { organizationId: 'o1', slug: 'm', name: 'M', role, roleLabel: '', weddingsEnabled: true },

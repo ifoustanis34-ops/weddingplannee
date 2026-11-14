@@ -9,7 +9,7 @@ import { WAvatar } from '@/design'
 import { useSessionStore } from '@/stores/session'
 
 /**
- * Company block of the sidebar (complement §5): avatar, name and `slug.wedivo.app`.
+ * Company block of the sidebar (complement §5): avatar, name and `slug.wedivo.pro`.
  * With several spaces it opens the space switcher (CLAUDE.md §5.8); otherwise it leads to
  * Paramètres › Entreprise once that module exists.
  */

@@ -308,7 +308,7 @@ async function submit(): Promise<void> {
           v-model="slug"
           v-bind="slugAttrs"
           :label="t('auth.signup.slug')"
-          addon=".wedivo.app"
+          addon=".wedivo.pro"
           :error="
             fieldError('slug') ??
             (slugState.available === false ? (slugState.reason ?? undefined) : undefined)

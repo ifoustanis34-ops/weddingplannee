@@ -30,6 +30,7 @@ class OrganizationSerializer(serializers.ModelSerializer[Organization]):
             "weddings_per_year",
             "plan",
             "trial_ends_at",
+            "lifetime_access",
             "quote_prefix",
             "quote_validity_days",
             "legal_mentions",
@@ -37,7 +38,7 @@ class OrganizationSerializer(serializers.ModelSerializer[Organization]):
             "deposit_kept_on_cancel",
             "weddings_enabled",
         ]
-        read_only_fields = ["id", "plan", "trial_ends_at"]
+        read_only_fields = ["id", "plan", "trial_ends_at", "lifetime_access"]
 
     def get_logo(self, organization: Organization) -> str | None:
         from documents.services import logo_url

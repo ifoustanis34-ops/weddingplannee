@@ -56,6 +56,31 @@ def test_changing_the_password_asks_for_the_current_one(
     assert login(owner_a.email, TEMP) == 200
 
 
+def test_a_pasted_temporary_password_ignores_spaces_around_it(
+    owner_a: User, org_a: Organization, client_for: Callable[..., APIClient]
+) -> None:
+    User.objects.filter(pk=owner_a.pk).update(must_change_password=True)
+    client = client_for(owner_a, org_a)
+    response = client.post(
+        reverse("auth-me-password"),
+        {"current_password": f" {DEFAULT_PASSWORD} ", "new_password": TEMP},
+    )
+    assert response.status_code == 204
+    owner_a.refresh_from_db()
+    assert not owner_a.must_change_password
+
+
+def test_spaces_still_count_for_a_chosen_password(
+    owner_a: User, org_a: Organization, client_for: Callable[..., APIClient]
+) -> None:
+    client = client_for(owner_a, org_a)
+    response = client.post(
+        reverse("auth-me-password"),
+        {"current_password": f"{DEFAULT_PASSWORD} ", "new_password": TEMP},
+    )
+    assert response.status_code == 400
+
+
 def test_the_owner_creates_an_account_that_must_change_its_password(
     owner_a: User, org_a: Organization, client_for: Callable[..., APIClient]
 ) -> None:

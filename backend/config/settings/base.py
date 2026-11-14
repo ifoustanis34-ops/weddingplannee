@@ -46,6 +46,7 @@ INSTALLED_APPS = [
     "reservations",
     "staff",
     "notifications",
+    "platform_admin",
 ]
 
 AUTH_USER_MODEL = "accounts.User"
@@ -169,6 +170,8 @@ SIGNUP_RATE_LIMIT = env.int("SIGNUP_RATE_LIMIT", default=5)
 # Every agency gets every feature whatever its offer (product decision, Nov. 2026): the offers'
 # limits (users) are not enforced. Future modules may be reserved to an offer later.
 ALL_FEATURES_INCLUDED = env.bool("ALL_FEATURES_INCLUDED", default=True)
+# Django admin address, e.g. "gestion-7f3a/" ; empty = off (production default).
+DJANGO_ADMIN_URL = env.str("DJANGO_ADMIN_URL", default="admin/" if DEBUG else "")
 
 # Web Push of the PWA (feedback 13/11/2026). Keys from `manage.py generate_vapid_keys`; without
 # them no notification is sent and the app hides the switch.

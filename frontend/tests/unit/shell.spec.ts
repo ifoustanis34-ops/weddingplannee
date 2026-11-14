@@ -33,6 +33,7 @@ function signIn(role: Role = 'owner', organizations: OrganizationSummary[] = [OR
     phone: '',
     isVerified: true,
     mustChangePassword: false,
+    isPlatformAdmin: false,
   }
   session.organizations = organizations.map((org) => ({ ...org, role }))
   session.selectOrganization(organizations[0]?.slug ?? null)
@@ -106,7 +107,7 @@ describe('SidebarContent', () => {
     await router.push('/')
     await settle()
 
-    expect(wrapper.text()).toContain('maison-elegance.wedivo.app')
+    expect(wrapper.text()).toContain('maison-elegance.wedivo.pro')
     expect(wrapper.text()).not.toContain('Relances')
     expect(wrapper.text()).toContain('Freddy Kouamé')
     expect(wrapper.text()).toContain('Propriétaire')

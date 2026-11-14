@@ -39,7 +39,9 @@ jobs:
       - run: ruff check .
       - run: black --check .
       - run: mypy .
-      - run: pytest --cov --cov-report=term-missing
+      - run: pytest --cov --cov-report=term-missing -m "not perf"
+      # Timing budgets of the specification, without the coverage tracer that slows them down.
+      - run: pytest -m perf
       - run: python manage.py makemigrations --check --dry-run --settings=config.settings.test
       - run: pip-audit -r requirements.txt
 

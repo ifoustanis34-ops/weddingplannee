@@ -30,11 +30,15 @@ export function configureApi(overrides: Partial<Hooks>): void {
   Object.assign(hooks, overrides)
 }
 
+const SPACELESS_PATHS = ['/auth/', '/platform/', '/plans']
 const AUTH_PATHS = ['/auth/login', '/auth/refresh', '/auth/logout', '/auth/signup']
 const EXPIRED_CODES = new Set(['not_authenticated', 'authentication_failed', 'token_not_valid'])
 
 api.interceptors.request.use((config) => {
-  const slug = hooks.organizationSlug()
+  // Session and platform console calls never depend on a space: a suspended one must not
+  // break them (the server answers 404 for an unknown or suspended space).
+  const spaceless = SPACELESS_PATHS.some((path) => config.url?.startsWith(path))
+  const slug = spaceless ? null : hooks.organizationSlug()
   if (slug) config.headers.set('X-Organization', slug)
   if (config.data && !(config.data instanceof FormData)) config.data = snakify(config.data)
   if (config.params) config.params = snakify(config.params)

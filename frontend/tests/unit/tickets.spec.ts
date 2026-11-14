@@ -116,6 +116,7 @@ async function mountAt(path: string, component: Component) {
     phone: '',
     isVerified: true,
     mustChangePassword: false,
+    isPlatformAdmin: false,
   }
   session.organizations = [
     {

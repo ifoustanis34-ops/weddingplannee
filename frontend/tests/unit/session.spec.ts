@@ -17,6 +17,7 @@ const session = {
     phone: '',
     isVerified: true,
     mustChangePassword: false,
+    isPlatformAdmin: false,
   },
   organizations: [
     {

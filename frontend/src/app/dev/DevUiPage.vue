@@ -140,7 +140,7 @@ const rows = [
           <WInput
             v-model="slug"
             label="Adresse de votre espace"
-            addon=".wedivo.app"
+            addon=".wedivo.pro"
             hint="Vos clients et votre équipe se connectent à cette adresse."
           />
           <WInput v-model="discount" label="Remise" type="number" addon="%" />

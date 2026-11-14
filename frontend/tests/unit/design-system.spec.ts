@@ -131,8 +131,8 @@ describe('WChips', () => {
 
 describe('WInput addon', () => {
   it('renders the grey suffix inside the field frame', () => {
-    const wrapper = mount(WInput, { props: { label: 'Adresse', addon: '.wedivo.app' } })
-    expect(wrapper.text()).toContain('.wedivo.app')
+    const wrapper = mount(WInput, { props: { label: 'Adresse', addon: '.wedivo.pro' } })
+    expect(wrapper.text()).toContain('.wedivo.pro')
     expect(wrapper.get('input').classes()).toContain('border-0')
   })
 })

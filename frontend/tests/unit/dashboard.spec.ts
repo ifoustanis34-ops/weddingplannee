@@ -145,6 +145,7 @@ function setup(role: 'owner' | 'planner' | 'assistant' | 'accountant' = 'owner')
     phone: '',
     isVerified: true,
     mustChangePassword: false,
+    isPlatformAdmin: false,
   }
   session.organizations = [
     {
@@ -182,8 +183,19 @@ function setup(role: 'owner' | 'planner' | 'assistant' | 'accountant' = 'owner')
 }
 
 async function mountPage(role: Parameters<typeof setup>[0], data: Partial<DashboardSummary> = {}) {
+  // Same shapes as the API: the lists are plain arrays (no pagination on these views), the
+  // organization an object. Any other address is refused, never answered with a wrong shape.
+  const responses: Record<string, unknown> = {
+    '/dashboard/summary': { ...summary, ...data },
+    '/organization': { name: 'Maison Élégance Events', timezone: 'Africa/Douala' },
+    '/contracts': [],
+    '/reservations': [],
+    '/weddings': [],
+  }
   vi.mocked(api.get).mockImplementation((url: string) =>
-    Promise.resolve({ data: url === '/dashboard/summary' ? { ...summary, ...data } : {} }),
+    url in responses
+      ? Promise.resolve({ data: responses[url] })
+      : Promise.reject(new Error(`Unexpected GET ${url} in the dashboard test`)),
   )
   const { router, global } = setup(role)
   await router.push('/')

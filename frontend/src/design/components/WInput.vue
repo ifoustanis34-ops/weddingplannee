@@ -13,7 +13,7 @@ const props = defineProps<{
   error?: string
   required?: boolean
   hideLabel?: boolean
-  /** Grey suffix inside the same rounded frame: « .wedivo.app », « % », « jours ». */
+  /** Grey suffix inside the same rounded frame: « .wedivo.pro », « % », « jours ». */
   addon?: string
   id?: string
 }>()

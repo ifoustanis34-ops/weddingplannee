@@ -127,7 +127,7 @@ async function save(): Promise<void> {
         v-model="form.slug"
         class="sm:col-span-2"
         :label="t('auth.signup.slug')"
-        addon=".wedivo.app"
+        addon=".wedivo.pro"
         :hint="t('settings.company.slugHint')"
         :error="errors.slug"
         autocapitalize="none"

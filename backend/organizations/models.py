@@ -45,6 +45,14 @@ class Organization(models.Model):
     quote_prefix = models.CharField(max_length=8, default="DV")
     quote_validity_days = models.PositiveSmallIntegerField(default=30)
     legal_mentions = models.TextField(blank=True)
+    # Super-admin console (feedback 14/11/2026): an agency can be given Wedivo for life, without
+    # trial end nor payment; it can also be suspended (``is_active`` off: nobody gets in).
+    lifetime_access = models.BooleanField(default=False)
+    lifetime_granted_at = models.DateTimeField(null=True, blank=True)
+    suspended_at = models.DateTimeField(null=True, blank=True)
+    suspension_reason = models.CharField(max_length=240, blank=True)
+    # Private note of the Wedivo team, never shown to the agency.
+    admin_note = models.TextField(blank=True)
     is_active = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -57,6 +65,10 @@ class Organization(models.Model):
 
     def is_in_trial(self, now: datetime) -> bool:
         return self.trial_ends_at is not None and now < self.trial_ends_at
+
+    def can_change_plan_freely(self, now: datetime) -> bool:
+        """During the trial, and for ever when the agency has lifetime access."""
+        return self.lifetime_access or self.is_in_trial(now)
 
 
 class DocumentSequence(models.Model):

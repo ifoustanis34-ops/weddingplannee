@@ -177,7 +177,7 @@ def change_plan(organization: Organization, code: str) -> dict[str, Any]:
         raise BusinessError("invalid", "Offre inconnue.", {"plan": ["Offre inconnue."]})
     if plan.code == organization.plan:
         return {}
-    if not organization.is_in_trial(timezone.now()):
+    if not organization.can_change_plan_freely(timezone.now()):
         raise BusinessError(
             "plan_change_unavailable",
             "Le paiement en ligne n’est pas encore disponible : contactez l’équipe Wedivo "

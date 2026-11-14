@@ -46,6 +46,7 @@ function setup(role: 'owner' | 'planner' | 'assistant' | 'accountant' = 'owner')
     phone: '',
     isVerified: true,
     mustChangePassword: false,
+    isPlatformAdmin: false,
   }
   session.organizations = [
     {

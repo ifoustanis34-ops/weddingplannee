@@ -367,16 +367,26 @@ def test_guest_and_ticket_tables_are_under_row_level_security() -> None:
         }
 
 
+@pytest.mark.perf
 def test_five_hundred_tickets_fit_the_three_minute_budget(
     wedding: Wedding, org_a: Organization
 ) -> None:
-    """§6: 500 tickets in under 3 minutes. Measured on 10 (PDF only), extrapolated."""
+    """§6: 500 tickets in under 3 minutes (PDF only), extrapolated like the real batch.
+
+    A batch renders its first ticket once (fonts and engine loaded, ~1 s), then the others at
+    a steady pace: budget = first + 499 × steady. Timing 10 tickets with the first one inside
+    and multiplying by 500 counted that one-off cost 500 times.
+    """
     import time
 
     with tenant_context(org_a):
-        guests = [Guest.objects.create(wedding=wedding, name=f"Invité {n}") for n in range(10)]
+        guests = [Guest.objects.create(wedding=wedding, name=f"Invité {n}") for n in range(11)]
         started = time.perf_counter()
-        for guest in guests:
+        services.generate(services.issue_ticket(guests[0]))
+        first = time.perf_counter() - started
+        started = time.perf_counter()
+        for guest in guests[1:]:
             services.generate(services.issue_ticket(guest))
-        per_ticket = (time.perf_counter() - started) / len(guests)
-    assert per_ticket * 500 < 180, f"{per_ticket:.2f} s par billet"
+        steady = (time.perf_counter() - started) / (len(guests) - 1)
+    batch = first + 499 * steady
+    assert batch < 180, f"500 billets ≈ {batch:.0f} s (premier {first:.2f} s, puis {steady:.2f} s)"

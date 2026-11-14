@@ -144,6 +144,7 @@ function signIn(): void {
     phone: '',
     isVerified: true,
     mustChangePassword: false,
+    isPlatformAdmin: false,
   }
   session.organizations = [
     {

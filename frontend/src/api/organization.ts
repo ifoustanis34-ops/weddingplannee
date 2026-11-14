@@ -18,6 +18,8 @@ export interface Organization {
   weddingsEnabled: boolean
   plan: 'essentiel' | 'pro' | 'agence'
   trialEndsAt: string | null
+  /** Given by the Wedivo team: no trial end, plan changes any time. */
+  lifetimeAccess: boolean
   quotePrefix: string
   quoteValidityDays: number
   legalMentions: string

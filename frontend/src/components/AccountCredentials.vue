@@ -17,13 +17,15 @@ const props = defineProps<{
   email: string
   password: string | null
   phone?: string
+  /** Agency named in the message (platform console); the current space otherwise. */
+  organizationName?: string
 }>()
 const { t } = useI18n()
 const session = useSessionStore()
 const message = computed(() =>
   accessMessage({
     name: props.name,
-    organization: session.currentOrganization?.name ?? '',
+    organization: props.organizationName ?? session.currentOrganization?.name ?? '',
     email: props.email,
     password: props.password,
     url: `${window.location.origin}/connexion`,

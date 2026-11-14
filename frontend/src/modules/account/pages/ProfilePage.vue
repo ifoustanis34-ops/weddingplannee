@@ -55,10 +55,12 @@ async function saveIdentity(): Promise<void> {
   } catch (error) {
     const apiError = toApiError(error)
     identityErrors.value = {
-      fullName: apiError.fields.full_name?.[0],
-      phone: apiError.fields.phone?.[0],
+      fullName: apiError.fieldError('fullName'),
+      phone: apiError.fieldError('phone'),
     }
-    if (!Object.keys(apiError.fields).length) toast.error(apiError.message)
+    if (!identityErrors.value.fullName && !identityErrors.value.phone) {
+      toast.error(apiError.message)
+    }
   } finally {
     savingIdentity.value = false
   }
@@ -85,11 +87,13 @@ async function savePassword(): Promise<void> {
       await router.push(typeof route.query.redirect === 'string' ? route.query.redirect : '/')
   } catch (error) {
     const apiError = toApiError(error)
+    // Field errors arrive in camelCase (api/errors.ts); the message always shows, so a refusal is
+    // never silent.
     passwordErrors.value = {
-      current: apiError.fields.current_password?.[0],
-      next: apiError.fields.new_password?.[0],
+      current: apiError.fieldError('currentPassword'),
+      next: apiError.fieldError('newPassword'),
     }
-    if (!Object.keys(apiError.fields).length) toast.error(apiError.message)
+    toast.error(apiError.message)
   } finally {
     savingPassword.value = false
   }

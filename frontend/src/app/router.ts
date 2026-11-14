@@ -8,6 +8,7 @@ import { eventRoutes } from '@/modules/events/routes'
 import { invitationRoutes } from '@/modules/invitations/routes'
 import { financeRoutes } from '@/modules/finance/routes'
 import { quoteRoutes } from '@/modules/quotes/routes'
+import { platformRoutes } from '@/modules/platform/routes'
 import { settingsRoutes } from '@/modules/settings/routes'
 import { reportRoutes } from '@/modules/reports/routes'
 import { staffRoutes } from '@/modules/staff/routes'
@@ -16,11 +17,15 @@ import { stockRoutes } from '@/modules/stock/routes'
 import { vendorRoutes } from '@/modules/vendors/routes'
 import { FIELD_ROLES, type Role } from '@/api/auth'
 import { visibleNavItems } from '@/app/navigation'
+import { useToast } from '@/composables/useToast'
+import { i18n } from '@/i18n'
 import { useSessionStore } from '@/stores/session'
 
 declare module 'vue-router' {
   interface RouteMeta {
-    layout?: 'auth' | 'app' | 'blank'
+    layout?: 'auth' | 'app' | 'platform' | 'blank'
+    /** Platform console: Wedivo team only (the API enforces it too). */
+    platform?: boolean
     /** Requires a signed-in user. */
     auth?: boolean
     /** Only for signed-out visitors (login, signup...). */
@@ -55,6 +60,7 @@ const routes: RouteRecordRaw[] = [
   ...reportRoutes,
   ...staffRoutes,
   ...accountRoutes,
+  ...platformRoutes,
   {
     // Team invitation link (backend accounts/tasks.py).
     path: '/invitation/:token',
@@ -120,7 +126,7 @@ export const router = createRouter({
   scrollBehavior: (to, from, saved) => saved ?? (to.path === from.path ? false : { top: 0 }),
 })
 
-router.beforeEach(async (to) => {
+router.beforeEach(async (to, from) => {
   const session = useSessionStore()
   try {
     await session.bootstrap()
@@ -132,11 +138,26 @@ router.beforeEach(async (to) => {
   if (to.meta.auth && !session.isAuthenticated) {
     return { name: 'login', query: to.fullPath !== '/' ? { redirect: to.fullPath } : {} }
   }
-  if (to.meta.guest && session.isAuthenticated) return { name: 'dashboard' }
-  // An account opened by the owner chooses its own password before anything else.
-  if (to.meta.layout === 'app' && session.user?.mustChangePassword && to.name !== 'profile') {
-    return { name: 'profile' }
+  const isPlatformAdmin = !!session.user?.isPlatformAdmin
+  const noSpace = session.organizations.length === 0
+  if (to.meta.guest && session.isAuthenticated) {
+    return { name: isPlatformAdmin && noSpace ? 'platform-overview' : 'dashboard' }
   }
+  // An account opened with a temporary password chooses its own before anything else.
+  if (session.user?.mustChangePassword && to.meta.auth) {
+    const profile = isPlatformAdmin && noSpace ? 'platform-profile' : 'profile'
+    if (to.name !== 'profile' && to.name !== 'platform-profile') {
+      // Coming from a page of the app (a menu click): say why nothing else opens yet.
+      if (from.name === 'profile' || from.name === 'platform-profile') {
+        useToast().info(i18n.global.t('profile.mustChangeFirst'))
+      }
+      return { name: profile }
+    }
+  }
+  // Platform console (super-admin, 14/11/2026): Wedivo team only.
+  if (to.meta.platform) return isPlatformAdmin ? true : { name: 'dashboard' }
+  // A Wedivo team account with no agency space lands in the console.
+  if (to.meta.layout === 'app' && isPlatformAdmin && noSpace) return { name: 'platform-overview' }
   if (to.name === 'profile') return true // « Mon profil »: every role
   if (to.meta.module === 'weddings' && !session.weddingsEnabled) return { name: 'dashboard' }
   if (to.meta.roles && (!session.role || !to.meta.roles.includes(session.role))) {

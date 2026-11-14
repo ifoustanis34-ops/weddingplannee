@@ -146,6 +146,7 @@ async function mountEditor(path: string, role: 'owner' | 'accountant' = 'owner')
     phone: '',
     isVerified: true,
     mustChangePassword: false,
+    isPlatformAdmin: false,
   }
   session.organizations = [
     {

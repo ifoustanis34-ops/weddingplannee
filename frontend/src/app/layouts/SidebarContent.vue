@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { LogOut, UserRound } from '@lucide/vue'
+import { LogOut, ShieldCheck, UserRound } from '@lucide/vue'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRoute } from 'vue-router'
@@ -68,6 +68,14 @@ const isActive = (item: NavItem) => route.name === item.routeName || route.meta.
     </nav>
 
     <div class="mt-2 border-t border-line pt-3">
+      <RouterLink
+        v-if="session.user?.isPlatformAdmin"
+        :to="{ name: 'platform-overview' }"
+        class="mb-2 flex items-center gap-[11px] rounded-[10px] px-2.5 py-2 text-[14px] font-semibold text-violet hover:bg-violet-soft"
+        @click="emit('navigate')"
+      >
+        <ShieldCheck class="size-[18px]" aria-hidden="true" />{{ t('platform.nav.openConsole') }}
+      </RouterLink>
       <RouterLink
         :to="{ name: 'profile' }"
         class="flex items-center gap-2.5 rounded-[10px] px-1 py-1 hover:bg-surface-2"

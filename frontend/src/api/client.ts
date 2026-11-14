@@ -19,7 +19,7 @@ export const api = axios.create({
 })
 
 interface Hooks {
-  /** Slug of the active organization, sent as `X-Organization` (dev; prod uses the subdomain). */
+  /** Slug of the active organization, sent as `X-Organization` (a subdomain wins when present). */
   organizationSlug: () => string | null
   onSessionExpired: () => void
 }

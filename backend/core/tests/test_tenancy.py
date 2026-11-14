@@ -55,6 +55,20 @@ def test_resolves_organization_from_dev_header(
     assert response.json()["name"] == "Agence A"
 
 
+def test_subdomain_wins_over_the_header(
+    client_for: Callable[..., APIClient],
+    owner_a: User,
+    org_a: Organization,
+    org_b: Organization,
+) -> None:
+    response = client_for(owner_a).get(
+        ORG_URL, HTTP_HOST="agence-a.wedivo.app", HTTP_X_ORGANIZATION=org_b.slug
+    )
+
+    assert response.status_code == 200
+    assert response.json()["name"] == "Agence A"
+
+
 def test_unknown_organization_returns_404(
     client_for: Callable[..., APIClient], owner_a: User
 ) -> None:

@@ -28,6 +28,11 @@ STORAGES = {
     "staticfiles": {"BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage"},
 }
 
-# Tenants are resolved from the subdomain only; the session cookie is always Secure.
-TENANT_HEADER_ENABLED = False
+# The space comes from the subdomain (slug.<TENANT_BASE_DOMAIN>) when there is one, otherwise
+# from the X-Organization header the app sends: Wedivo then works on a single address
+# (feedback 14/11/2026: « Vous n'avez pas accès à cet espace » on every action online).
+# Safe: every request still needs an active membership of that space (IsTenantMember) and the
+# data stays isolated by RLS. TENANT_HEADER_ENABLED=false keeps subdomains only.
+TENANT_HEADER_ENABLED = env.bool("TENANT_HEADER_ENABLED", default=True)
+# The session cookie is always Secure: the site must be served over HTTPS.
 JWT_COOKIE_SECURE = True

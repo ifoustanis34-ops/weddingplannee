@@ -54,7 +54,7 @@ Mot de passe commun : `Wedivo-demo-2026`
 | Personnel | linda.abena@maison-elegance.ci |
 | Seconde agence (propriétaire) | koffi.nguessan@atelier-bassam.ci |
 
-En développement, l’espace se choisit avec l’en-tête `X-Organization: maison-elegance` ; en production, par le sous-domaine `maison-elegance.wedivo.app`.
+L’espace se choisit par le sous-domaine (`maison-elegance.wedivo.app`) s’il y en a un, sinon par l’en-tête `X-Organization` que l’application envoie : Wedivo fonctionne aussi sur une seule adresse. Désactivable en production avec `TENANT_HEADER_ENABLED=false`.
 
 Notifications push : générer des clés avec `docker compose -f infra/docker-compose.dev.yml exec api python manage.py generate_vapid_keys` et les copier dans `.env` (voir `.env.example`).
 

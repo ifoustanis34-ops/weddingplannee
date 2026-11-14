@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { toTypedSchema } from '@vee-validate/zod'
+import { toTypedSchema } from '@/app/zodSchema'
 import { useForm } from 'vee-validate'
 import { useI18n } from 'vue-i18n'
 import { useRoute, useRouter } from 'vue-router'

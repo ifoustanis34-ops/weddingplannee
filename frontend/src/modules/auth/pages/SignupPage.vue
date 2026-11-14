@@ -1,6 +1,6 @@
 <script setup lang="ts">
+import { toTypedSchema } from '@/app/zodSchema'
 import { useQuery } from '@tanstack/vue-query'
-import { toTypedSchema } from '@vee-validate/zod'
 import { CircleCheck, LoaderCircle } from '@lucide/vue'
 import { type TypedSchema, useForm } from 'vee-validate'
 import { computed, ref, watch } from 'vue'
@@ -59,7 +59,7 @@ const step = ref(0)
 const currentSchema = computed(
   () =>
     toTypedSchema(
-      signupSchema.partial().merge(STEPS[step.value]!.schema),
+      signupSchema.partial().extend(STEPS[step.value]!.schema.shape),
     ) as unknown as TypedSchema<SignupForm>,
 )
 const { defineField, errors, handleSubmit, isSubmitting, values } = useForm<SignupForm>({

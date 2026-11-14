@@ -9,21 +9,21 @@ export const SLUG_PATTERN = /^[a-z0-9](?:[a-z0-9-]{1,30}[a-z0-9])$/
 
 /** Required text; `message` says what to fill in (complement §6: « Indiquez… »). */
 const required = (message = t('validation.required')) =>
-  z.string({ required_error: message }).trim().min(1, message)
+  z.string({ error: message }).trim().min(1, message)
 
 export const emailSchema = z
-  .string({ required_error: t('validation.email') })
+  .string({ error: t('validation.email') })
   .trim()
   .email(t('validation.email'))
 
 export const passwordSchema = z
-  .string({ required_error: t('validation.passwordLength') })
+  .string({ error: t('validation.passwordLength') })
   .min(8, t('validation.passwordLength'))
   .refine((value) => !/^\d+$/.test(value), t('validation.passwordNumeric'))
 
 export const loginSchema = z.object({
   email: emailSchema,
-  password: z.string({ required_error: t('validation.required') }).min(1, t('validation.required')),
+  password: z.string({ error: t('validation.required') }).min(1, t('validation.required')),
 })
 
 export const companyStepSchema = z.object({
@@ -51,7 +51,9 @@ export const spaceStepSchema = z.object({
 })
 
 /** Whole signup form; each wizard step requires only its own fields. */
-export const signupSchema = companyStepSchema.merge(accountStepSchema).merge(spaceStepSchema)
+export const signupSchema = companyStepSchema
+  .extend(accountStepSchema.shape)
+  .extend(spaceStepSchema.shape)
 export type SignupForm = z.input<typeof signupSchema>
 
 export const resetSchema = z

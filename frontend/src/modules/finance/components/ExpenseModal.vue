@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { toTypedSchema } from '@vee-validate/zod'
+import { toTypedSchema } from '@/app/zodSchema'
 import { useForm } from 'vee-validate'
 import { computed, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -37,7 +37,7 @@ const schema = z
   .object({
     label: z.string().trim().min(1, gt('dashboard.expense.labelRequired')).max(160),
     amount: z
-      .number({ invalid_type_error: gt('dashboard.expense.amountRequired') })
+      .number({ error: gt('dashboard.expense.amountRequired') })
       .int()
       .min(1, gt('dashboard.expense.amountRequired')),
     category: z.string().optional().default(''),

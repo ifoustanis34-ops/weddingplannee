@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { toTypedSchema } from '@vee-validate/zod'
+import { toTypedSchema } from '@/app/zodSchema'
 import { MailCheck } from '@lucide/vue'
 import { useForm } from 'vee-validate'
 import { ref } from 'vue'

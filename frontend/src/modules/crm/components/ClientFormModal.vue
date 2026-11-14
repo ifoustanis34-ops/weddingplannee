@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { toTypedSchema } from '@vee-validate/zod'
+import { toTypedSchema } from '@/app/zodSchema'
 import { useForm } from 'vee-validate'
 import { computed, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -30,7 +30,7 @@ const text = (max: number) => z.string().trim().max(max).optional().default('')
 // Same rules as crm.serializers.ClientSerializer.
 const schema = z.object({
   name: z
-    .string({ required_error: gt('validation.required') })
+    .string({ error: gt('validation.required') })
     .trim()
     .min(1, gt('clients.form.nameRequired'))
     .max(160),

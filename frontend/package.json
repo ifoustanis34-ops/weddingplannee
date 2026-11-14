@@ -16,14 +16,13 @@
   "dependencies": {
     "@lucide/vue": "1.59.0",
     "@tanstack/vue-query": "5.104.5",
-    "@vee-validate/zod": "4.15.1",
     "axios": "1.20.0",
     "pinia": "4.1.0",
     "vee-validate": "4.15.1",
     "vue": "3.5.44",
     "vue-i18n": "11.4.16",
     "vue-router": "5.4.0",
-    "zod": "3.25.76"
+    "zod": "4.6.7"
   },
   "devDependencies": {
     "@playwright/test": "1.64.1",
@@ -47,5 +46,8 @@
   },
   "engines": {
     "node": ">=20.19"
+  },
+  "overrides": {
+    "follow-redirects": "1.16.2"
   }
 }

@@ -1,5 +1,5 @@
 import { QueryClient, VueQueryPlugin } from '@tanstack/vue-query'
-import { flushPromises, mount } from '@vue/test-utils'
+import { enableAutoUnmount, flushPromises, mount } from '@vue/test-utils'
 import { createPinia, setActivePinia } from 'pinia'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { ref } from 'vue'
@@ -176,6 +176,10 @@ async function mountEditor(path: string, role: 'owner' | 'accountant' = 'owner')
   await flushPromises()
   return { wrapper, router }
 }
+
+// Unmounting each editor stops its preview timer (400 ms): a request fired after the end of a
+// test would otherwise be counted by the next one.
+enableAutoUnmount(afterEach)
 
 beforeEach(() => {
   vi.mocked(api.get).mockImplementation((url: string) => Promise.resolve(respond(url)))

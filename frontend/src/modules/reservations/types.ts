@@ -59,6 +59,11 @@ export interface ReservationLine {
   quantityReturned?: number
   quantityDamaged?: number
   quantityMissing?: number
+  /** Part lent by a partner (feedback 14/11/2026); `partnerUnitCost`: owner, accountant. */
+  partnerSupply?: string | null
+  partnerName?: string | null
+  partnerQuantity?: number
+  partnerUnitCost?: number | null
 }
 
 export interface ReservationPayment {
@@ -146,10 +151,39 @@ export interface ReservationStats {
   balanceDue: number | null
 }
 
+export interface PartnerOffer {
+  supply: string
+  vendor: string
+  vendorName: string
+  /** What the partner can still lend over the period. */
+  free: number
+  unitCost: number | null
+}
+
 export interface Shortage {
   item: string
   name: string
   needed: number
   available: number
   alternatives: { item: string; name: string; available: number }[]
+  /** The rental line to complete, and the partners who can (feedback 14/11/2026). */
+  line: string | null
+  partnerQuantity: number
+  partners: PartnerOffer[]
+}
+
+export interface PartnerOrder {
+  vendor: string
+  vendorName: string
+  contact: string
+  phone: string
+  total: number | null
+  lines: {
+    line: string
+    label: string
+    reference: string
+    quantity: number
+    unitCost: number | null
+    total: number | null
+  }[]
 }

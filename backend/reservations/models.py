@@ -145,6 +145,17 @@ class ReservationLine(TenantModel):
     amount = models.BigIntegerField(default=0)
     position = models.PositiveSmallIntegerField(default=0)
     # Logistics of equipment lines (checkout and return, §4.1).
+    # Part of a rental line lent by a partner (feedback 14/11/2026): it never leaves our
+    # warehouse; ``quantity_out`` and the stock movements count our own part only.
+    partner_supply = models.ForeignKey(
+        "stock.PartnerSupply",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="reservation_lines",
+    )
+    partner_quantity = models.PositiveIntegerField(default=0)
+    partner_unit_cost = models.BigIntegerField(default=0)  # frozen when the partner is chosen
     quantity_out = models.PositiveIntegerField(default=0)
     quantity_returned = models.PositiveIntegerField(default=0)
     quantity_damaged = models.PositiveIntegerField(default=0)
@@ -156,6 +167,11 @@ class ReservationLine(TenantModel):
             models.CheckConstraint(
                 condition=Q(unit_price__gte=0, amount__gte=0, deposit__gte=0, quantity__gt=0),
                 name="reservation_line_amounts",
+            ),
+            # The partner part is a share of the line, never more.
+            models.CheckConstraint(
+                condition=Q(partner_quantity__lte=models.F("quantity"), partner_unit_cost__gte=0),
+                name="reservation_line_partner_share",
             ),
             # One source at most: an item, a pack or a service (none for a free line).
             models.CheckConstraint(

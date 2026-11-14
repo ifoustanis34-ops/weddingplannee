@@ -29,6 +29,7 @@ import ItemDrawer from '../components/ItemDrawer.vue'
 import ItemFormModal from '../components/ItemFormModal.vue'
 import MovementModal from '../components/MovementModal.vue'
 import PacksTab from '../components/PacksTab.vue'
+import PartnersTab from '../components/PartnersTab.vue'
 import StockBar from '../components/StockBar.vue'
 import StockLegend from '../components/StockLegend.vue'
 import type { Item } from '../types'
@@ -39,7 +40,7 @@ const route = useRoute()
 const router = useRouter()
 const { can } = usePermissions()
 
-const TABS = ['items', 'packs', 'availability', 'inventory'] as const
+const TABS = ['items', 'partners', 'packs', 'availability', 'inventory'] as const
 type Tab = (typeof TABS)[number]
 const tab = computed<Tab>({
   get: () =>
@@ -65,11 +66,20 @@ watch(search, (value) => {
 onBeforeUnmount(() => clearTimeout(timer))
 const category = ref('all')
 const status = ref('')
+// « Notre matériel » / « Chez les partenaires » (feedback 14/11/2026).
+const source = ref<'' | 'own' | 'partner'>('')
+const sourceOptions = computed(() =>
+  (['', 'own', 'partner'] as const).map((value) => ({
+    value,
+    label: t(`stock.sources.${value || 'all'}`),
+  })),
+)
 const view = ref<'grid' | 'table'>('grid')
 const items = useItems(() => ({
   search: debounced.value,
   category: category.value === 'all' ? '' : category.value,
   status: status.value,
+  source: source.value,
 }))
 
 const chips = computed(() => [
@@ -87,6 +97,7 @@ const columns = computed<TableColumn[]>(() => [
   { key: 'categoryName', label: t('stock.columns.category') },
   { key: 'bar', label: t('stock.columns.available') },
   { key: 'totalQuantity', label: t('stock.columns.total'), align: 'right' },
+  { key: 'partnerQuantity', label: t('stock.tabs.partners'), align: 'right' },
   ...(can('viewStockPrices')
     ? [{ key: 'rentPrice', label: t('stock.columns.rent'), align: 'right' as const }]
     : []),
@@ -150,6 +161,7 @@ const movementOpen = ref(false)
     <WTabs v-model="tab" :tabs="tabs" :label="t('stock.title')">
       <template v-if="tab === 'items'">
         <div class="mb-4 flex flex-col gap-3">
+          <WChips v-model="source" :options="sourceOptions" :label="t('stock.tabs.items')" />
           <WChips v-model="category" :options="chips" :label="t('stock.fields.category')" />
           <div class="flex flex-wrap items-end gap-3">
             <WInput
@@ -214,7 +226,9 @@ const movementOpen = ref(false)
           v-else-if="!items.data.value?.length"
           :icon="Package"
           :title="
-            debounced || status || category !== 'all' ? t('stock.noResults') : t('stock.emptyTitle')
+            debounced || status || source || category !== 'all'
+              ? t('stock.noResults')
+              : t('stock.emptyTitle')
           "
           :description="
             debounced || status || category !== 'all' ? undefined : t('stock.emptyText')
@@ -269,6 +283,11 @@ const movementOpen = ref(false)
             <template #cell-totalQuantity="{ row: r }"
               ><span class="num">{{ row(r).totalQuantity }}</span></template
             >
+            <template #cell-partnerQuantity="{ row: r }"
+              ><span class="num" :class="!row(r).partnerQuantity && 'text-muted'">{{
+                row(r).partnerQuantity || '—'
+              }}</span></template
+            >
             <template #cell-rentPrice="{ row: r }"
               ><span class="num">{{
                 row(r).rentPrice !== null ? formatAmount(row(r).rentPrice!) : '—'
@@ -278,6 +297,7 @@ const movementOpen = ref(false)
           </WTable>
         </WCard>
       </template>
+      <PartnersTab v-else-if="tab === 'partners'" />
       <PacksTab v-else-if="tab === 'packs'" />
       <AvailabilityTab v-else-if="tab === 'availability'" @open="openItem" />
       <InventoryTab v-else />

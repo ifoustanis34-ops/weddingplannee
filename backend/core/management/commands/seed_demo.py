@@ -246,6 +246,11 @@ class Command(BaseCommand):
         with tenant_context(organization), transaction.atomic():
             if seed_vendors():
                 self.stdout.write("Fournisseurs de démonstration complétés.")
+        from .demo_partners import seed as seed_partners
+
+        with tenant_context(organization), transaction.atomic():
+            if seed_partners():
+                self.stdout.write("Matériel des partenaires de démonstration créé.")
         from .demo_cameroon import apply as cameroon
 
         with tenant_context(organization), transaction.atomic():

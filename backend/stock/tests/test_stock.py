@@ -414,4 +414,4 @@ def test_stock_tables_are_under_row_level_security() -> None:
             "SELECT count(*) FROM pg_class WHERE relname LIKE 'stock\\_%%'"
             " AND relkind = 'r' AND relrowsecurity AND relforcerowsecurity"
         )
-        assert cursor.fetchone() == (9,)
+        assert cursor.fetchone() == (10,)  # + stock_partnersupply (14/11/2026)

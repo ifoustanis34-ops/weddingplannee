@@ -8,6 +8,7 @@ import type {
   ReservationInput,
   ReservationRow,
   ReservationStats,
+  PartnerOrder,
   Shortage,
 } from './types'
 
@@ -26,6 +27,7 @@ export const reservationKeys = {
   list: (filters: ReservationFilters) => [...reservationKeys.all, 'list', filters] as const,
   detail: (id: string) => [...reservationKeys.all, 'detail', id] as const,
   shortages: (id: string) => [...reservationKeys.all, 'shortages', id] as const,
+  partnerOrders: (id: string) => [...reservationKeys.all, 'partner-orders', id] as const,
   stats: () => [...reservationKeys.all, 'stats'] as const,
 }
 
@@ -63,6 +65,13 @@ export const reservationsApi = {
     api.post(`/reservation-payments/${id}/cancel`, { reason }).then((r) => r.data),
   shortages: (id: string) =>
     api.get<Shortage[]>(`/reservations/${id}/shortages`).then((r) => r.data),
+  // Partner equipment (feedback 14/11/2026)
+  assignPartner: (id: string, line: string, supply: string | null, quantity: number) =>
+    api
+      .post<Reservation>(`/reservations/${id}/lines/${line}/partner`, { supply, quantity })
+      .then((r) => r.data),
+  partnerOrders: (id: string) =>
+    api.get<PartnerOrder[]>(`/reservations/${id}/partner-orders`).then((r) => r.data),
   stats: () => api.get<ReservationStats>('/reservations/stats').then((r) => r.data),
 }
 

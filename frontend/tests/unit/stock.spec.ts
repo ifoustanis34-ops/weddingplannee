@@ -19,6 +19,7 @@ const item: Item = {
   location: 'Allée 1',
   tracking: 'quantity',
   totalQuantity: 250,
+  partnerQuantity: 0,
   rentPrice: 2000,
   rentUnit: 'event',
   salePrice: null,

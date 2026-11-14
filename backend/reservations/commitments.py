@@ -92,7 +92,9 @@ def spans(
         reservation = line.reservation
         out = reservation.status in OUT
         first, last = window(reservation, tz, today)
-        taken = line.quantity_out if out else line.quantity
+        # Our own part only: a partner's part never leaves our warehouse (feedback 14/11/2026);
+        # ``quantity_out`` already counts our part.
+        taken = line.quantity_out if out else line.quantity - line.partner_quantity
         if taken <= 0:
             continue
         if line.kind == ReservationLine.Kind.PACK and line.pack is not None:

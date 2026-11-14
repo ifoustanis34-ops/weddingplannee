@@ -6,6 +6,7 @@ from rest_framework import serializers
 
 from core.fields import TenantPrimaryKeyRelatedField
 from core.signed_files import signed_url
+from vendors.models import Vendor
 
 from .availability import Availability
 from .models import (
@@ -17,6 +18,7 @@ from .models import (
     Maintenance,
     Pack,
     PackComponent,
+    PartnerSupply,
     StockMovement,
 )
 from .permissions import can_see_costs, can_see_prices, role_of
@@ -68,6 +70,8 @@ class ItemSerializer(MoneyAware, serializers.ModelSerializer[Item]):
     today = serializers.SerializerMethodField()
     stock_value = serializers.SerializerMethodField()
     delay_days = serializers.IntegerField(read_only=True)
+    # Units the partners can lend on top of ours (feedback 14/11/2026).
+    partner_quantity = serializers.SerializerMethodField()
     reference = serializers.CharField(max_length=32, required=False, allow_blank=True)
     # Creation only: opening stock (a purchase movement) and the serials of numbered units.
     initial_quantity = serializers.IntegerField(min_value=0, required=False, write_only=True)
@@ -92,6 +96,7 @@ class ItemSerializer(MoneyAware, serializers.ModelSerializer[Item]):
             "location",
             "tracking",
             "total_quantity",
+            "partner_quantity",
             "rent_price",
             "rent_unit",
             "sale_price",
@@ -117,6 +122,12 @@ class ItemSerializer(MoneyAware, serializers.ModelSerializer[Item]):
 
     def get_photo_url(self, item: Item) -> str | None:
         return signed_url(item.photo.name) if item.photo else None
+
+    def get_partner_quantity(self, item: Item) -> int:
+        annotated = getattr(item, "partner_total", None)
+        if annotated is not None:
+            return int(annotated)
+        return sum(s.quantity for s in item.partner_supplies.all() if s.is_active and s.quantity)
 
     def get_today(self, item: Item) -> dict[str, int] | None:
         value = self.context.get("availability", {}).get(str(item.pk))
@@ -323,3 +334,68 @@ class CountSerializer(serializers.Serializer[Any]):
     counts = serializers.DictField(
         child=serializers.IntegerField(min_value=0, allow_null=True), allow_empty=False
     )
+
+
+class PartnerSupplySerializer(MoneyAware, serializers.ModelSerializer[PartnerSupply]):
+    """Equipment a partner lends (feedback 14/11/2026). Its cost: owner and accountant only.
+
+    Create with an existing ``item``, or with ``new_item_name`` (+ category, rent price) for
+    equipment the agency does not own at all."""
+
+    cost_fields = ("unit_cost",)
+
+    item = TenantPrimaryKeyRelatedField(Item, required=False, allow_null=True)
+    vendor = TenantPrimaryKeyRelatedField(Vendor)
+    item_name = serializers.CharField(source="item.name", read_only=True)
+    item_reference = serializers.CharField(source="item.reference", read_only=True)
+    category_name = serializers.CharField(source="item.category.name", read_only=True)
+    own_quantity = serializers.IntegerField(source="item.total_quantity", read_only=True)
+    vendor_name = serializers.CharField(source="vendor.name", read_only=True)
+    vendor_phone = serializers.SerializerMethodField()
+    quantity = serializers.IntegerField(min_value=0)
+    unit_cost = serializers.IntegerField(min_value=0, required=False)
+    new_item_name = serializers.CharField(max_length=160, required=False, write_only=True)
+    new_item_category = TenantPrimaryKeyRelatedField(ItemCategory, required=False, write_only=True)
+    new_item_rent_price = serializers.IntegerField(min_value=0, required=False, write_only=True)
+
+    class Meta:
+        model = PartnerSupply
+        fields = [
+            "id",
+            "item",
+            "item_name",
+            "item_reference",
+            "category_name",
+            "own_quantity",
+            "vendor",
+            "vendor_name",
+            "vendor_phone",
+            "quantity",
+            "unit_cost",
+            "notes",
+            "is_active",
+            "new_item_name",
+            "new_item_category",
+            "new_item_rent_price",
+        ]
+        read_only_fields = ["id"]
+
+    def get_vendor_phone(self, supply: PartnerSupply) -> str:
+        return supply.vendor.phone or supply.vendor.whatsapp
+
+    def validate_vendor(self, vendor: Vendor) -> Vendor:
+        if vendor.is_deleted:
+            raise serializers.ValidationError("Ce partenaire a été supprimé.")
+        return vendor
+
+    def validate(self, attrs: dict[str, Any]) -> dict[str, Any]:
+        if self.instance is None and not attrs.get("item") and not attrs.get("new_item_name"):
+            raise serializers.ValidationError({"item": ["Choisissez l’article ou nommez-le."]})
+        if attrs.get("new_item_name") and not attrs.get("new_item_category"):
+            raise serializers.ValidationError(
+                {"new_item_category": ["Choisissez la catégorie du nouvel article."]}
+            )
+        return attrs
+
+    def to_representation(self, instance: PartnerSupply) -> dict[str, Any]:
+        return self.strip(dict(super().to_representation(instance)))

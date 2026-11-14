@@ -3,7 +3,7 @@ from __future__ import annotations
 from datetime import date, timedelta
 from typing import Any
 
-from django.db.models import Q, QuerySet
+from django.db.models import Q, QuerySet, Sum
 from django.http import HttpResponse
 from drf_spectacular.types import OpenApiTypes
 from drf_spectacular.utils import OpenApiParameter, OpenApiResponse, extend_schema
@@ -13,12 +13,22 @@ from rest_framework.request import Request
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
+from accounts.models import Membership
 from core.exceptions import BusinessError
 from core.pagination import DefaultCursorPagination
 from core.permissions import IsTenantMember
 
-from . import availability, labels, selectors, services
-from .models import Inventory, Item, ItemCategory, ItemUnit, Maintenance, Pack, StockMovement
+from . import availability, imports, labels, partners, selectors, services
+from .models import (
+    Inventory,
+    Item,
+    ItemCategory,
+    ItemUnit,
+    Maintenance,
+    Pack,
+    PartnerSupply,
+    StockMovement,
+)
 from .permissions import StockPermission, can_see_costs, role_of
 from .serializers import (
     CancelSerializer,
@@ -32,9 +42,11 @@ from .serializers import (
     MovementInputSerializer,
     MovementSerializer,
     PackSerializer,
+    PartnerSupplySerializer,
 )
 
 PERMISSIONS = [IsTenantMember, StockPermission]
+Role = Membership.Role
 MAX_GRID_DAYS = 62
 MAX_PERIOD_DAYS = 366
 
@@ -107,7 +119,16 @@ class ItemListView(StockView, generics.ListCreateAPIView[Item]):
         if getattr(self, "swagger_fake_view", False):
             return Item.all_tenants.none()
         params = self.request.query_params
-        items = Item.objects.select_related("category")
+        items = Item.objects.select_related("category").annotate(
+            partner_total=Sum(
+                "partner_supplies__quantity", filter=Q(partner_supplies__is_active=True)
+            )
+        )
+        # « Notre matériel » / « Matériel des partenaires » (feedback 14/11/2026).
+        if params.get("source") == "own":
+            items = items.filter(total_quantity__gt=0)
+        elif params.get("source") == "partner":
+            items = items.filter(partner_total__gt=0)
         if params.get("inactive") != "true":
             items = items.filter(is_active=True)
         if params.get("category"):
@@ -115,7 +136,8 @@ class ItemListView(StockView, generics.ListCreateAPIView[Item]):
         if params.get("search"):
             term = params["search"].strip()
             items = items.filter(Q(name__icontains=term) | Q(reference__icontains=term))
-        return items
+        result: QuerySet[Item] = items
+        return result
 
     def get_serializer_context(self) -> dict[str, Any]:
         context = super().get_serializer_context()
@@ -541,3 +563,97 @@ class StockStatsView(StockView, APIView):
         if not can_see_costs(role_of(request)):
             data["stock_value"] = None
         return Response(data)
+
+
+# --- Partner equipment (feedback 14/11/2026) ----------------------------------------------------
+
+
+class PartnerSupplyListView(StockView, generics.ListCreateAPIView[PartnerSupply]):
+    """`?vendor=`, `?item=`, `?search=`, `?inactive=true`. Same roles as the stock."""
+
+    serializer_class = PartnerSupplySerializer
+    pagination_class = None
+
+    def get_queryset(self) -> QuerySet[PartnerSupply]:
+        if getattr(self, "swagger_fake_view", False):
+            return PartnerSupply.all_tenants.none()
+        params = self.request.query_params
+        supplies = PartnerSupply.objects.select_related("item__category", "vendor")
+        if params.get("inactive") != "true":
+            supplies = supplies.filter(is_active=True)
+        if params.get("vendor"):
+            supplies = supplies.filter(vendor_id=params["vendor"])
+        if params.get("item"):
+            supplies = supplies.filter(item_id=params["item"])
+        if params.get("search"):
+            term = params["search"].strip()
+            supplies = supplies.filter(
+                Q(item__name__icontains=term)
+                | Q(item__reference__icontains=term)
+                | Q(vendor__name__icontains=term)
+            )
+        return supplies
+
+    def perform_create(self, serializer: PartnerSupplySerializer) -> None:  # type: ignore[override]
+        serializer.instance = partners.create_supply(
+            dict(serializer.validated_data), user=self.request.user  # type: ignore[arg-type]
+        )
+
+
+class PartnerSupplyDetailView(StockView, generics.RetrieveUpdateDestroyAPIView[PartnerSupply]):
+    serializer_class = PartnerSupplySerializer
+    http_method_names = ["get", "patch", "delete"]
+
+    def get_queryset(self) -> QuerySet[PartnerSupply]:
+        if getattr(self, "swagger_fake_view", False):
+            return PartnerSupply.all_tenants.none()
+        return PartnerSupply.objects.select_related("item__category", "vendor")
+
+    def perform_update(self, serializer: PartnerSupplySerializer) -> None:  # type: ignore[override]
+        assert serializer.instance is not None
+        partners.update_supply(serializer.instance, dict(serializer.validated_data))
+
+    @extend_schema(responses={200: OpenApiResponse(OpenApiTypes.OBJECT)})
+    def delete(self, request: Request, *args: Any, **kwargs: Any) -> Response:
+        deleted = partners.delete_supply(self.get_object())
+        return Response({"deleted": deleted})
+
+
+class StockImportView(StockView, APIView):
+    """`POST` a .xlsx / .csv with both lists (ours and the partners'); `?dry_run=true` only
+    reports what would change. Owner only: the file carries prices and costs."""
+
+    parser_classes = [MultiPartParser]
+
+    @extend_schema(
+        request={"multipart/form-data": OpenApiTypes.OBJECT},
+        parameters=[OpenApiParameter("dry_run", bool)],
+        responses={200: OpenApiResponse(OpenApiTypes.OBJECT)},
+    )
+    def post(self, request: Request) -> Response:
+        if role_of(request) != Role.OWNER:
+            raise BusinessError(
+                "role_forbidden",
+                "Seul le propriétaire importe les listes du matériel (elles portent les prix).",
+                status_code=403,
+            )
+        upload = request.FILES.get("file")
+        if upload is None:
+            raise BusinessError("invalid", "Choisissez le fichier.", {"file": ["Manquant."]})
+        report = imports.run(
+            upload,
+            user=request.user,  # type: ignore[arg-type]
+            dry_run=request.query_params.get("dry_run") == "true",
+        )
+        return Response(report.as_dict())
+
+
+class StockImportTemplateView(StockView, APIView):
+    @extend_schema(responses={(200, "application/vnd.ms-excel"): bytes})
+    def get(self, request: Request) -> HttpResponse:
+        response = HttpResponse(
+            imports.template(),
+            content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        )
+        response["Content-Disposition"] = 'attachment; filename="modele-materiel-wedivo.xlsx"'
+        return response

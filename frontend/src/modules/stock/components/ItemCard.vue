@@ -59,6 +59,9 @@ const low = computed(
             t('stock.availableOf', { available: today?.available ?? 0, total: item.totalQuantity })
           }}
         </p>
+        <p v-if="item.partnerQuantity" class="num text-[12.5px] font-semibold text-violet">
+          {{ t('stock.partnerShort', { count: item.partnerQuantity }) }}
+        </p>
         <p v-if="item.rentPrice !== null" class="num text-[12.5px] text-muted">
           {{ formatAmount(item.rentPrice) }} {{ t(`stock.perUnit.${item.rentUnit}`) }}
         </p>

@@ -43,6 +43,7 @@ def by_event(period: Period) -> list[dict[str, Any]]:
     from contracts.models import Contract
     from reservations.commitments import SOLD
     from reservations.models import Reservation
+    from reservations.partners import cost as partner_cost
     from staff.services import reservation_cost as staff_cost
 
     from .selectors import contracts_with_metrics
@@ -62,7 +63,9 @@ def by_event(period: Period) -> list[dict[str, Any]]:
     ).select_related("client"):
         expenses = int(costs.get(reservation.pk, 0))
         staff = staff_cost(reservation)
-        spent = expenses + staff
+        # Equipment lent by partners (feedback 14/11/2026): what they charge for this event.
+        partner = partner_cost(reservation)
+        spent = expenses + staff + partner
         margin = reservation.total - spent
         rows.append(
             {
@@ -75,6 +78,7 @@ def by_event(period: Period) -> list[dict[str, Any]]:
                 "revenue": reservation.total,
                 "costs": spent,
                 "staff_costs": staff,
+                "partner_costs": partner,
                 "margin": margin,
                 "margin_pct": pct(margin, reservation.total),
             }
@@ -95,6 +99,7 @@ def by_event(period: Period) -> list[dict[str, Any]]:
                 "revenue": contract.total,
                 "costs": contract.expenses,  # type: ignore[attr-defined]
                 "staff_costs": 0,
+                "partner_costs": 0,
                 "margin": contract.margin,  # type: ignore[attr-defined]
                 "margin_pct": pct(contract.margin, contract.total),  # type: ignore[attr-defined]
             }

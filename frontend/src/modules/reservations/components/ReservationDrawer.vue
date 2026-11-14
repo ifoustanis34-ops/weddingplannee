@@ -17,6 +17,7 @@ import ReservationTeam from '@/modules/staff/components/ReservationTeam.vue'
 import { reservationsApi, useReservation, useReservationMutation } from '../api'
 import { METHODS, OUT, STATUS_TONES, STEPS } from '../constants'
 import type { Reservation, ReservationLine, ReservationStatus } from '../types'
+import ReservationPartners from './ReservationPartners.vue'
 import ReservationWizard from './ReservationWizard.vue'
 
 /** Reservation sheet (reservations-stock.md §4.2): steps, order, payments, documents, history. */
@@ -322,6 +323,15 @@ const money = (value: number | null | undefined) => (value == null ? '—' : for
               }}</span>
               <span class="block text-[12px] text-muted">
                 {{ t(`reservations.lineKinds.${line.kind}`) }}
+                <template v-if="line.partnerQuantity">
+                  ·
+                  <span class="font-semibold text-violet">{{
+                    t('reservations.drawer.partnerPart', {
+                      count: line.partnerQuantity,
+                      name: line.partnerName,
+                    })
+                  }}</span></template
+                >
                 <template v-if="line.quantityOut">
                   · {{ t('reservations.drawer.quantityOut', { out: line.quantityOut }) }}</template
                 >
@@ -368,6 +378,8 @@ const money = (value: number | null | undefined) => (value == null ? '—' : for
           </dd>
         </dl>
       </section>
+
+      <ReservationPartners v-if="hasEquipment" :reservation="data" :can-edit="canEdit" />
 
       <!-- Payments and caution -->
       <section v-if="seesMoney">

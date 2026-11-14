@@ -36,4 +36,12 @@ urlpatterns = [
         name="inventory-validate",
     ),
     path("stock/stats", views.StockStatsView.as_view(), name="stock-stats"),
+    path("partner-supplies", views.PartnerSupplyListView.as_view(), name="partner-supplies"),
+    path(
+        "partner-supplies/<uuid:pk>",
+        views.PartnerSupplyDetailView.as_view(),
+        name="partner-supply",
+    ),
+    path("stock/import", views.StockImportView.as_view(), name="stock-import"),
+    path("stock/import/template", views.StockImportTemplateView.as_view(), name="stock-template"),
 ]

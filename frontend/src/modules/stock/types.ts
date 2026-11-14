@@ -42,6 +42,8 @@ export interface Item {
   location: string
   tracking: Tracking
   totalQuantity: number
+  /** Units partners can lend on top of ours (feedback 14/11/2026). */
+  partnerQuantity: number
   rentPrice: number | null
   rentUnit: RentUnit
   salePrice: number | null
@@ -189,4 +191,45 @@ export interface AvailabilityGrid {
     total: number
     cells: { available: number; rate: number }[]
   }[]
+}
+
+/** What a partner lends (feedback 14/11/2026). `unitCost`: owner and accountant only. */
+export interface PartnerSupply {
+  id: string
+  item: string
+  itemName: string
+  itemReference: string
+  categoryName: string
+  ownQuantity: number
+  vendor: string
+  vendorName: string
+  vendorPhone: string
+  quantity: number
+  unitCost: number | null
+  notes: string
+  isActive: boolean
+}
+
+export interface PartnerSupplyInput {
+  vendor: string
+  item?: string | null
+  newItemName?: string
+  newItemCategory?: string
+  newItemRentPrice?: number
+  quantity: number
+  unitCost?: number
+  notes?: string
+  isActive?: boolean
+}
+
+export interface ImportReport {
+  itemsCreated: number
+  itemsUpdated: number
+  stockAdjusted: number
+  partnersCreated: number
+  suppliesCreated: number
+  suppliesUpdated: number
+  errors: string[]
+  warnings: string[]
+  dryRun: boolean
 }

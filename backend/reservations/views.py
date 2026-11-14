@@ -18,15 +18,16 @@ from core import audit
 from core.exceptions import BusinessError
 from core.permissions import IsTenantMember
 from core.tenant import require_current_organization
-from finance.visibility import can_see_balances
+from finance.visibility import can_see_balances, can_see_margins
 
-from . import documents, selectors, services
-from .models import Reservation, ReservationPayment
+from . import documents, partners, selectors, services
+from .models import Reservation, ReservationLine, ReservationPayment
 from .permissions import EDIT, LOGISTICS, PAYMENTS, ReservationPermission, role_of
 from .serializers import (
     CancelSerializer,
     CheckoutSerializer,
     MoveSerializer,
+    PartnerAssignSerializer,
     PaymentInputSerializer,
     PaymentSerializer,
     ReservationListSerializer,
@@ -46,7 +47,12 @@ class ReservationView:
 def _detail(request: Request, pk: Any) -> Response:
     reservation = (
         selectors.with_money()
-        .prefetch_related("lines__item", "payments__recorded_by", "logs__author")
+        .prefetch_related(
+            "lines__item",
+            "lines__partner_supply__vendor",
+            "payments__recorded_by",
+            "logs__author",
+        )
         .get(pk=pk)
     )
     return Response(ReservationSerializer(reservation, context={"request": request}).data)
@@ -245,32 +251,69 @@ class ShortageView(ReservationView, APIView):
     def get(self, request: Request, pk: str) -> Response:
         reservation = _get(pk)
         first, last = services.period(reservation)
-        return Response(
-            [
+        costs = can_see_margins(role_of(request))
+        rows = []
+        for s in services.shortages(reservation):
+            line = (
+                reservation.lines.filter(kind=ReservationLine.Kind.RENTAL, item=s.item)
+                .order_by("position")
+                .first()
+            )
+            rows.append(
                 {
                     "item": str(s.item.pk),
                     "name": s.item.name,
                     "needed": s.needed,
                     "available": s.available,
                     "alternatives": services.alternatives(s, first, last),
+                    # Complete at a partner (feedback 14/11/2026): the rental line to split,
+                    # and what each partner can still lend over the period.
+                    "line": str(line.pk) if line else None,
+                    "partner_quantity": line.partner_quantity if line else 0,
+                    "partners": [
+                        {
+                            "supply": str(offer.supply.pk),
+                            "vendor": str(offer.supply.vendor_id),
+                            "vendor_name": offer.supply.vendor.name,
+                            "free": offer.free,
+                            "unit_cost": offer.supply.unit_cost if costs else None,
+                        }
+                        for offer in partners.offers(
+                            s.item, first, last, exclude=str(reservation.pk)
+                        )
+                        if offer.free > 0 or (line and line.partner_supply_id == offer.supply.pk)
+                    ],
                 }
-                for s in services.shortages(reservation)
-            ]
-        )
+            )
+        return Response(rows)
 
 
 class DocumentView(ReservationView, APIView):
-    """`?type=checkout|return`: « bon de sortie » or « bon de retour » (PDF, agency identity)."""
+    """`?type=checkout|return`: « bon de sortie » or « bon de retour » (PDF, agency identity);
+    `?type=partner&vendor=<id>`: the order to send that partner (feedback 14/11/2026)."""
 
     @extend_schema(
-        parameters=[OpenApiParameter("type", enum=["checkout", "return"])],
+        parameters=[
+            OpenApiParameter("type", enum=["checkout", "return", "partner"]),
+            OpenApiParameter("vendor", str),
+        ],
         responses={(200, "application/pdf"): bytes},
     )
     def get(self, request: Request, pk: str) -> HttpResponse:
         reservation = _get(pk)
         kind = request.query_params.get("type", "checkout")
-        if kind not in ("checkout", "return"):
+        if kind not in ("checkout", "return", "partner"):
             raise BusinessError("invalid", "Document inconnu.")
+        if kind == "partner":
+            vendor = request.query_params.get("vendor", "")
+            pdf = documents.render_partner_order(
+                reservation, vendor, costs=can_see_margins(role_of(request))
+            )
+            response = HttpResponse(pdf, content_type="application/pdf")
+            response["Content-Disposition"] = (
+                f'inline; filename="commande-partenaire-{reservation.number}.pdf"'
+            )
+            return response
         pdf = documents.render(reservation, kind)
         response = HttpResponse(pdf, content_type="application/pdf")
         name = "bon-de-sortie" if kind == "checkout" else "bon-de-retour"
@@ -344,3 +387,37 @@ class ExportView(ReservationView, APIView):
             "reservations.exported", organization, request=request, changes={"format": fmt}
         )
         return response
+
+
+class PartnerLineView(ActionView):
+    """Take part of a rental line from a partner (feedback 14/11/2026). `quantity` 0 or no
+    `supply`: everything comes from our stock again."""
+
+    @extend_schema(request=PartnerAssignSerializer, responses=ReservationSerializer)
+    def post(self, request: Request, pk: str, line: str) -> Response:
+        reservation = _get(pk)
+        target = generics.get_object_or_404(reservation.lines.all(), pk=line)
+        serializer = PartnerAssignSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        partners.assign(
+            reservation,
+            target,
+            serializer.validated_data["supply"],
+            serializer.validated_data["quantity"],
+            user=request.user,  # type: ignore[arg-type]
+        )
+        return _detail(request, pk)
+
+
+class PartnerOrdersView(ReservationView, APIView):
+    """One order per partner: what to ask for, and (owner, accountant) what it costs."""
+
+    @extend_schema(responses={200: OpenApiResponse(OpenApiTypes.OBJECT)})
+    def get(self, request: Request, pk: str) -> Response:
+        orders = partners.orders(_get(pk))
+        if not can_see_margins(role_of(request)):
+            for order in orders:
+                order["total"] = None
+                for row in order["lines"]:
+                    row["unit_cost"] = row["total"] = None
+        return Response(orders)

@@ -9,8 +9,8 @@ from catalog.models import ServiceItem
 from core.fields import TenantPrimaryKeyRelatedField
 from crm.models import Client
 from events.models import Wedding
-from finance.visibility import can_see_balances
-from stock.models import Item, Pack
+from finance.visibility import can_see_balances, can_see_margins
+from stock.models import Item, Pack, PartnerSupply
 
 from . import services
 from .models import Reservation, ReservationLine, ReservationLog, ReservationPayment
@@ -62,6 +62,10 @@ class LineSerializer(serializers.ModelSerializer[ReservationLine]):
     kind = serializers.ChoiceField(
         choices=[c for c in ReservationLine.Kind.choices if c[0] != "damage"]
     )
+    # Part lent by a partner (feedback 14/11/2026); set through /lines/{id}/partner.
+    partner_name = serializers.CharField(
+        source="partner_supply.vendor.name", read_only=True, default=None
+    )
 
     class Meta:
         model = ReservationLine
@@ -83,10 +87,18 @@ class LineSerializer(serializers.ModelSerializer[ReservationLine]):
             "quantity_returned",
             "quantity_damaged",
             "quantity_missing",
+            "partner_supply",
+            "partner_name",
+            "partner_quantity",
+            "partner_unit_cost",
         ]
         read_only_fields = [
             "id",
             "amount",
+            "partner_supply",
+            "partner_name",
+            "partner_quantity",
+            "partner_unit_cost",
             "quantity_out",
             "quantity_returned",
             "quantity_damaged",
@@ -97,6 +109,9 @@ class LineSerializer(serializers.ModelSerializer[ReservationLine]):
     def to_representation(self, instance: ReservationLine) -> dict[str, Any]:
         data = dict(super().to_representation(instance))
         data["kind"] = instance.kind  # damage lines are shown too
+        request = self.context.get("request")
+        if request is None or not can_see_margins(role_of(request)):
+            data["partner_unit_cost"] = None  # a cost: owner and accountant only
         return data
 
 
@@ -348,3 +363,8 @@ class SecuritySerializer(serializers.Serializer[Any]):
     retained = serializers.IntegerField(min_value=0, default=0)
     method = serializers.ChoiceField(choices=ReservationPayment.Method.choices)
     reason = serializers.CharField(required=False, allow_blank=True, default="")
+
+
+class PartnerAssignSerializer(serializers.Serializer[Any]):
+    supply = TenantPrimaryKeyRelatedField(PartnerSupply, allow_null=True)
+    quantity = serializers.IntegerField(min_value=0)

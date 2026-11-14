@@ -60,11 +60,15 @@ def test_seed_demo_matches_the_fictional_data_of_section_11() -> None:
     from finance.models import CreditNote, Invoice
     from finance.periods import resolve
     from reservations.models import Reservation
-    from stock.models import Item, Pack
+    from stock.models import Item, Pack, PartnerSupply
 
     call_command("seed_demo")
     with tenant_context(Organization.objects.get(slug="maison-elegance")):
-        assert Item.objects.count() == 30 and Pack.objects.count() == 4
+        assert Item.objects.filter(total_quantity__gt=0).count() == 30  # ours (§11)
+        assert Pack.objects.count() == 4
+        # Partner equipment (14/11/2026): 7 offers, one item only a partner has.
+        assert PartnerSupply.objects.count() == 7
+        assert Item.objects.filter(total_quantity=0, partner_supplies__isnull=False).count() == 1
         reservations = list(Reservation.objects.all())
         assert len(reservations) == 12
         assert Counter(r.status for r in reservations) == {

@@ -253,8 +253,13 @@ function addPack(packId: string): void {
 const needs = computed(() => {
   const totals = new Map<string, number>()
   for (const line of lines.value) {
+    // A partner's part (feedback 14/11/2026) never comes out of our stock.
     if ((line.kind === 'rental' || line.kind === 'sale') && line.item)
-      totals.set(line.item, (totals.get(line.item) ?? 0) + line.quantity)
+      totals.set(
+        line.item,
+        (totals.get(line.item) ?? 0) +
+          Math.max(0, line.quantity - Math.min(line.partnerQuantity ?? 0, line.quantity)),
+      )
     if (line.kind === 'pack' && line.pack) {
       const pack = packs.data.value?.find((p) => p.id === line.pack)
       for (const c of pack?.components ?? [])
@@ -268,6 +273,10 @@ function shortageOf(itemId: string): number {
   return available === undefined ? 0 : Math.max(0, (needs.value.get(itemId) ?? 0) - available)
 }
 const anyShortage = computed(() => [...needs.value.keys()].some((id) => shortageOf(id) > 0))
+/** Units partners can lend for this item (feedback 14/11/2026). */
+function partnersOf(itemId: string): number {
+  return items.data.value?.find((i) => i.id === itemId)?.partnerQuantity ?? 0
+}
 function alternativesOf(itemId: string) {
   const item = items.data.value?.find((i) => i.id === itemId)
   if (!item) return []
@@ -733,6 +742,9 @@ async function submit(confirm: boolean): Promise<void> {
             <p class="flex items-center gap-1.5 font-bold text-red">
               <AlertTriangle class="size-4" aria-hidden="true" />
               {{ t('reservations.wizard.shortage', { missing: shortageOf(line.item) }) }}
+            </p>
+            <p v-if="partnersOf(line.item)" class="font-semibold text-violet">
+              {{ t('reservations.wizard.partnerHint', { count: partnersOf(line.item) }) }}
             </p>
             <p v-if="alternativesOf(line.item).length" class="flex flex-wrap items-center gap-2">
               <span class="text-ink-2">{{ t('reservations.wizard.alternatives') }}</span>

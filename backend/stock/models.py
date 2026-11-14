@@ -273,3 +273,36 @@ class InventoryLine(TenantModel):
     @property
     def difference(self) -> int | None:
         return None if self.counted is None else self.counted - self.expected
+
+
+class PartnerSupply(TenantModel):
+    """What a partner (``vendors.Vendor``, kind partner) can lend for an event (feedback
+    14/11/2026): the agency's own stock is ``Item.total_quantity``; partners complete it.
+
+    An item can be the agency's, a partner's, or both (200 chairs of ours + 300 at a partner).
+    ``quantity`` is how many the partner can supply for one event; ``unit_cost`` what it charges
+    the agency per unit and per event (a direct cost of the reservation, §6.4).
+    """
+
+    item = models.ForeignKey(Item, on_delete=models.CASCADE, related_name="partner_supplies")
+    vendor = models.ForeignKey(
+        "vendors.Vendor", on_delete=models.PROTECT, related_name="equipment_supplies"
+    )
+    quantity = models.PositiveIntegerField(default=0)
+    unit_cost = models.BigIntegerField(default=0)
+    notes = models.CharField(max_length=240, blank=True)
+    is_active = models.BooleanField(default=True)
+
+    class Meta(TenantModel.Meta):
+        ordering = ["vendor__name", "item__name"]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["organization", "item", "vendor"], name="unique_partner_supply"
+            ),
+            models.CheckConstraint(
+                condition=Q(unit_cost__gte=0), name="partner_supply_cost_not_negative"
+            ),
+        ]
+
+    def __str__(self) -> str:
+        return f"{self.item_id} @ {self.vendor_id} ({self.quantity})"

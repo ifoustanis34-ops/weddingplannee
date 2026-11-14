@@ -190,11 +190,26 @@ def recompute(reservation: Reservation) -> None:
 
 
 def _replace_lines(reservation: Reservation, lines: list[LineInput], user: User) -> None:
+    # Editing the lines keeps what was taken from partners, item by item (within the new
+    # quantity): the editor sends lines without their partner part.
+    kept = {
+        str(old.item_id): (old.partner_supply_id, old.partner_quantity, old.partner_unit_cost)
+        for old in reservation.lines.filter(kind=LineKind.RENTAL, partner_quantity__gt=0)
+    }
     reservation.lines.exclude(kind=LineKind.DAMAGE).delete()
     for position, line in enumerate(lines):
         if line.quantity <= 0:
             raise BusinessError("invalid", "Chaque quantité doit être positive.")
+        partner: dict[str, Any] = {}
+        if line.kind == LineKind.RENTAL and line.item is not None and str(line.item.pk) in kept:
+            supply_id, quantity, unit_cost = kept.pop(str(line.item.pk))
+            partner = {
+                "partner_supply_id": supply_id,
+                "partner_quantity": min(quantity, line.quantity),
+                "partner_unit_cost": unit_cost,
+            }
         ReservationLine.objects.create(
+            **partner,
             reservation=reservation,
             kind=line.kind,
             quantity=line.quantity,
@@ -355,7 +370,10 @@ def needs(reservation: Reservation) -> dict[str, int]:
             for component in line.pack.components.all():
                 totals[str(component.item_id)] += component.quantity * line.quantity
         elif line.item_id is not None:
-            totals[str(line.item_id)] += line.quantity
+            # A partner's part never comes out of our stock (feedback 14/11/2026).
+            own = line.quantity - line.partner_quantity
+            if own > 0:
+                totals[str(line.item_id)] += own
     return totals
 
 
@@ -401,7 +419,11 @@ def alternatives(shortage: Shortage, first: date, last: date) -> list[dict[str, 
 
 
 def check_availability(reservation: Reservation) -> None:
-    """Under row locks (same order everywhere): two confirmations can never exceed the stock."""
+    """Under row locks (same order everywhere): two confirmations can never exceed the stock,
+    nor what a partner can lend."""
+    from . import partners
+
+    partners.check(reservation)
     missing = shortages(reservation, lock=True)
     if missing:
         details = "; ".join(
@@ -495,11 +517,12 @@ def checkout(
         )
     quantities = quantities or {}
     for line in reservation.lines.filter(kind__in=EQUIPMENT).select_related("item", "pack"):
-        out = quantities.get(str(line.pk), line.quantity)
-        if not 0 <= out <= line.quantity:
+        own = line.quantity - line.partner_quantity  # the partner delivers its own part
+        out = quantities.get(str(line.pk), own)
+        if not 0 <= out <= own:
             raise BusinessError(
                 "invalid",
-                f"« {line.label} » : entre 0 et {line.quantity}.",
+                f"« {line.label} » : entre 0 et {own}.",
                 {"lines": [str(line.pk)]},
             )
         line.quantity_out = out

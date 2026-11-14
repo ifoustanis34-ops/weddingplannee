@@ -15,6 +15,9 @@ import type {
   Movement,
   MovementInput,
   Pack,
+  PartnerSupply,
+  PartnerSupplyInput,
+  ImportReport,
   StockStats,
 } from './types'
 
@@ -35,20 +38,48 @@ export const stockKeys = {
     [...stockKeys.all, 'movements', filters] as const,
   inventories: () => [...stockKeys.all, 'inventories'] as const,
   stats: () => [...stockKeys.all, 'stats'] as const,
+  partners: (filters: Record<string, unknown>) => [...stockKeys.all, 'partners', filters] as const,
 }
 
 export const stockApi = {
   categories: () => api.get<ItemCategory[]>('/item-categories').then((r) => r.data),
-  items: (filters: { search?: string; category?: string; status?: string }) =>
+  items: (filters: { search?: string; category?: string; status?: string; source?: string }) =>
     api
       .get<Item[]>('/items', {
         params: {
           search: filters.search || undefined,
           category: filters.category || undefined,
           status: filters.status || undefined,
+          source: filters.source || undefined,
         },
       })
       .then((r) => r.data),
+  // Partner equipment (feedback 14/11/2026)
+  partnerSupplies: (filters: { search?: string; vendor?: string; item?: string }) =>
+    api
+      .get<PartnerSupply[]>('/partner-supplies', {
+        params: {
+          search: filters.search || undefined,
+          vendor: filters.vendor || undefined,
+          item: filters.item || undefined,
+        },
+      })
+      .then((r) => r.data),
+  createPartnerSupply: (input: PartnerSupplyInput) =>
+    api.post<PartnerSupply>('/partner-supplies', input).then((r) => r.data),
+  updatePartnerSupply: (id: string, input: Partial<PartnerSupplyInput>) =>
+    api.patch<PartnerSupply>(`/partner-supplies/${id}`, input).then((r) => r.data),
+  deletePartnerSupply: (id: string) =>
+    api.delete<{ deleted: boolean }>(`/partner-supplies/${id}`).then((r) => r.data),
+  importLists: (file: File, dryRun: boolean) => {
+    const form = new FormData()
+    form.append('file', file)
+    return api
+      .post<ImportReport>('/stock/import', form, { params: { dryRun: dryRun || undefined } })
+      .then((r) => r.data)
+  },
+  importTemplate: () =>
+    api.get<Blob>('/stock/import/template', { responseType: 'blob' }).then((r) => r.data),
   item: (id: string) => api.get<Item>(`/items/${id}`).then((r) => r.data),
   activity: (id: string) => api.get<ItemActivity>(`/items/${id}/activity`).then((r) => r.data),
   createItem: (input: ItemInput) => api.post<Item>('/items', input).then((r) => r.data),
@@ -114,7 +145,12 @@ export const useItemCategories = () =>
   useQuery({ queryKey: stockKeys.categories(), queryFn: stockApi.categories, staleTime: 300_000 })
 
 export function useItems(
-  filters: MaybeRefOrGetter<{ search?: string; category?: string; status?: string }>,
+  filters: MaybeRefOrGetter<{
+    search?: string
+    category?: string
+    status?: string
+    source?: string
+  }>,
 ) {
   return useQuery({
     queryKey: computed(() => stockKeys.items({ ...toValue(filters) })),
@@ -183,5 +219,15 @@ export function useStockMutation<TArgs, TResult>(fn: (args: TArgs) => Promise<TR
       void queryClient.invalidateQueries({ queryKey: ['dashboard'] })
       void queryClient.invalidateQueries({ queryKey: ['alerts'] })
     },
+  })
+}
+
+export function usePartnerSupplies(
+  filters: MaybeRefOrGetter<{ search?: string; vendor?: string; item?: string }>,
+) {
+  return useQuery({
+    queryKey: computed(() => stockKeys.partners({ ...toValue(filters) })),
+    queryFn: () => stockApi.partnerSupplies(toValue(filters)),
+    placeholderData: keepPreviousData,
   })
 }

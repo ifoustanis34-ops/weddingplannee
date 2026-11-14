@@ -75,7 +75,8 @@
       {% for row in rows %}
       <tr>
         <td><strong>{{ row.label }}</strong> <span class="muted">({{ row.kind }})</span>
-          {% if row.components %}<div class="parts">{{ row.components|join:", " }}</div>{% endif %}</td>
+          {% if row.components %}<div class="parts">{{ row.components|join:", " }}</div>{% endif %}
+          {% if row.partner %}<div class="parts">{{ row.partner }}</div>{% endif %}</td>
         <td>{{ row.reference }}</td>
         {% if kind == "checkout" %}
         <td>{{ row.location|default:"—" }}</td><td class="n">{{ row.quantity }}</td><td class="box"><span></span></td>

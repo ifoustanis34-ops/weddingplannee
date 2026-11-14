@@ -32,6 +32,16 @@ urlpatterns = [
         "reservations/<uuid:pk>/document", views.DocumentView.as_view(), name="reservation-document"
     ),
     path(
+        "reservations/<uuid:pk>/lines/<uuid:line>/partner",
+        views.PartnerLineView.as_view(),
+        name="reservation-line-partner",
+    ),
+    path(
+        "reservations/<uuid:pk>/partner-orders",
+        views.PartnerOrdersView.as_view(),
+        name="reservation-partner-orders",
+    ),
+    path(
         "reservation-payments/<uuid:pk>/cancel",
         views.PaymentCancelView.as_view(),
         name="reservation-payment-cancel",

@@ -1,10 +1,11 @@
 <script setup lang="ts">
-import { LogOut, ShieldCheck, UserRound } from '@lucide/vue'
+import { Compass, LogOut, ShieldCheck, UserRound } from '@lucide/vue'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRoute } from 'vue-router'
 
 import { menuItems, NAV_GROUPS, type NavItem, phaseTag } from '@/app/navigation'
+import { useTour } from '@/app/tour'
 import { WAvatar, WLogo, WPhaseTag } from '@/design'
 import { useSessionStore } from '@/stores/session'
 
@@ -15,6 +16,11 @@ const emit = defineEmits<{ navigate: []; logout: [] }>()
 const { t } = useI18n()
 const route = useRoute()
 const session = useSessionStore()
+const tour = useTour()
+function startTour(): void {
+  emit('navigate')
+  tour.start()
+}
 
 const groups = computed(() => {
   const items = menuItems(session.role, session.weddingsEnabled)
@@ -46,6 +52,7 @@ const isActive = (item: NavItem) => route.name === item.routeName || route.meta.
           v-for="item in entry.items"
           :key="item.key"
           :to="{ name: item.routeName }"
+          :data-tour="item.key"
           class="relative flex items-center gap-[11px] rounded-[10px] px-2.5 py-[9px] text-[14px] font-semibold transition-colors"
           :class="
             isActive(item)
@@ -76,8 +83,17 @@ const isActive = (item: NavItem) => route.name === item.routeName || route.meta.
       >
         <ShieldCheck class="size-[18px]" aria-hidden="true" />{{ t('platform.nav.openConsole') }}
       </RouterLink>
+      <button
+        type="button"
+        data-tour="tour"
+        class="mb-2 flex w-full items-center gap-[11px] rounded-[10px] px-2.5 py-2 text-[14px] font-semibold text-ink-2 hover:bg-surface-2 hover:text-ink"
+        @click="startTour"
+      >
+        <Compass class="size-[18px]" aria-hidden="true" />{{ t('tour.replay') }}
+      </button>
       <RouterLink
         :to="{ name: 'profile' }"
+        data-tour="profile"
         class="flex items-center gap-2.5 rounded-[10px] px-1 py-1 hover:bg-surface-2"
         :title="t('shell.profile')"
         @click="emit('navigate')"

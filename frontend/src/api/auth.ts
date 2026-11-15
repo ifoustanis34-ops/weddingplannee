@@ -23,6 +23,8 @@ export interface SessionUser {
   mustChangePassword: boolean
   /** Wedivo team (« super-admin »): opens the platform console /plateforme. */
   isPlatformAdmin: boolean
+  /** Guided tour followed or declined; while false it is offered at sign-in (15/11/2026). */
+  tourDone?: boolean
 }
 
 export interface OrganizationSummary {
@@ -66,6 +68,7 @@ export const authApi = {
     api.patch<Session>('/auth/me', input).then((r) => r.data),
   changePassword: (currentPassword: string, newPassword: string) =>
     api.post('/auth/me/password', { currentPassword, newPassword }).then(() => undefined),
+  finishTour: () => api.post('/auth/me/tour').then(() => undefined),
   login: (email: string, password: string) =>
     api.post<Session>('/auth/login', { email, password }).then((r) => r.data),
   signup: (payload: SignupPayload) =>

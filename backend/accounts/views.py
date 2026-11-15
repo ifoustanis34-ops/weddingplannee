@@ -140,6 +140,17 @@ class MePasswordView(APIView):
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 
+class MeTourView(APIView):
+    """The guided tour was followed or declined: it is no longer offered at sign-in."""
+
+    permission_classes = [IsAuthenticated]
+
+    @extend_schema(request=None, responses={204: None})
+    def post(self, request: Request) -> Response:
+        services.finish_tour(request.user)  # type: ignore[arg-type]
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+
 class SlugAvailableView(PublicAPIView):
     """``?slug=`` checks a slug; ``?name=`` proposes an available slug from the company name."""
 

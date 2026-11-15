@@ -124,6 +124,99 @@ export default {
     sessionExpired: 'Votre session a expiré. Reconnectez-vous.',
     switched: 'Espace « {name} » ouvert.',
   },
+  tour: {
+    label: 'Visite guidée de Wedivo',
+    replay: 'Visite guidée',
+    progress: 'Étape {step} sur {total}',
+    previous: 'Précédent',
+    next: 'Suivant',
+    finish: 'Terminer la visite',
+    close: 'Quitter la visite',
+    offer: {
+      title: 'Bienvenue sur Wedivo, {name} !',
+      text: 'Voulez-vous découvrir le système pas à pas ? En quelques minutes, nous ouvrons chaque module avec vous et expliquons à quoi il sert.',
+      hint: 'Vous pourrez la relancer à tout moment avec « Visite guidée » dans le menu.',
+      yes: 'Oui, commencer la visite',
+      later: 'Plus tard',
+      no: 'Non merci',
+    },
+    steps: {
+      welcome: {
+        title: 'C’est parti !',
+        text: 'Voici votre espace « {space} ». Tous les modules sont dans le menu (à gauche sur ordinateur, bouton « Plus » sur téléphone). Nous allons les ouvrir un par un : suivez le cadre violet.',
+      },
+      dashboard: {
+        text: 'Votre point de départ chaque matin : chiffre d’affaires, événements à venir, paiements attendus, matériel à sortir et alertes du jour, en un coup d’œil.',
+      },
+      mySpace: {
+        text: 'Votre journée : vos missions, l’heure et le lieu de rendez-vous, vos tâches à faire et votre badge. Tout ce dont vous avez besoin sur le terrain.',
+      },
+      reservations: {
+        text: 'Les locations de matériel d’un client : vous choisissez les articles et les dates, Wedivo vérifie la disponibilité (y compris chez vos partenaires), puis suit la sortie et le retour.',
+      },
+      calendar: {
+        text: 'Tous vos événements, réservations et missions sur un même calendrier, au mois ou à la semaine, pour éviter les doubles engagements.',
+      },
+      clients: {
+        text: 'Votre carnet de clients : coordonnées, historique des devis, factures, paiements et événements de chacun.',
+      },
+      quotes: {
+        text: 'Créez un devis en quelques clics, envoyez-le en PDF, transformez-le en facture une fois accepté et suivez les acomptes et les soldes.',
+      },
+      stock: {
+        text: 'Votre matériel interne et celui de vos partenaires : quantités, photos, prix de location, disponibilités et maintenance. Vous pouvez importer vos listes depuis un fichier Excel.',
+      },
+      movements: {
+        text: 'L’historique de chaque entrée et sortie de matériel : achats, sorties pour un événement, retours, pertes et casse.',
+      },
+      finance: {
+        text: 'Vos encaissements et vos dépenses au même endroit : ce qui est payé, ce qui reste dû, et la trésorerie du mois.',
+      },
+      reports: {
+        text: 'Les chiffres pour piloter l’agence : rentabilité par événement, meilleurs clients, articles les plus loués. Exportables en Excel ou PDF.',
+      },
+      staff: {
+        text: 'Votre équipe : fiches avec photo, rôles, tarifs, badges et comptes d’accès. Vous affectez chacun à ses missions.',
+      },
+      tasks: {
+        text: 'Les tâches à faire avant et pendant chaque événement, attribuées à une personne, avec échéance et photo de preuve.',
+      },
+      pay: {
+        text: 'La paie du personnel : paiement sur place le jour de l’événement (avec la feuille d’émargement en PDF) et salaires du mois.',
+      },
+      attendance: {
+        text: 'Les arrivées et départs de chacun sur les événements, pour savoir qui était là et calculer les heures.',
+      },
+      missions: {
+        text: 'Vos missions à venir : l’événement, le lieu, l’heure et ce qui vous est demandé. Vous confirmez votre arrivée ici.',
+      },
+      weddings: {
+        text: 'Le suivi complet de chaque mariage : programme, invités, budget, prestataires et billets d’entrée.',
+      },
+      vendors: {
+        text: 'Vos partenaires et fournisseurs : traiteurs, décorateurs, loueurs. Leurs coordonnées et ce qu’ils vous fournissent.',
+      },
+      settings: {
+        text: 'Les réglages de l’agence : logo, coordonnées, catalogue de prestations, modèles de documents et comptes de votre équipe.',
+      },
+      search: {
+        title: 'Recherche rapide',
+        text: 'Retrouvez un client, un devis ou une page en tapant quelques lettres. Sur ordinateur, le raccourci Ctrl K l’ouvre de partout.',
+      },
+      alerts: {
+        title: 'Alertes',
+        text: 'La cloche signale ce qui demande votre attention : facture en retard, stock bas, matériel non rendu, maintenance à faire.',
+      },
+      profile: {
+        title: 'Mon profil',
+        text: 'Votre nom, votre téléphone et votre mot de passe se changent dans « Mon profil », en bas du menu.',
+      },
+      end: {
+        title: 'Vous êtes prêt !',
+        text: 'La visite est terminée. Pour la revoir, cliquez sur « Visite guidée » dans le menu. Bon travail, {name} !',
+      },
+    },
+  },
   auth: {
     kicker: 'La plateforme des agences d’événementiel',
     heroTitle: 'Moins d’administratif, plus de mariages réussis.',

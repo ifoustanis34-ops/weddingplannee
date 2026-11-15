@@ -129,6 +129,12 @@ export const useSessionStore = defineStore('session', () => {
     if (user.value) user.value = { ...user.value, mustChangePassword: false }
   }
 
+  /** The guided tour is no longer offered (followed or declined). */
+  async function finishTour(): Promise<void> {
+    if (user.value) user.value = { ...user.value, tourDone: true }
+    await authApi.finishTour()
+  }
+
   async function refresh(): Promise<void> {
     apply(await authApi.me())
   }
@@ -151,6 +157,7 @@ export const useSessionStore = defineStore('session', () => {
     refresh,
     updateProfile,
     changePassword,
+    finishTour,
     clear,
     selectOrganization,
   }

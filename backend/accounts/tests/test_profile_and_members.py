@@ -39,6 +39,18 @@ def test_a_member_changes_their_own_name_and_phone(
     assert user.phone == "+237 657 84 74 84"
 
 
+def test_the_guided_tour_is_offered_until_followed_or_declined(
+    org_a: Organization, make_member: Callable[..., User], client_for: Callable[..., APIClient]
+) -> None:
+    client = client_for(make_member(org_a, Membership.Role.PLANNER), org_a)
+    assert client.get(reverse("auth-me")).json()["user"]["tour_done"] is False
+
+    assert client.post(reverse("auth-me-tour")).status_code == 204
+    assert client.get(reverse("auth-me")).json()["user"]["tour_done"] is True
+    assert client.post(reverse("auth-me-tour")).status_code == 204  # replayed later: harmless
+    assert APIClient().post(reverse("auth-me-tour")).status_code in (401, 403)
+
+
 def test_changing_the_password_asks_for_the_current_one(
     owner_a: User, org_a: Organization, client_for: Callable[..., APIClient]
 ) -> None:

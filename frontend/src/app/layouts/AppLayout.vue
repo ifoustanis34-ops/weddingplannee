@@ -1,11 +1,22 @@
 <script setup lang="ts">
 import { useQuery } from '@tanstack/vue-query'
-import { FileText, LayoutGrid, LogOut, Menu, Repeat, Search, SunMoon, Users } from '@lucide/vue'
+import {
+  Compass,
+  FileText,
+  LayoutGrid,
+  LogOut,
+  Menu,
+  Repeat,
+  Search,
+  SunMoon,
+  Users,
+} from '@lucide/vue'
 import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRoute, useRouter } from 'vue-router'
 
 import { mobileTabItems, type NavItem, visibleNavItems } from '@/app/navigation'
+import { useTour } from '@/app/tour'
 import { searchApi } from '@/api/search'
 import { useToast } from '@/composables/useToast'
 import { useDialog } from '@/design/components/useDialog'
@@ -16,6 +27,7 @@ import { useSessionStore } from '@/stores/session'
 import SidebarContent from './SidebarContent.vue'
 import ThemeToggle from './ThemeToggle.vue'
 import AlertCenter from '@/modules/alerts/components/AlertCenter.vue'
+import GuidedTour from '@/components/GuidedTour.vue'
 import { useOrgTimezone } from '@/composables/useOrgTimezone'
 
 /** Application shell (complement §5): sidebar, top bar, mobile drawer and tab bar, Ctrl+K. */
@@ -25,6 +37,7 @@ const router = useRouter()
 const session = useSessionStore()
 const preferences = usePreferencesStore()
 const toast = useToast()
+const tour = useTour()
 
 const menuOpen = ref(false)
 const paletteOpen = ref(false)
@@ -71,6 +84,14 @@ const commands = computed<CommandItem[]>(() => [
     icon: item.icon,
     run: () => void router.push({ name: item.routeName }),
   })),
+  {
+    id: 'action-tour',
+    label: t('tour.replay'),
+    group: t('palette.groupActions'),
+    icon: Compass,
+    keywords: 'visite guidee aide presentation tutoriel',
+    run: () => tour.start(),
+  },
   {
     id: 'action-theme',
     label: t('theme.toggle'),
@@ -169,6 +190,7 @@ useOrgTimezone()
         </button>
         <button
           type="button"
+          data-tour="search"
           class="flex h-10 min-w-0 flex-1 items-center gap-2.5 rounded-[10px] border border-line-2 bg-surface px-3 text-left text-muted hover:bg-surface-2 nav:max-w-[420px]"
           aria-keyshortcuts="Control+K"
           @click="paletteOpen = true"
@@ -183,7 +205,7 @@ useOrgTimezone()
         </button>
         <div class="ml-auto flex shrink-0 items-center gap-2">
           <ThemeToggle />
-          <AlertCenter />
+          <span data-tour="alerts" class="inline-flex"><AlertCenter /></span>
         </div>
       </header>
 
@@ -202,6 +224,7 @@ useOrgTimezone()
         v-for="item in mobileTabs"
         :key="item.key"
         :to="{ name: item.routeName }"
+        :data-tour="item.key"
         class="flex flex-col items-center gap-1 pt-2 pb-1.5 text-[11px] font-bold"
         :class="isActive(item) ? 'text-violet' : 'text-muted'"
         :aria-current="isActive(item) ? 'page' : undefined"
@@ -257,5 +280,6 @@ useOrgTimezone()
       :loading="search.isFetching.value"
       :group-order="GROUP_ORDER"
     />
+    <GuidedTour />
   </div>
 </template>

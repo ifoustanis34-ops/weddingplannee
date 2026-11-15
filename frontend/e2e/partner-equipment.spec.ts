@@ -56,7 +56,8 @@ test('partner equipment: import both lists, see what each partner lends', async 
   await page.getByRole('searchbox').fill(stamp)
   await expect(page.getByText(partner)).toBeVisible()
   await expect(page.getByText(theirs)).toBeVisible()
-  await expect(page.getByText('À nous : 80')).toBeVisible()
+  // Scoped to this run's item: earlier runs leave other « Nappe E2E » with the same quantity.
+  await expect(page.getByRole('listitem').filter({ hasText: ours })).toContainText('À nous : 80')
 
   // 4. On the articles: ours with what partners add.
   await page.goto('/stock')

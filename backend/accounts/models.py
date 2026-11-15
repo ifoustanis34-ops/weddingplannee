@@ -42,6 +42,9 @@ class User(AbstractBaseUser, PermissionsMixin):
     # Set when the owner created the account with a temporary password (feedback 13/11/2026):
     # the person chooses their own at first sign-in.
     must_change_password = models.BooleanField(default=False)
+    # Guided tour of the application (feedback 15/11/2026): offered once at sign-in, until the
+    # person follows it to the end or declines it. It can be replayed from the menu.
+    tour_done_at = models.DateTimeField(null=True, blank=True)
     is_active = models.BooleanField(default=True)
     is_staff = models.BooleanField(default=False)
     date_joined = models.DateTimeField(default=timezone.now)

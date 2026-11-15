@@ -381,6 +381,13 @@ def update_member(
 # --- Own profile and accounts created by the owner (feedback 13/11/2026) --------------------------
 
 
+def finish_tour(user: User) -> None:
+    """The guided tour stops being offered (followed to the end or declined)."""
+    if user.tour_done_at is None:
+        user.tour_done_at = timezone.now()
+        user.save(update_fields=["tour_done_at"])
+
+
 def update_profile(user: User, *, full_name: str | None, phone: str | None) -> dict[str, Any]:
     """The person changes their own name and phone (the email stays: it signs them in)."""
     changes: dict[str, Any] = {}

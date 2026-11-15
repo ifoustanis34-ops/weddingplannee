@@ -64,6 +64,7 @@ class SlugAvailabilitySerializer(serializers.Serializer[Any]):
 class UserSerializer(serializers.ModelSerializer[User]):
     # Wedivo team (« super-admin », CLAUDE.md: ``is_staff``): opens the platform console.
     is_platform_admin = serializers.BooleanField(source="is_staff", read_only=True)
+    tour_done = serializers.SerializerMethodField()
 
     class Meta:
         model = User
@@ -75,8 +76,12 @@ class UserSerializer(serializers.ModelSerializer[User]):
             "is_verified",
             "must_change_password",
             "is_platform_admin",
+            "tour_done",
         ]
         read_only_fields = fields
+
+    def get_tour_done(self, user: User) -> bool:
+        return user.tour_done_at is not None
 
 
 class MembershipSummarySerializer(serializers.ModelSerializer[Membership]):

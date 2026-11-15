@@ -2099,6 +2099,8 @@ export default {
       notePlaceholderMm: 'Mobile Money : {number}',
       summary: 'Aucune personne sélectionnée : | 1 personne : | {count} personnes :',
       payAll: 'Payer {amount}',
+      sheet: 'Feuille de paie du jour (PDF)',
+      sheetHint: 'Disponible une fois la journée payée.',
       paid: '1 paiement enregistré ({amount}). | {count} paiements enregistrés ({amount}).',
     },
     planning: {

@@ -485,8 +485,29 @@ def test_pay_the_day_workers_on_the_spot_then_the_period_deducts_it(
         line = period.lines.get(staff=brice)
         assert (line.base, line.already_paid, line.total) == (8000, 8000, 0)  # never twice
 
+    # « Feuille de paie du jour » (15/11/2026): everyone paid, amounts, total, signatures.
+    pdf = owner.get(reverse("pay-day-sheet"), {"date": day})
+    assert pdf.status_code == 200 and pdf.content.startswith(b"%PDF")
+    text = pdf_text(pdf.content)
+    assert "Brice Ndzana" in text and "Carine Essomba" in text and "Awa Sangaré" not in text
+    assert "MTN MoMo" in text and "Prime incluse" in text
+    assert "18 000" in text  # the total
+    for_event = owner.get(reverse("pay-day-sheet"), {"date": day, "reservation": str(booked.pk)})
+    assert booked.number in pdf_text(for_event.content)
+    empty = owner.get(reverse("pay-day-sheet"), {"date": timezone.localdate().isoformat()})
+    assert empty.status_code == 404
+
     planner = client_for(make_member(org_a, Role.PLANNER), org_a)
     assert planner.get(reverse("pay-day"), {"date": day}).status_code == 403
+    assert planner.get(reverse("pay-day-sheet"), {"date": day}).status_code == 403
+
+
+def pdf_text(content: bytes) -> str:
+    import pypdfium2 as pdfium
+
+    document = pdfium.PdfDocument(content)
+    raw = " ".join(page.get_textpage().get_text_range() for page in document)
+    return " ".join(raw.replace("\u202f", " ").replace("\xa0", " ").split())
 
 
 @pytest.mark.parametrize("design", ["carte", "classique", "portrait", "elegant", "minimal"])

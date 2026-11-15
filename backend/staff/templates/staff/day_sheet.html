@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<title>Feuille de paie du jour — {{ day_label }}</title>
+<style>
+@font-face { font-family: "M"; src: url("{{ fonts.m400 }}"); font-weight: 400; }
+@font-face { font-family: "M"; src: url("{{ fonts.m700 }}"); font-weight: 700; }
+@page { size: A4; margin: 14mm;
+  @bottom-left { content: "{{ agency|cut:'"' }} · Feuille de paie du jour · {{ day_label }}"; font: 7pt "M"; color: #85829f; }
+  @bottom-right { content: "Page " counter(page) " sur " counter(pages); font: 7pt "M"; color: #85829f; } }
+body { font-family: "M"; font-size: 9pt; color: #17153b; }
+header { display: table; width: 100%; border-bottom: 2pt solid #17153b; padding-bottom: 4mm; }
+header > div { display: table-cell; vertical-align: middle; }
+header img { max-height: 15mm; max-width: 45mm; }
+h1 { font-size: 15pt; margin: 0; text-align: right; }
+.sub { text-align: right; color: #85829f; margin: 1mm 0 0; }
+.scope { margin: 5mm 0 3mm; }
+.scope b { font-size: 11pt; }
+table { width: 100%; border-collapse: collapse; table-layout: fixed; }
+col.who { width: 25%; } col.event { width: 24%; } col.hours { width: 8%; }
+col.mode { width: 18%; } col.amount { width: 12%; } col.sign { width: 13%; }
+th { background: #17153b; color: #fff; text-align: left; padding: 2mm; font-size: 7.5pt; }
+td { padding: 2.2mm 2mm; border-bottom: .4pt solid #e5e2f0; vertical-align: top; }
+tr { page-break-inside: avoid; }
+.num { text-align: right; white-space: nowrap; }
+.muted { color: #85829f; font-size: 7.5pt; }
+.sign span { display: block; height: 9mm; border-bottom: .6pt solid #b8b4cc; }
+.total td { font-weight: 700; font-size: 10.5pt; border-top: 1.2pt solid #17153b; border-bottom: 0; }
+.by { display: table; width: 100%; margin-top: 12mm; border-spacing: 6mm 0; }
+.by div { display: table-cell; width: 50%; border-top: .8pt solid #17153b; padding-top: 2mm; font-size: 8pt; color: #4a4769; }
+.warn { margin-top: 8mm; padding: 3mm 4mm; background: #fdf2dc; border-left: 2pt solid #b97a0e; font-size: 7.5pt; }
+</style>
+</head>
+<body>
+<header>
+  <div>{% if logo %}<img src="{{ logo }}" alt="">{% else %}<b>{{ agency }}</b>{% endif %}</div>
+  <div><h1>Feuille de paie du jour</h1><p class="sub">{{ day_label }}</p></div>
+</header>
+<div class="scope">
+  <b>{{ scope }}</b><br>
+  <span class="muted">{{ count }} personne{{ count|pluralize }} payée{{ count|pluralize }} · imprimée le {{ printed }}</span>
+</div>
+<table>
+  <colgroup><col class="who"><col class="event"><col class="hours"><col class="mode"><col class="amount"><col class="sign"></colgroup>
+  <thead><tr>
+    <th>Personne</th><th>Événement</th><th class="num">Heures</th><th>Mode</th><th class="num">Montant</th><th>Signature</th>
+  </tr></thead>
+  <tbody>
+  {% for row in rows %}
+    <tr>
+      <td><b>{{ row.name }}</b><br><span class="muted">{{ row.position }}{% if row.number %} · {{ row.number }}{% endif %}</span>{% if row.note %}<br><span class="muted">{{ row.note }}</span>{% endif %}</td>
+      <td>{{ row.event }}</td>
+      <td class="num">{{ row.hours }}</td>
+      <td>{{ row.method }}{% if row.mobile_money %}<br><span class="muted">{{ row.mobile_money }}</span>{% endif %}</td>
+      <td class="num">{{ row.amount }}</td>
+      <td class="sign"><span></span></td>
+    </tr>
+  {% endfor %}
+  <tr class="total"><td colspan="4">Total payé</td><td class="num">{{ total }}</td><td></td></tr>
+  </tbody>
+</table>
+<div class="by">
+  <div>Payé par (nom et signature)</div>
+  <div>Vérifié par (comptable / propriétaire)</div>
+</div>
+<p class="warn">Chaque personne signe en face de son montant pour attester qu’elle l’a reçu. Ces paiements sont déjà déduits de la paie du mois dans Wedivo.</p>
+</body>
+</html>

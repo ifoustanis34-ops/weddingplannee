@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Banknote, CalendarDays } from '@lucide/vue'
+import { Banknote, CalendarDays, FileDown } from '@lucide/vue'
 import { useQuery } from '@tanstack/vue-query'
 import { computed, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -83,6 +83,20 @@ const pay = useStaffMutation(() =>
       })),
   }),
 )
+// « Feuille de paie du jour » (15/11/2026): one PDF with everyone already paid, to sign.
+const anyPaid = computed(() => rows.value.some((row) => row.alreadyPaid > 0))
+const downloading = ref(false)
+async function downloadSheet(): Promise<void> {
+  downloading.value = true
+  try {
+    await staffApi.daySheetPdf(day.value, reservation.value)
+  } catch (error) {
+    toast.error(toApiError(error).message)
+  } finally {
+    downloading.value = false
+  }
+}
+
 async function submit(): Promise<void> {
   try {
     const done = await pay.mutateAsync(undefined)
@@ -123,6 +137,17 @@ async function submit(): Promise<void> {
       :description="t('staff.dayPay.nobodyText')"
     />
     <WCard v-else :title="t('staff.dayPay.title')" :subtitle="t('staff.dayPay.subtitle')">
+      <template #actions>
+        <WButton
+          size="sm"
+          variant="secondary"
+          :disabled="!anyPaid"
+          :title="anyPaid ? undefined : t('staff.dayPay.sheetHint')"
+          :loading="downloading"
+          @click="downloadSheet"
+          ><FileDown class="size-[15px]" aria-hidden="true" />{{ t('staff.dayPay.sheet') }}</WButton
+        >
+      </template>
       <ul class="-my-1 divide-y divide-line">
         <li
           v-for="row in rows"

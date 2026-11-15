@@ -342,6 +342,19 @@ export const staffApi = {
     api.patch<PayLine>(`/pay-lines/${id}`, input).then((r) => r.data),
   payLine: (id: string, method: string) =>
     api.post<PayLine>(`/pay-lines/${id}/pay`, { method }).then((r) => r.data),
+  /** « Feuille de paie du jour » (15/11/2026): everyone paid that day, with signatures. */
+  daySheetPdf: async (day: string, reservation?: string) => {
+    const response = await api.get<Blob>('/pay/day/sheet', {
+      params: { date: day, reservation: reservation || undefined },
+      responseType: 'blob',
+    })
+    const href = URL.createObjectURL(response.data)
+    const link = document.createElement('a')
+    link.href = href
+    link.download = `feuille-de-paie-${day}.pdf`
+    link.click()
+    setTimeout(() => URL.revokeObjectURL(href), 60_000)
+  },
   statement: async (id: string, name: string) => {
     const response = await api.get<Blob>(`/pay-lines/${id}/statement`, { responseType: 'blob' })
     const href = URL.createObjectURL(response.data)

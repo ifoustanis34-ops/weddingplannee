@@ -49,6 +49,7 @@ urlpatterns = [
     path("me/overview", views.MyOverviewView.as_view(), name="my-overview"),
     path("public/badges/<str:token>", views.PublicBadgeView.as_view(), name="public-badge"),
     path("pay/day", views.DaySheetView.as_view(), name="pay-day"),
+    path("pay/day/sheet", views.DayPaySheetView.as_view(), name="pay-day-sheet"),
     path("staff-payments", views.StaffPaymentListView.as_view(), name="staff-payment-list"),
     path("pay-periods", views.PayPeriodListView.as_view(), name="pay-period-list"),
     path(

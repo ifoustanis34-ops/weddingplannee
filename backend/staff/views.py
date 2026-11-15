@@ -12,6 +12,7 @@ from __future__ import annotations
 
 import urllib.parse
 from datetime import date, datetime, time, timedelta
+from decimal import Decimal
 from typing import Any
 
 from django.db.models import QuerySet
@@ -1216,6 +1217,126 @@ class StaffPaymentListView(APIView):
             request=request,
         )
         return Response(StaffPaymentSerializer(payments, many=True).data, status=201)
+
+
+METHOD_LABELS = {
+    "cash": "Espèces",
+    "orange_money": "Orange Money",
+    "mtn_momo": "MTN MoMo",
+    "wave": "Wave",
+    "transfer": "Virement",
+    "cheque": "Chèque",
+}
+
+
+def _hours(value: Decimal) -> str:
+    return f"{value:.2f}".replace(".", ",").removesuffix(",00") + " h" if value else "—"
+
+
+class DayPaySheetView(APIView):
+    """`?date=&reservation=` : « Feuille de paie du jour » (feedback 15/11/2026), one PDF with
+    everyone paid that day (or for that event), their amount and a signature column."""
+
+    permission_classes = PERMISSIONS
+    pay_view = True
+
+    @extend_schema(responses={200: OpenApiResponse(description="PDF")})
+    def get(self, request: Request) -> HttpResponse:
+        try:
+            day = date.fromisoformat(request.query_params.get("date") or _today().isoformat())
+        except ValueError as exc:
+            raise BusinessError("invalid", "Date illisible (AAAA-MM-JJ).") from exc
+        payments = StaffPayment.objects.filter(date=day).select_related("staff", "reservation")
+        reservation = None
+        if request.query_params.get("reservation"):
+            reservation = generics.get_object_or_404(
+                Reservation.objects.all(), pk=request.query_params["reservation"]
+            )
+            payments = payments.filter(reservation=reservation)
+        payments = payments.order_by("staff__full_name", "created_at")
+        if not payments:
+            raise BusinessError(
+                "not_found",
+                "Aucun paiement enregistré ce jour-là : payez d’abord la journée.",
+                status_code=404,
+            )
+        # Missions of each person that day: their events, and hours checked in (else planned).
+        first = datetime.combine(day, time.min, tzinfo=_tz())
+        hours: dict[Any, Decimal] = {}
+        events: dict[Any, dict[Any, str]] = {}
+        for assignment in (
+            Assignment.objects.filter(
+                staff_id__in={p.staff_id for p in payments},
+                start__lt=first + timedelta(days=1),
+                end__gt=first,
+            )
+            .exclude(reservation__status="cancelled")
+            .select_related("reservation", "attendance")
+        ):
+            attendance = getattr(assignment, "attendance", None)
+            if attendance is not None and attendance.status == Attendance.Status.ABSENT:
+                continue
+            worked = (
+                attendance.hours
+                if attendance is not None and attendance.hours
+                else Decimal((assignment.end - assignment.start).total_seconds()) / 3600
+            )
+            hours[assignment.staff_id] = hours.get(assignment.staff_id, Decimal(0)) + worked
+            reservation_of = assignment.reservation
+            events.setdefault(assignment.staff_id, {})[
+                reservation_of.pk
+            ] = f"{reservation_of.number} · {reservation_of.title}"
+        organization = require_current_organization()
+        branding = branding_services.get_branding()
+        html = render_to_string(
+            "staff/day_sheet.html",
+            {
+                "agency": branding.trade_name or organization.name,
+                "logo": branding_services.logo_data_uri(),
+                "day_label": long_date(day.isoformat()),
+                "scope": (
+                    f"{reservation.number} · {reservation.title}"
+                    if reservation
+                    else "Tous les événements du jour"
+                ),
+                "count": len({p.staff_id for p in payments}),
+                "printed": timezone.localtime(timezone.now(), _tz()).strftime("%d/%m/%Y à %H:%M"),
+                "rows": [
+                    {
+                        "name": p.staff.full_name,
+                        "position": p.staff.position,
+                        "number": p.staff.employee_number,
+                        "note": p.note,
+                        "event": (
+                            f"{p.reservation.number} · {p.reservation.title}"
+                            if p.reservation
+                            else " / ".join(events.get(p.staff_id, {}).values()) or "—"
+                        ),
+                        "hours": _hours(hours.get(p.staff_id, Decimal(0))),
+                        "method": METHOD_LABELS.get(p.method, p.method),
+                        "mobile_money": (
+                            p.staff.mobile_money
+                            if p.method in ("orange_money", "mtn_momo", "wave")
+                            else ""
+                        ),
+                        "amount": money(p.amount),
+                    }
+                    for p in payments
+                ],
+                "total": money(sum(p.amount for p in payments)),
+                "fonts": {
+                    "m400": rendering.asset_url("fonts/montserrat-latin-400-normal.woff"),
+                    "m700": rendering.asset_url("fonts/montserrat-latin-700-normal.woff"),
+                },
+            },
+        )
+        response = HttpResponse(
+            rendering.html_to_pdf(html, str(organization.pk)), content_type="application/pdf"
+        )
+        response["Content-Disposition"] = (
+            f'attachment; filename="feuille-de-paie-{day.isoformat()}.pdf"'
+        )
+        return response
 
 
 class PublicBadgeView(PublicAPIView):

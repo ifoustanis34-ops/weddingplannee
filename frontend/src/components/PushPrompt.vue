@@ -53,22 +53,26 @@ async function enable(): Promise<void> {
 </script>
 
 <template>
+  <!-- Phone: icon, text and close on one line, the button below at full width (it used to
+       squeeze the text into a narrow column). From 640 px: everything on one line. -->
   <div
     v-if="visible"
-    class="flex flex-wrap items-center gap-3 rounded-wd-lg border border-violet/30 bg-violet-soft px-4 py-3"
+    class="grid grid-cols-[auto_minmax(0,1fr)_auto] items-start gap-3 rounded-wd-lg border border-violet/30 bg-violet-soft px-4 py-3 sm:flex sm:items-center"
     role="status"
   >
     <span class="flex size-10 shrink-0 items-center justify-center rounded-[11px] bg-surface">
       <BellRing class="size-5 text-violet" aria-hidden="true" />
     </span>
-    <span class="min-w-0 flex-1">
+    <span class="min-w-0 sm:flex-1">
       <span class="block font-bold">{{ t('push.promptTitle') }}</span>
       <span class="block text-[13px] text-ink-2">{{ t('push.promptText') }}</span>
     </span>
-    <WButton :loading="busy" @click="enable">{{ t('push.enable') }}</WButton>
+    <WButton :loading="busy" class="col-span-3 row-start-2 sm:order-none" @click="enable">{{
+      t('push.enable')
+    }}</WButton>
     <button
       type="button"
-      class="rounded-[8px] p-2 text-muted hover:bg-surface hover:text-ink"
+      class="col-start-3 row-start-1 rounded-[8px] p-2 text-muted hover:bg-surface hover:text-ink"
       :aria-label="t('push.later')"
       :title="t('push.later')"
       @click="later"

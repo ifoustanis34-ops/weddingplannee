@@ -1,0 +1,577 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<title>Wedivo — Manuel d’utilisation</title>
+<style>
+  @font-face { font-family: Manrope; font-weight: 400; src: url("fonts/manrope-latin-400-normal.woff"); }
+  @font-face { font-family: Manrope; font-weight: 600; src: url("fonts/manrope-latin-600-normal.woff"); }
+  @font-face { font-family: Manrope; font-weight: 700; src: url("fonts/manrope-latin-700-normal.woff"); }
+  @font-face { font-family: Sora; font-weight: 600; src: url("fonts/sora-latin-600-normal.woff"); }
+  @font-face { font-family: Sora; font-weight: 700; src: url("fonts/sora-latin-700-normal.woff"); }
+
+  @page {
+    size: A4; margin: 20mm 18mm 20mm;
+    @top-right { content: string(chapter); font: 600 8pt Manrope; color: #85829f; }
+    @bottom-left { content: "Wedivo · Manuel d’utilisation"; font: 8pt Manrope; color: #85829f; }
+    @bottom-right { content: counter(page) " / " counter(pages); font: 8pt Manrope; color: #85829f; }
+  }
+  @page cover { margin: 0; @top-right { content: none; } @bottom-left { content: none; } @bottom-right { content: none; } }
+  @page toc { @top-right { content: "Sommaire"; } }
+
+  html { font: 10pt/1.55 Manrope, "DejaVu Sans", sans-serif; color: #17153b; }
+  body { margin: 0; }
+  h1, h2, h3 { font-family: Sora, Manrope, sans-serif; color: #17153b; }
+  h1 .t { string-set: chapter content(); }
+  h1 { font-size: 22pt; margin: 0 0 4mm; page-break-before: always; line-height: 1.2; }
+  h1 .num { display: block; font-size: 10pt; color: #5126c2; letter-spacing: .08em; margin-bottom: 2mm; }
+  h2 { font-size: 13.5pt; margin: 8mm 0 2.5mm; page-break-after: avoid; }
+  h3 { font-size: 11pt; margin: 5mm 0 1.5mm; page-break-after: avoid; }
+  p { margin: 0 0 2.6mm; }
+  ul, ol { margin: 0 0 3mm; padding-left: 6mm; }
+  li { margin-bottom: 1.2mm; }
+  .lead { font-size: 11pt; color: #4a4769; margin-bottom: 5mm; }
+  strong { font-weight: 700; }
+  .ui { font-weight: 700; color: #5126c2; }
+  .path { font-weight: 600; background: #f1eefb; color: #3a1f8f; padding: 0 1.5mm; border-radius: 3px; }
+
+  figure { margin: 4mm 0 5mm; page-break-inside: avoid; text-align: center; }
+  figure img { max-width: 100%; border: 1px solid #e5e2f0; border-radius: 6px; }
+  figure.phone img { max-width: 62mm; }
+  figure.phones { display: flex; justify-content: center; gap: 8mm; }
+  figure.phones img { width: 58mm; }
+  figcaption { font-size: 8.5pt; color: #85829f; margin-top: 1.5mm; }
+
+  .note, .tip, .warn { border-radius: 6px; padding: 3mm 4mm; margin: 3mm 0 4mm; page-break-inside: avoid; }
+  .note { background: #f1eefb; border-left: 3px solid #5126c2; }
+  .tip { background: #eaf7f0; border-left: 3px solid #1f9d63; }
+  .warn { background: #fdf0e6; border-left: 3px solid #e0701f; }
+  .note b:first-child, .tip b:first-child, .warn b:first-child { display: block; margin-bottom: 1mm; }
+
+  table { width: 100%; border-collapse: collapse; margin: 3mm 0 5mm; font-size: 9pt; page-break-inside: avoid; }
+  th { text-align: left; background: #17153b; color: #fff; padding: 2mm 2.5mm; font-weight: 700; }
+  td { padding: 2mm 2.5mm; border-bottom: 1px solid #e5e2f0; vertical-align: top; }
+  tr:nth-child(even) td { background: #faf9fd; }
+  td.c, th.c { text-align: center; }
+
+  .steps { counter-reset: step; list-style: none; padding-left: 0; }
+  .steps > li { counter-increment: step; position: relative; padding-left: 9mm; margin-bottom: 2.2mm; }
+  .steps > li::before { content: counter(step); position: absolute; left: 0; top: 0; width: 6mm; height: 6mm; border-radius: 50%; background: #5126c2; color: #fff; font: 700 8pt/6mm Manrope; text-align: center; }
+
+  /* Cover */
+  .cover { page: cover; height: 297mm; background: #17153b; color: #fff; position: relative; overflow: hidden; }
+  .cover .band { position: absolute; left: 0; right: 0; top: 0; height: 6mm; background: linear-gradient(118deg, #4a22b5 0%, #8e2ba8 42%, #e03e7d 70%, #f68a45 100%); }
+  .cover .inner { padding: 70mm 22mm 0; }
+  .cover img { width: 26mm; }
+  .cover .brand { font: 700 15pt Sora; margin-top: 4mm; letter-spacing: .02em; }
+  .cover h1.title { string-set: none; page-break-before: avoid; color: #fff; font-size: 34pt; margin: 22mm 0 4mm; }
+  .cover .sub { font-size: 13pt; color: #a9a5cc; max-width: 140mm; }
+  .cover .meta { position: absolute; left: 22mm; bottom: 24mm; font-size: 9.5pt; color: #a9a5cc; }
+  .cover .tag { display: inline-block; margin-top: 10mm; padding: 2mm 4mm; border: 1px solid rgba(255,255,255,.25); border-radius: 20px; font-size: 9pt; color: #f4a62a; }
+
+  /* Table of contents */
+  .toc { page: toc; page-break-before: always; }
+  .toc h2 { font-size: 20pt; margin-top: 0; }
+  .toc ol { list-style: none; padding: 0; }
+  .toc li { margin: 0; padding: 1.6mm 0; border-bottom: 1px dotted #d9d5ea; }
+  .toc a { color: #17153b; text-decoration: none; font-weight: 600; }
+  .toc a::after { content: leader(" ") target-counter(attr(href), page); color: #85829f; font-weight: 400; }
+  .toc .sub a { font-weight: 400; padding-left: 6mm; color: #4a4769; }
+
+  .two { display: flex; gap: 6mm; }
+  .two > div { flex: 1; }
+  .keep { page-break-inside: avoid; }
+</style>
+</head>
+<body>
+
+<!-- ============================== COUVERTURE ============================== -->
+<section class="cover">
+  <div class="band"></div>
+  <div class="inner">
+    <img src="logo-mark.png" alt="">
+    <div class="brand">Wedivo</div>
+    <h1 class="title">Manuel d’utilisation</h1>
+    <p class="sub">Tout ce qu’il faut savoir pour gérer votre agence d’événementiel avec Wedivo : clients, devis, réservations, matériel, finances, équipe et mariages.</p>
+    <span class="tag">Planifiez · Gérez · Célébrez</span>
+  </div>
+  <div class="meta">Version de novembre 2026 · Pour les propriétaires, wedding planners, assistants, comptables, magasiniers, chefs d’équipe et le personnel</div>
+</section>
+
+<!-- ============================== SOMMAIRE ============================== -->
+<section class="toc">
+  <h2>Sommaire</h2>
+  <ol>
+    <li><a href="#bienvenue">1. Bienvenue dans Wedivo</a></li>
+    <li><a href="#demarrer">2. Démarrer : compte, connexion, profil</a></li>
+    <li><a href="#tableau">3. Le tableau de bord</a></li>
+    <li><a href="#clients">4. Les clients</a></li>
+    <li><a href="#devis">5. Devis, contrats et factures</a></li>
+    <li><a href="#reservations">6. Les réservations</a></li>
+    <li class="sub"><a href="#partenaire-resa">Compléter une réservation chez un partenaire</a></li>
+    <li><a href="#calendrier">7. Le calendrier</a></li>
+    <li><a href="#stock">8. Le stock et le matériel</a></li>
+    <li class="sub"><a href="#partenaires">Le matériel des partenaires</a></li>
+    <li class="sub"><a href="#import">Importer vos listes de matériel</a></li>
+    <li><a href="#finances">9. Finances et rapports</a></li>
+    <li><a href="#equipe">10. Le personnel, les présences et la paie</a></li>
+    <li><a href="#terrain">11. Sur le terrain : Mon espace et Mes missions</a></li>
+    <li><a href="#mariages">12. Mariages, billets et invités</a></li>
+    <li><a href="#fournisseurs">13. Partenaires et fournisseurs</a></li>
+    <li><a href="#parametres">14. Les paramètres de l’agence</a></li>
+    <li><a href="#console">15. La console Wedivo (super-administrateur)</a></li>
+    <li><a href="#aide">16. Questions fréquentes et dépannage</a></li>
+    <li><a href="#droits">Annexe : qui peut faire quoi</a></li>
+  </ol>
+</section>
+
+<!-- ============================== 1. BIENVENUE ============================== -->
+<h1 id="bienvenue"><span class="num">CHAPITRE 1</span><span class="t">Bienvenue dans Wedivo</span></h1>
+<p class="lead">Wedivo est la plateforme de gestion des agences de mariage et d’événementiel. Elle réunit au même endroit vos clients, vos devis, vos réservations de matériel, votre stock, vos finances, votre personnel et vos mariages.</p>
+
+<h2>Ce que Wedivo vous permet de faire</h2>
+<ul>
+  <li><strong>Vendre</strong> : fiches clients, catalogue de prestations, devis professionnels en PDF envoyés au client, qui les accepte en ligne, puis contrats et factures.</li>
+  <li><strong>Louer votre matériel sans double réservation</strong> : chaque réservation bloque le matériel sur ses dates ; Wedivo vous prévient quand il en manque et propose de compléter chez vos partenaires.</li>
+  <li><strong>Suivre la logistique</strong> : bons de sortie et de retour, casse facturée, caution, calendrier de toute l’équipe.</li>
+  <li><strong>Piloter l’argent</strong> : encaissements, dépenses, factures, trésorerie et marge de chaque événement.</li>
+  <li><strong>Organiser l’équipe</strong> : personnel, missions, pointage, paie et badges ; chaque membre du terrain voit ses missions sur son téléphone.</li>
+  <li><strong>Gérer les mariages</strong> : fiches mariage, tâches, invités et billets avec QR code.</li>
+</ul>
+
+<h2>Une agence = un espace</h2>
+<p>Chaque agence a son propre <strong>espace</strong>, avec son adresse (par exemple <span class="path">canopy-house.wedivo.pro</span>). Les données d’une agence ne sont jamais visibles par une autre. Une même personne peut travailler dans plusieurs espaces : elle passe de l’un à l’autre avec le sélecteur en haut du menu.</p>
+
+<h2>Les rôles</h2>
+<p>Chaque personne de l’équipe a un rôle. Le rôle décide de ce qu’elle voit et de ce qu’elle peut faire. Le détail complet est dans l’annexe en fin de manuel.</p>
+<table>
+  <tr><th>Rôle</th><th>Pour qui</th><th>Ce qu’il voit</th></tr>
+  <tr><td><strong>Propriétaire</strong></td><td>Le dirigeant de l’agence</td><td>Tout, y compris les paramètres, l’équipe, les coûts et les marges.</td></tr>
+  <tr><td><strong>Wedding planner</strong></td><td>Les chargés de projet</td><td>Clients, devis, réservations, calendrier, mariages, personnel ; les soldes des clients, mais ni marges ni dépenses.</td></tr>
+  <tr><td><strong>Assistant</strong></td><td>L’aide administrative</td><td>Clients, devis, réservations et mariages, sans aucun montant.</td></tr>
+  <tr><td><strong>Comptable</strong></td><td>La gestion financière</td><td>Finances, factures, rapports, paie, coûts et marges.</td></tr>
+  <tr><td><strong>Magasinier</strong></td><td>Le responsable du dépôt</td><td>Stock, mouvements, réservations et calendrier, sans aucun montant.</td></tr>
+  <tr><td><strong>Chef d’équipe</strong></td><td>Le responsable sur le terrain</td><td>Son espace et ses missions, le pointage de son équipe.</td></tr>
+  <tr><td><strong>Personnel</strong></td><td>Serveurs, installateurs, chauffeurs…</td><td>Son espace et ses missions sur son téléphone.</td></tr>
+</table>
+<div class="note"><b>Bon à savoir</b>Les montants que votre rôle ne doit pas voir ne sont jamais envoyés à votre écran : ils sont retirés par le serveur, pas seulement cachés.</div>
+
+<h2>Se repérer dans l’écran</h2>
+<ul>
+  <li><strong>Le menu à gauche</strong> regroupe les modules : Pilotage, Activité, Matériel, Finances, Équipe, Événementiel, Espace. Il ne montre que ce que votre rôle peut ouvrir.</li>
+  <li><strong>La barre de recherche</strong> en haut (ou <span class="ui">Ctrl + K</span>) retrouve un client, un devis ou une page en quelques lettres.</li>
+  <li><strong>La cloche</strong> ouvre les alertes : échéances en retard, stock bas, maintenance, tâches en retard…</li>
+  <li><strong>La lune / le soleil</strong> passe en mode sombre ou clair.</li>
+  <li><strong>Sur téléphone</strong>, le menu s’ouvre avec le bouton en haut à gauche, et une barre d’onglets en bas donne l’accès rapide à l’Accueil, aux Réservations, au Stock et aux Finances.</li>
+</ul>
+
+<!-- ============================== 2. DÉMARRER ============================== -->
+<h1 id="demarrer"><span class="num">CHAPITRE 2</span><span class="t">Démarrer : compte, connexion, profil</span></h1>
+
+<h2>Créer l’espace de votre agence</h2>
+<p>Sur la page de connexion, cliquez sur <span class="ui">Créer un compte</span>. L’inscription se fait en trois étapes :</p>
+<ol class="steps">
+  <li><strong>Entreprise</strong> : nom de l’agence, ville, pays (le Cameroun est proposé par défaut) et nombre de mariages organisés par an. Le pays règle automatiquement la monnaie (franc CFA) et le fuseau horaire.</li>
+  <li><strong>Votre compte</strong> : nom complet, email, téléphone WhatsApp (avec l’indicatif, par exemple +237 6 99 12 34 56) et mot de passe de 8 caractères minimum.</li>
+  <li><strong>Votre espace</strong> : l’adresse de votre espace, proposée à partir du nom de l’agence. Wedivo vérifie en direct qu’elle est libre.</li>
+</ol>
+<figure><img src="captures/02-inscription.png" alt=""><figcaption>L’inscription en trois étapes.</figcaption></figure>
+<div class="tip"><b>Toutes les fonctionnalités sont incluses</b>Aucun moyen de paiement n’est demandé. Les abonnements arriveront avec une prochaine mise à jour.</div>
+
+<h2>Se connecter</h2>
+<p>Saisissez votre email et votre mot de passe, puis <span class="ui">Se connecter</span>. La session reste ouverte plusieurs jours sur cet appareil.</p>
+<figure><img src="captures/01-connexion.png" alt=""><figcaption>La page de connexion.</figcaption></figure>
+<ul>
+  <li><strong>Mot de passe oublié</strong> : cliquez sur <span class="ui">Mot de passe oublié</span>, saisissez votre email ; vous recevez un lien pour en choisir un nouveau.</li>
+  <li><strong>Mot de passe provisoire</strong> : si le propriétaire vous a créé un compte, il vous transmet un mot de passe provisoire. À la première connexion, Wedivo vous demande d’en choisir un à vous avant d’ouvrir le reste.</li>
+</ul>
+<div class="warn"><b>Le site doit être en https</b>Si l’adresse ne commence pas par « https:// », votre navigateur ne garde pas la session et vous renvoie à la connexion.</div>
+
+<h2>Mon profil</h2>
+<p>Cliquez sur votre nom en bas du menu. Vous pouvez y changer votre nom, votre téléphone et votre mot de passe (l’actuel est demandé d’abord), et voir les espaces auxquels vous avez accès.</p>
+<figure><img src="captures/32-profil.png" alt=""><figcaption>Mon profil.</figcaption></figure>
+
+<h2>Installer Wedivo sur le téléphone et recevoir les notifications</h2>
+<p>Dans <span class="path">Mon profil › Application et notifications</span> :</p>
+<ul>
+  <li><span class="ui">Installer l’application</span> ajoute une icône Wedivo sur l’écran d’accueil : l’application s’ouvre en plein écran, comme une application classique.</li>
+  <li><span class="ui">Activer les notifications</span> vous prévient en temps réel : nouvelle mission ou tâche, tâche à reprendre ou à valider, paiement reçu, alerte urgente (selon votre rôle).</li>
+</ul>
+
+<!-- ============================== 3. TABLEAU DE BORD ============================== -->
+<h1 id="tableau"><span class="num">CHAPITRE 3</span><span class="t">Le tableau de bord</span></h1>
+<p class="lead">C’est la première page après la connexion. Elle résume la journée et la période : ce qui est encaissé, ce qui est dû, ce qui part et revient, qui travaille aujourd’hui et ce qui demande votre attention.</p>
+<figure><img src="captures/03-tableau-de-bord.png" alt=""><figcaption>Le tableau de bord du propriétaire.</figcaption></figure>
+<ul>
+  <li><strong>Choisir la période</strong> : aujourd’hui, cette semaine, ce mois, ce trimestre, cette année ou une période personnalisée.</li>
+  <li><strong>Les chiffres clés</strong> : chiffre d’affaires, encaissements, soldes à recevoir, dépenses et marge (selon votre rôle).</li>
+  <li><strong>Les blocs du jour</strong> : livraisons et retours, équipe du jour et pointage, matériel à surveiller, alertes.</li>
+  <li><strong>Les actions rapides</strong> : <span class="ui">Nouveau devis</span>, <span class="ui">Nouvelle dépense</span>.</li>
+</ul>
+<p>Chaque rôle voit son propre tableau de bord : l’assistant n’y voit aucun montant, le planner n’y voit ni marges ni dépenses. Le personnel et les chefs d’équipe voient à la place <strong>Mon espace</strong> (chapitre 11).</p>
+
+<!-- ============================== 4. CLIENTS ============================== -->
+<h1 id="clients"><span class="num">CHAPITRE 4</span><span class="t">Les clients</span></h1>
+<p class="lead">Une fiche par client : coordonnées, préférences, et tout ce qu’il vous a commandé.</p>
+<figure><img src="captures/04-clients.png" alt=""><figcaption>La liste des clients.</figcaption></figure>
+<h2>Créer un client</h2>
+<ol class="steps">
+  <li>Cliquez sur <span class="ui">Nouveau client</span>.</li>
+  <li>Renseignez le nom (un couple, une famille ou une entreprise), le téléphone, l’email, l’adresse, les préférences et les notes.</li>
+  <li>Enregistrez : la fiche apparaît dans la liste.</li>
+</ol>
+<h2>Retrouver et suivre un client</h2>
+<ul>
+  <li>La <strong>recherche</strong> trouve un client par nom, entreprise, téléphone ou email.</li>
+  <li>Le <strong>tri</strong> classe par nom, chiffre d’affaires, solde dû ou dernière commande.</li>
+  <li>Cliquez sur un client pour ouvrir sa <strong>fiche</strong> : coordonnées, historique des devis, contrats, réservations et paiements, et ce qu’il doit encore.</li>
+</ul>
+<figure><img src="captures/05-fiche-client.png" alt=""><figcaption>La fiche d’un client et son historique.</figcaption></figure>
+<ul>
+  <li><span class="ui">Archiver</span> retire un client de la liste sans perdre son historique ; <span class="ui">Afficher les archives</span> le retrouve et <span class="ui">Sortir des archives</span> le remet en service.</li>
+  <li><span class="ui">Télécharger</span> exporte la liste en Excel ou CSV.</li>
+</ul>
+
+<!-- ============================== 5. DEVIS ============================== -->
+<h1 id="devis"><span class="num">CHAPITRE 5</span><span class="t">Devis, contrats et factures</span></h1>
+<p class="lead">Le devis est la base de la vente : vous choisissez les prestations du catalogue, Wedivo calcule les montants, met en page un PDF à vos couleurs et l’envoie au client, qui l’accepte en ligne.</p>
+<figure><img src="captures/06-devis.png" alt=""><figcaption>Les devis, classés par statut.</figcaption></figure>
+
+<h2>Créer et envoyer un devis</h2>
+<ol class="steps">
+  <li>Ouvrez <span class="path">Devis &amp; factures</span> puis <span class="ui">Nouveau devis</span>.</li>
+  <li>Choisissez le client, la date du mariage, le lieu et le nombre d’invités.</li>
+  <li>Ajoutez les prestations depuis le <strong>catalogue</strong> (bouton <span class="ui">Ajouter</span>) ; ajustez les quantités et les prix si besoin. La remise et l’acompte se calculent tout seuls.</li>
+  <li>À droite, l’<strong>aperçu du PDF</strong> se met à jour en direct. Choisissez le modèle (A Prestige, B Élégance, C Classique, D Partenariat) et la palette de couleurs.</li>
+  <li><span class="ui">Enregistrer le brouillon</span> pour y revenir plus tard, ou <span class="ui">Envoyer le devis</span> : le client reçoit un email avec le PDF et un lien pour l’accepter.</li>
+</ol>
+<figure><img src="captures/07-editeur-devis.png" alt=""><figcaption>L’éditeur de devis et son aperçu PDF en direct.</figcaption></figure>
+
+<h2>Le parcours d’un devis</h2>
+<table>
+  <tr><th>Statut</th><th>Ce que cela veut dire</th></tr>
+  <tr><td>Brouillon</td><td>En préparation, pas encore envoyé.</td></tr>
+  <tr><td>Envoyé</td><td>Le client a reçu le devis et peut l’accepter ou le refuser en ligne.</td></tr>
+  <tr><td>Accepté</td><td>Le client a accepté : vous pouvez le convertir en contrat.</td></tr>
+  <tr><td>Refusé</td><td>Le client a décliné ; l’agence en est informée.</td></tr>
+  <tr><td>Expiré</td><td>La date de validité est passée (30 jours par défaut, réglable dans les paramètres).</td></tr>
+</table>
+
+<h2>Du devis au contrat</h2>
+<p>Sur un devis accepté, cliquez sur <span class="ui">Convertir en contrat</span>. Wedivo crée en une fois :</p>
+<ul>
+  <li>le <strong>contrat</strong> et son <strong>échéancier</strong> : un acompte dû aujourd’hui, puis le solde dû 7 jours avant le mariage ;</li>
+  <li>la <strong>fiche mariage</strong> ;</li>
+  <li>le client passe en « Client confirmé ».</li>
+</ul>
+
+<h2>Factures et avoirs</h2>
+<p>Dans <span class="path">Finances › Factures</span>, une réservation peut recevoir une <strong>facture d’acompte</strong> puis une <strong>facture finale</strong>. Les numéros se suivent sans trou (FA-2026-0001…). Un <strong>avoir</strong> corrige une facture ; à l’annulation d’une réservation, les avoirs sont créés automatiquement.</p>
+
+<h2>Le catalogue des prestations</h2>
+<p>Le catalogue (<span class="path">Paramètres › Catalogue</span>) contient vos prestations et leurs prix, rangées par catégorie : coordination, décoration, restauration, animation, image, logistique, invitations… C’est la base de chaque devis.</p>
+<figure><img src="captures/27-catalogue.png" alt=""><figcaption>Le catalogue des prestations.</figcaption></figure>
+
+<!-- ============================== 6. RÉSERVATIONS ============================== -->
+<h1 id="reservations"><span class="num">CHAPITRE 6</span><span class="t">Les réservations</span></h1>
+<p class="lead">Une réservation, c’est une commande de matériel et de prestations pour un événement, suivie de la confirmation jusqu’au retour du matériel au dépôt.</p>
+<figure><img src="captures/08-reservations.png" alt=""><figcaption>La liste des réservations, par onglets de statut.</figcaption></figure>
+
+<h2>Créer une réservation</h2>
+<p>Cliquez sur <span class="ui">Nouvelle réservation</span>. L’assistant comporte cinq étapes :</p>
+<ol class="steps">
+  <li><strong>Client et événement</strong> : client (ou création d’un nouveau client), titre, type (location, prestation…), nombre d’invités, lieu, adresse, responsable et fiche mariage liée.</li>
+  <li><strong>Dates logistiques</strong> : livraison, installation, début et fin de l’événement, récupération, retour au dépôt.</li>
+  <li><strong>Matériel</strong> : articles et packs. Wedivo montre <strong>en direct</strong> ce qui est disponible sur ces dates. S’il en manque, la ligne passe en rouge et propose des articles équivalents… ou un partenaire.</li>
+  <li><strong>Prestations</strong> : les services du catalogue à ajouter.</li>
+  <li><strong>Récapitulatif</strong> : remise, transport, installation, acompte demandé, total. Enregistrez le brouillon ou <span class="ui">Enregistrer et confirmer</span>.</li>
+</ol>
+<figure><img src="captures/09-assistant-reservation.png" alt=""><figcaption>L’assistant de réservation en cinq étapes.</figcaption></figure>
+
+<h2>Les statuts d’une réservation</h2>
+<table>
+  <tr><th>Statut</th><th>Ce qui se passe</th></tr>
+  <tr><td>Brouillon / Devis envoyé</td><td>Rien n’est encore bloqué dans le stock.</td></tr>
+  <tr><td>En attente d’acompte</td><td>Le matériel est bloqué ; l’acompte n’est pas encore payé.</td></tr>
+  <tr><td>Confirmée</td><td>L’acompte est reçu : le matériel est réservé pour ces dates.</td></tr>
+  <tr><td>En préparation</td><td>Le dépôt prépare le matériel.</td></tr>
+  <tr><td>Livrée, Installée, En cours, Récupérée</td><td>Le matériel est sorti du dépôt et sur l’événement.</td></tr>
+  <tr><td>Clôturée</td><td>Le matériel est revenu, le retour est saisi.</td></tr>
+  <tr><td>Annulée</td><td>La réservation est annulée ; le matériel est libéré.</td></tr>
+</table>
+<div class="note"><b>Jamais de double réservation</b>À la confirmation, Wedivo vérifie le stock en bloquant les articles concernés : deux réservations confirmées en même temps ne peuvent jamais dépasser ce que vous avez.</div>
+
+<h2>La fiche d’une réservation</h2>
+<p>Cliquez sur une réservation pour ouvrir sa fiche : étapes et dates, commande, total et solde, paiements, caution, documents, équipe affectée, factures et historique.</p>
+<figure><img src="captures/10-fiche-reservation.png" alt=""><figcaption>La fiche d’une réservation confirmée.</figcaption></figure>
+<h3>Encaisser</h3>
+<ul>
+  <li><span class="ui">Enregistrer un paiement</span> : montant, mode (espèces, Orange Money, MTN MoMo, virement…), référence. Le solde se met à jour, et la réservation passe en « Confirmée » quand l’acompte est atteint.</li>
+  <li><span class="ui">Encaisser la caution</span> au départ du matériel ; après le retour, <span class="ui">Solder la caution</span> la rend, en tout ou en partie.</li>
+</ul>
+<h3>Faire partir et revenir le matériel</h3>
+<ol class="steps">
+  <li><span class="ui">Passer en préparation</span> quand le dépôt prépare la commande.</li>
+  <li><span class="ui">Sortie du matériel</span> : indiquez les quantités chargées. Imprimez le <strong>bon de sortie</strong> (rubrique Documents) pour le chauffeur.</li>
+  <li>Faites avancer les étapes : livrée, installée, en cours, récupérée.</li>
+  <li><span class="ui">Retour du matériel</span> : comptez, pour chaque ligne, les pièces rendues, abîmées et manquantes. La casse et les pertes sont <strong>ajoutées automatiquement à la facture</strong> au prix de remplacement, et le stock est mis à jour. Le <strong>bon de retour</strong> se télécharge ensuite.</li>
+</ol>
+<h3>Modifier, déplacer, annuler</h3>
+<ul>
+  <li>Le crayon rouvre l’assistant pour modifier la réservation ; le stock est revérifié.</li>
+  <li>Dans le calendrier, on peut <strong>glisser</strong> une réservation à une autre date : le déplacement est refusé si le matériel n’est pas libre.</li>
+  <li><span class="ui">Annuler la réservation</span> libère le matériel ; l’acompte reçu est gardé par l’agence (réglable dans les paramètres).</li>
+</ul>
+
+<h2 id="partenaire-resa">Compléter une réservation chez un partenaire</h2>
+<p>Quand votre stock ne suffit pas sur la période (par exemple 650 housses demandées, 498 libres chez vous), la fiche de la réservation affiche <strong>« Compléter chez un partenaire »</strong> :</p>
+<ol class="steps">
+  <li>Wedivo liste les partenaires qui prêtent cet article et combien ils peuvent encore en prêter <strong>sur ces dates</strong>.</li>
+  <li>Indiquez la quantité et cliquez sur <span class="ui">Prendre chez …</span>.</li>
+  <li>La ligne affiche alors « dont 150 chez Déco Prestige Douala ». Seule votre part sortira de votre dépôt ; le partenaire livre la sienne.</li>
+  <li>Un <strong>bon de commande partenaire</strong> en PDF est prêt à lui envoyer, avec les quantités, les dates et l’adresse de l’événement.</li>
+</ol>
+<div class="tip"><b>La marge reste juste</b>Le prix facturé par le partenaire est déduit automatiquement de la marge de la réservation (Finances › Rentabilité). Ce prix n’est visible que du propriétaire et du comptable.</div>
+<p>Pour tout reprendre de votre stock, cliquez sur <span class="ui">Tout reprendre de notre stock</span>.</p>
+
+<!-- ============================== 7. CALENDRIER ============================== -->
+<h1 id="calendrier"><span class="num">CHAPITRE 7</span><span class="t">Le calendrier</span></h1>
+<p class="lead">Toute l’activité de l’agence sur une même vue : événements, livraisons, installations, récupérations, retours, maintenance, tâches et paiements attendus.</p>
+<figure><img src="captures/11-calendrier.png" alt=""><figcaption>Le calendrier de l’équipe.</figcaption></figure>
+<ul>
+  <li>Passez du <strong>mois</strong> à la <strong>semaine</strong>, au <strong>jour</strong> ou au <strong>planning logistique</strong> (par véhicule et par équipe).</li>
+  <li><strong>Filtrez</strong> par type d’étape, par statut ou par membre de l’équipe.</li>
+  <li>Cliquez sur un élément pour ouvrir la réservation ou le mariage correspondant.</li>
+  <li><strong>Glissez</strong> une réservation pour la déplacer ; toutes ses dates suivent, et l’équipe affectée aussi.</li>
+</ul>
+
+<!-- ============================== 8. STOCK ============================== -->
+<h1 id="stock"><span class="num">CHAPITRE 8</span><span class="t">Le stock et le matériel</span></h1>
+<p class="lead">Votre matériel, sa disponibilité jour par jour, son état, et celui que vos partenaires peuvent vous prêter.</p>
+<figure><img src="captures/12-stock.png" alt=""><figcaption>Les articles du stock, avec leur disponibilité du jour.</figcaption></figure>
+
+<h2>Les articles</h2>
+<ul>
+  <li><span class="ui">Nouvel article</span> : nom, catégorie (mobilier, linge de table, vaisselle, décoration, sonorisation…), prix de location (par événement ou par jour), prix de vente, caution, coût d’achat, emplacement au dépôt, seuil d’alerte et quantité en stock.</li>
+  <li>Un article se suit <strong>par quantité</strong> (200 chaises) ou <strong>par unité</strong> (chaque groupe électrogène avec son numéro de série).</li>
+  <li>La barre colorée montre l’état du jour : disponible, réservé, sorti, en maintenance.</li>
+  <li>Le filtre <strong>Notre matériel / Chez les partenaires</strong> sépare vos deux listes ; un article complété par des partenaires affiche « +300 chez partenaires ».</li>
+  <li>Cliquez sur un article pour sa fiche : photo, historique des mouvements, maintenance, étiquettes à imprimer.</li>
+</ul>
+
+<h2>Les mouvements</h2>
+<p><span class="ui">Mouvement de stock</span> enregistre un achat, une vente, une casse, une perte ou un ajustement. Les sorties et retours des réservations sont enregistrés automatiquement. Le journal complet est dans <span class="path">Mouvements</span> ; un mouvement erroné peut être annulé.</p>
+<figure><img src="captures/16-mouvements.png" alt=""><figcaption>Le journal des mouvements de stock.</figcaption></figure>
+
+<h2>Packs, disponibilité, maintenance et inventaire</h2>
+<ul>
+  <li><strong>Packs</strong> : un ensemble d’articles vendu d’un bloc (par exemple « Pack réception 100 invités »). Sa disponibilité suit l’article le plus rare.</li>
+  <li><strong>Disponibilité</strong> : une grille sur 30 jours, article par article, pour voir d’un coup d’œil quand le matériel est libre.</li>
+  <li><strong>Maintenance</strong> : envoyez un article en réparation ; il n’est plus proposé jusqu’à son retour.</li>
+  <li><strong>Inventaire</strong> : comptez le stock réel ; à la validation, les écarts deviennent des ajustements tracés.</li>
+</ul>
+<figure><img src="captures/15-disponibilite.png" alt=""><figcaption>La disponibilité jour par jour.</figcaption></figure>
+
+<h2 id="partenaires">Le matériel des partenaires</h2>
+<p>L’onglet <span class="path">Stock › Matériel des partenaires</span> liste, partenaire par partenaire, ce que chacun peut vous prêter : l’article, la quantité qu’il peut prêter pour un événement, le prix qu’il vous facture par unité, et ce que vous en avez vous-mêmes (« À nous : 400 »).</p>
+<figure><img src="captures/13-materiel-partenaires.png" alt=""><figcaption>Le matériel des partenaires, regroupé par partenaire.</figcaption></figure>
+<ul>
+  <li><span class="ui">Ajouter du matériel partenaire</span> : choisissez le partenaire, puis un article de votre stock <strong>ou un nouvel article</strong> que vous n’avez pas (une tente de réception, par exemple), la quantité et le prix.</li>
+  <li>Un même article peut être à vous <strong>et</strong> chez un ou plusieurs partenaires.</li>
+  <li>Le crayon modifie une offre, la corbeille la retire. Une offre déjà utilisée dans une réservation est désactivée plutôt que supprimée, pour garder l’historique.</li>
+</ul>
+
+<h2 id="import">Importer vos listes de matériel</h2>
+<p>Pour saisir d’un coup vos quantités exactes, utilisez <span class="ui">Importer mes listes</span> (propriétaire uniquement) :</p>
+<ol class="steps">
+  <li>Cliquez sur <span class="ui">Télécharger le modèle Excel</span>.</li>
+  <li>Remplissez une ligne par article. Colonne <strong>Type</strong> : « Interne » pour votre matériel, « Partenaire » pour celui d’un partenaire. Puis : Article, Catégorie, Quantité, Prix location, Caution, Coût achat, et pour les partenaires : Partenaire, Téléphone, Prix partenaire.</li>
+  <li>Choisissez le fichier (.xlsx ou .csv) et cliquez sur <span class="ui">Vérifier le fichier</span> : Wedivo montre ce qui sera créé ou modifié, <strong>sans rien enregistrer</strong>.</li>
+  <li>Si tout est bon, cliquez sur <span class="ui">Importer</span>.</li>
+</ol>
+<figure><img src="captures/14-import-listes.png" alt=""><figcaption>L’import des deux listes, avec vérification préalable.</figcaption></figure>
+<div class="note"><b>Tout ou rien</b>Si une seule ligne est incorrecte (une quantité illisible, par exemple), rien n’est enregistré et la liste des lignes à corriger s’affiche. Les quantités de votre matériel sont alignées exactement sur le fichier ; chaque écart est tracé dans les mouvements. Les partenaires inconnus sont créés dans l’annuaire.</div>
+
+<!-- ============================== 9. FINANCES ============================== -->
+<h1 id="finances"><span class="num">CHAPITRE 9</span><span class="t">Finances et rapports</span></h1>
+<p class="lead">Ce que vos clients vous doivent, ce que vous devez à vos fournisseurs et partenaires, et la marge de chaque événement.</p>
+<figure><img src="captures/17-finances.png" alt=""><figcaption>Le module Finances.</figcaption></figure>
+<table>
+  <tr><th>Onglet</th><th>Contenu</th></tr>
+  <tr><td>Trésorerie</td><td>Entrées et sorties d’argent, solde, ce qui est attendu dans les prochaines semaines.</td></tr>
+  <tr><td>Factures</td><td>Factures d’acompte et finales, avoirs, statut (payée, partielle, en retard), PDF.</td></tr>
+  <tr><td>Recettes</td><td>Tous les encaissements, par mode de paiement.</td></tr>
+  <tr><td>Dépenses</td><td>Achats, transport, salaires, sous-traitance… avec photo du justificatif et lien facultatif vers une réservation.</td></tr>
+  <tr><td>Rentabilité</td><td>Par événement : recettes moins coûts directs (personnel, partenaires, dépenses liées) = marge, en montant et en %.</td></tr>
+</table>
+<h2>Enregistrer une dépense</h2>
+<ol class="steps">
+  <li>Depuis le tableau de bord ou <span class="path">Finances › Dépenses</span>, cliquez sur <span class="ui">Nouvelle dépense</span>.</li>
+  <li>Libellé, montant, catégorie, date, fournisseur, mode de paiement ; rattachez-la si besoin à une réservation ou à un mariage.</li>
+  <li>Ajoutez la photo du justificatif et enregistrez.</li>
+</ol>
+<h2>Les rapports</h2>
+<p><span class="path">Rapports</span> (propriétaire et comptable) présente vos chiffres sur la période de votre choix, comparés à la période précédente : chiffre d’affaires par mois et par catégorie, activités les plus rentables, prestations les plus demandées, articles les plus loués, clients principaux, dépenses par catégorie, marge par événement, soldes impayés. Chaque rapport se télécharge en PDF ou en Excel.</p>
+<figure><img src="captures/18-rapports.png" alt=""><figcaption>Les rapports, avec comparaison à la période précédente.</figcaption></figure>
+
+<!-- ============================== 10. ÉQUIPE ============================== -->
+<h1 id="equipe"><span class="num">CHAPITRE 10</span><span class="t">Le personnel, les présences et la paie</span></h1>
+<p class="lead">Votre équipe, sa disponibilité du jour, ses missions, son pointage et sa paie.</p>
+<figure><img src="captures/19-personnel.png" alt=""><figcaption>Le personnel et sa disponibilité du jour.</figcaption></figure>
+
+<h2>Ajouter une personne</h2>
+<ol class="steps">
+  <li>Dans <span class="path">Personnel</span>, cliquez sur <span class="ui">Ajouter une personne</span>.</li>
+  <li>Nom, poste (chef d’équipe, magasinier, chauffeur, installateur, décorateur, serveur, hôtesse…), département, type (salarié, journalier, freelance), téléphone, numéro Mobile Money, compétences, contact d’urgence.</li>
+  <li>Rémunération (propriétaire et comptable) : mensuelle, journalière, à la mission ou à l’heure, avec le taux.</li>
+  <li><strong>Photo</strong> : <span class="ui">Choisir une photo</span> dans la galerie ou <span class="ui">Prendre une photo</span> avec l’appareil. Wedivo la remet à l’endroit, l’allège et la recadre en carré sur le visage : elle s’intègre directement à la fiche et aux badges.</li>
+  <li>Enregistrez : un matricule est attribué automatiquement.</li>
+</ol>
+<figure><img src="captures/20-fiche-personnel.png" alt=""><figcaption>La fiche d’une personne, avec sa photo.</figcaption></figure>
+<ul>
+  <li><span class="ui">Créer son accès</span> (propriétaire) ouvre un compte Wedivo à la personne pour qu’elle voie ses missions sur son téléphone. Un message tout prêt avec ses accès se copie ou s’envoie par WhatsApp.</li>
+  <li><span class="ui">Imprimer les badges</span> génère les badges de l’équipe avec photo, nom et poste.</li>
+</ul>
+
+<h2>Affecter l’équipe aux événements</h2>
+<p>Dans la fiche d’une réservation, rubrique <strong>Équipe</strong>, affectez des personnes à une étape (livraison, installation, événement, récupération…) avec leur rôle. Wedivo signale les conflits d’horaire. La personne reçoit une notification et retrouve la mission dans « Mes missions ».</p>
+
+<h2>Les tâches</h2>
+<p><span class="path">Tâches</span> regroupe les tâches de l’équipe avec leur statut. La personne coche sa tâche faite (avec photo de fin d’installation si besoin) ; le propriétaire ou le planner la valide ou la renvoie avec un motif.</p>
+<figure><img src="captures/21-taches.png" alt=""><figcaption>Les tâches de l’équipe.</figcaption></figure>
+
+<h2>Les présences</h2>
+<p><span class="path">Présences</span> montre le pointage du jour : arrivée, départ, heures, retard (au-delà de 15 minutes) ou absence. Le propriétaire et le planner pointent pour tous, le chef d’équipe pour son équipe, le personnel pour lui-même.</p>
+<figure><img src="captures/22-presences.png" alt=""><figcaption>Le pointage du jour.</figcaption></figure>
+
+<h2>La paie</h2>
+<p><span class="path">Paie</span> (propriétaire et comptable) : payez la journée des journaliers, calculez les salaires du mois à partir des heures pointées et des missions, ajoutez primes et avances, validez la période, marquez les lignes payées et téléchargez les bulletins.</p>
+<figure><img src="captures/23-paie.png" alt=""><figcaption>La paie du personnel.</figcaption></figure>
+
+<!-- ============================== 11. TERRAIN ============================== -->
+<h1 id="terrain"><span class="num">CHAPITRE 11</span><span class="t">Sur le terrain : Mon espace et Mes missions</span></h1>
+<p class="lead">Le personnel et les chefs d’équipe utilisent Wedivo sur leur téléphone. Ils ne voient jamais de montant.</p>
+<figure class="phones"><img src="captures/33-mobile-mon-espace.png" alt=""><img src="captures/34-mobile-mes-missions.png" alt=""></figure>
+<p style="text-align:center;font-size:8.5pt;color:#85829f;margin-top:-2mm">À gauche : Mon espace. À droite : Mes missions.</p>
+<h2>Mon espace</h2>
+<p>La page d’accueil du personnel : prochaine mission avec l’itinéraire, missions de la semaine et du mois, heures pointées, ponctualité, tâches à faire et faites. Le chef d’équipe y voit aussi son équipe du jour et peut la pointer sur place.</p>
+<h2>Mes missions</h2>
+<p>Les missions sont classées : aujourd’hui, demain, cette semaine, plus tard, terminées. Chaque carte montre l’étape, l’adresse avec un lien Google Maps, le client, le matériel (sans prix), les tâches et l’équipe. La personne pointe son <strong>arrivée</strong> et son <strong>départ</strong>, et coche ses tâches avec une photo si demandé.</p>
+<div class="tip"><b>Conseil</b>Installez l’application et activez les notifications (Mon profil) : chaque nouvelle mission ou tâche arrive directement sur le téléphone.</div>
+
+<!-- ============================== 12. MARIAGES ============================== -->
+<h1 id="mariages"><span class="num">CHAPITRE 12</span><span class="t">Mariages, billets et invités</span></h1>
+<p class="lead">Une fiche par mariage : client, budget, partenaires, fournisseurs, tâches de l’équipe, invités et billets.</p>
+<div class="note"><b>Module à activer</b>Le module Mariages s’active dans <span class="path">Paramètres › Entreprise</span> (ou à l’inscription en cochant « J’organise des mariages »).</div>
+<figure><img src="captures/24-mariages.png" alt=""><figcaption>Les mariages de l’agence.</figcaption></figure>
+<h2>La fiche mariage</h2>
+<p>Créée automatiquement à la conversion d’un devis en contrat, ou avec <span class="ui">Nouveau mariage</span>. Elle regroupe le couple, la date, le lieu, le budget, les fournisseurs réservés et les tâches standard (choisies selon le délai avant le mariage).</p>
+<h2>Billets et invités</h2>
+<ol class="steps">
+  <li>Depuis le mariage, ouvrez <span class="ui">Billets</span>.</li>
+  <li>Ajoutez les invités un par un, ou importez une liste (.csv ou .xlsx) : nom ou famille, nombre de places, catégorie, table.</li>
+  <li><span class="ui">Générer tous les billets</span> : chaque invité reçoit un billet personnalisé avec un QR code unique et sécurisé.</li>
+  <li>Envoyez le lien du billet par WhatsApp (message tout prêt) : l’invité l’ouvre, confirme sa présence et le présente le jour J.</li>
+</ol>
+<figure><img src="captures/25-billets.png" alt=""><figcaption>Les billets et invités d’un mariage.</figcaption></figure>
+<p>Un billet annulé est refusé à l’entrée ; un billet réémis reçoit un nouveau numéro et un nouveau QR code.</p>
+
+<!-- ============================== 13. FOURNISSEURS ============================== -->
+<h1 id="fournisseurs"><span class="num">CHAPITRE 13</span><span class="t">Partenaires et fournisseurs</span></h1>
+<p class="lead">Votre carnet d’adresses de confiance, avec l’historique des collaborations et les montants dus.</p>
+<figure><img src="captures/26-partenaires-fournisseurs.png" alt=""><figcaption>L’annuaire des partenaires et fournisseurs.</figcaption></figure>
+<ul>
+  <li>Un <strong>fournisseur</strong> vend à l’agence : fleurs, traiteur, gâteau, photo… Un <strong>partenaire</strong> travaille avec elle ou complète son matériel.</li>
+  <li>La fiche contient le contact, WhatsApp, l’adresse, le NIU et le RCCM, les conditions de paiement, le Mobile Money, la banque et les services proposés.</li>
+  <li>Sur un mariage, réservez un fournisseur avec son coût : Wedivo suit ce qui est payé et ce qui reste dû.</li>
+  <li>Pour le matériel qu’un partenaire peut prêter, voir le chapitre 8, « Le matériel des partenaires ».</li>
+</ul>
+
+<!-- ============================== 14. PARAMÈTRES ============================== -->
+<h1 id="parametres"><span class="num">CHAPITRE 14</span><span class="t">Les paramètres de l’agence</span></h1>
+<p class="lead">Réservés au propriétaire, ils règlent l’identité de l’agence, son équipe et ses documents.</p>
+<h2>Entreprise</h2>
+<p>Nom, adresse de l’espace, ville, pays, monnaie, fuseau horaire, préfixe et durée de validité des devis, mentions légales, politique d’annulation (acompte gardé ou non), résumé quotidien des alertes par email, activation du module Mariages.</p>
+<figure><img src="captures/28-parametres-entreprise.png" alt=""><figcaption>Paramètres › Entreprise.</figcaption></figure>
+<h2>Identité des documents</h2>
+<p>Votre logo, vos couleurs, votre signature et votre cachet, ainsi que le modèle de devis par défaut. Wedivo propose des couleurs tirées du logo et vérifie qu’elles restent lisibles. Tous les PDF (devis, factures, billets, bons) prennent cette identité.</p>
+<figure><img src="captures/29-parametres-identite.png" alt=""><figcaption>Paramètres › Identité des documents.</figcaption></figure>
+<h2>Équipe et rôles</h2>
+<ul>
+  <li><span class="ui">Créer un compte</span> : nom, email, téléphone, rôle et mot de passe provisoire. Wedivo prépare un message avec les accès, à copier ou à envoyer par WhatsApp. La personne choisit son propre mot de passe à la première connexion.</li>
+  <li><span class="ui">Inviter un membre</span> : la personne reçoit un email avec un lien pour rejoindre l’espace.</li>
+  <li>Changer le rôle d’un membre, lui donner un <span class="ui">Nouveau mot de passe</span> provisoire, ou le <span class="ui">Désactiver</span> (il ne peut plus entrer ; on peut le réactiver).</li>
+  <li>Le tableau « Ce que chaque rôle peut faire » rappelle les droits de chacun.</li>
+</ul>
+<figure><img src="captures/30-parametres-equipe.png" alt=""><figcaption>Paramètres › Équipe.</figcaption></figure>
+<h2>Abonnement et intégrations</h2>
+<p><strong>Abonnement</strong> : toutes les fonctionnalités sont incluses, sans moyen de paiement ; les abonnements arriveront avec une prochaine mise à jour. <strong>Intégrations</strong> : les services reliés à votre espace (email aujourd’hui, d’autres à venir).</p>
+
+<!-- ============================== 15. CONSOLE ============================== -->
+<h1 id="console"><span class="num">CHAPITRE 15</span><span class="t">La console Wedivo (super-administrateur)</span></h1>
+<p class="lead">Réservée à l’équipe Wedivo, la console donne la vue sur toute la plateforme : toutes les agences et tous les comptes. Elle s’ouvre sur <span class="path">/plateforme</span> ; un super-administrateur qui travaille aussi dans une agence y accède par le lien « Console plateforme » en bas du menu.</p>
+<figure><img src="captures/37-console-vue-ensemble.png" alt=""><figcaption>La vue d’ensemble de la plateforme.</figcaption></figure>
+<h2>Vue d’ensemble</h2>
+<p>Agences actives, agences réellement utilisées sur 30 jours, comptes actifs, nouvelles inscriptions, croissance sur 12 mois, répartition par offre, statut des agences, liste « À surveiller » (essais qui se terminent, agences suspendues) et activité récente.</p>
+<h2>Agences</h2>
+<figure><img src="captures/38-console-agences.png" alt=""><figcaption>Toutes les agences, avec filtres.</figcaption></figure>
+<ul>
+  <li><span class="ui">Créer une agence</span> pour un client, avec son propriétaire et un mot de passe provisoire.</li>
+  <li>Dans la fiche d’une agence : <strong>accès à vie</strong> (Wedivo pour toujours, sans fin d’essai), <strong>suspension</strong> avec un motif (plus personne n’entre, les données sont gardées) puis réactivation, offre, fin d’essai, note interne jamais montrée à l’agence, et les membres avec leurs rôles.</li>
+</ul>
+<figure><img src="captures/39-console-fiche-agence.png" alt=""><figcaption>La fiche d’une agence dans la console.</figcaption></figure>
+<h2>Utilisateurs et journal</h2>
+<ul>
+  <li><span class="path">Utilisateurs</span> : tous les comptes, toutes agences confondues. Créer un compte, le désactiver (il ne peut plus se connecter nulle part), donner ou retirer l’accès super-administrateur, donner un mot de passe provisoire, ajouter la personne à une agence avec un rôle.</li>
+  <li><span class="path">Journal</span> : chaque action faite depuis la console, avec son auteur et la date.</li>
+</ul>
+<figure><img src="captures/40-console-utilisateurs.png" alt=""><figcaption>Tous les comptes de la plateforme.</figcaption></figure>
+<div class="warn"><b>Sécurité</b>On ne peut ni désactiver son propre compte ni se retirer ses droits. Une agence garde toujours un propriétaire : en nommer un nouveau fait passer l’ancien en wedding planner.</div>
+
+<!-- ============================== 16. AIDE ============================== -->
+<h1 id="aide"><span class="num">CHAPITRE 16</span><span class="t">Questions fréquentes et dépannage</span></h1>
+
+<h3>Je suis renvoyé sans cesse à la page de connexion.</h3>
+<p>Vérifiez que l’adresse du site commence par <strong>https://</strong>. Évitez aussi d’ouvrir deux comptes différents dans le même navigateur : la seconde connexion remplace la première. Utilisez une fenêtre de navigation privée ou un autre navigateur pour le second compte.</p>
+
+<h3>Wedivo me demande de changer mon mot de passe avant tout.</h3>
+<p>Votre compte a été créé avec un mot de passe provisoire. Saisissez-le dans « Mot de passe provisoire », choisissez le vôtre, confirmez : le reste de l’application s’ouvre aussitôt.</p>
+
+<h3>Le message « Vous n’avez pas accès à cet espace » apparaît.</h3>
+<p>Votre compte n’est pas (ou plus) membre de l’agence ouverte, ou l’agence a été suspendue. Demandez au propriétaire de vérifier votre accès dans Paramètres › Équipe.</p>
+
+<h3>« Votre rôle ne permet pas cette action ».</h3>
+<p>L’action est réservée à d’autres rôles (voir l’annexe). Demandez au propriétaire de changer votre rôle si nécessaire.</p>
+
+<h3>Ma photo ne s’envoie pas.</h3>
+<p>Wedivo allège automatiquement les photos avant l’envoi. Si une photo d’iPhone est refusée, choisissez-la depuis Safari, ou réglez l’iPhone sur <em>Réglages › Appareil photo › Formats › « Le plus compatible »</em>.</p>
+
+<h3>La réservation ne se confirme pas : « Stock insuffisant ».</h3>
+<p>Une autre réservation occupe déjà ce matériel sur ces dates. Réduisez la quantité, choisissez un article équivalent proposé, ou complétez chez un partenaire depuis la fiche de la réservation.</p>
+
+<h3>Je ne vois pas les montants.</h3>
+<p>C’est normal pour les rôles assistant, magasinier, chef d’équipe et personnel : les montants ne leur sont jamais envoyés.</p>
+
+<h3>J’ai supprimé ou archivé quelque chose par erreur.</h3>
+<p>Un client archivé se retrouve avec « Afficher les archives ». Un mouvement de stock s’annule depuis le journal. Une personne du personnel ayant déjà travaillé n’est jamais effacée : elle est seulement retirée des listes.</p>
+
+<!-- ============================== ANNEXE ============================== -->
+<h1 id="droits"><span class="num">ANNEXE</span><span class="t">Qui peut faire quoi</span></h1>
+<table>
+  <tr><th>Domaine</th><th class="c">Propriétaire</th><th class="c">Planner</th><th class="c">Assistant</th><th class="c">Comptable</th><th class="c">Magasinier</th><th class="c">Chef d’équipe</th><th class="c">Personnel</th></tr>
+  <tr><td>Clients et devis</td><td class="c">Oui</td><td class="c">Oui</td><td class="c">Oui</td><td class="c">Lecture</td><td class="c">—</td><td class="c">—</td><td class="c">—</td></tr>
+  <tr><td>Réservations</td><td class="c">Oui</td><td class="c">Oui</td><td class="c">Lecture</td><td class="c">Lecture</td><td class="c">Logistique</td><td class="c">—</td><td class="c">—</td></tr>
+  <tr><td>Stock et mouvements</td><td class="c">Oui</td><td class="c">Lecture</td><td class="c">Lecture</td><td class="c">Lecture</td><td class="c">Oui, sans prix</td><td class="c">—</td><td class="c">—</td></tr>
+  <tr><td>Prix des partenaires</td><td class="c">Oui</td><td class="c">—</td><td class="c">—</td><td class="c">Oui</td><td class="c">—</td><td class="c">—</td><td class="c">—</td></tr>
+  <tr><td>Paiements et encaissements</td><td class="c">Oui</td><td class="c">Soldes</td><td class="c">—</td><td class="c">Oui</td><td class="c">—</td><td class="c">—</td><td class="c">—</td></tr>
+  <tr><td>Marges, dépenses, rapports</td><td class="c">Oui</td><td class="c">—</td><td class="c">—</td><td class="c">Oui</td><td class="c">—</td><td class="c">—</td><td class="c">—</td></tr>
+  <tr><td>Personnel et planning</td><td class="c">Oui</td><td class="c">Oui</td><td class="c">Lecture</td><td class="c">Lecture</td><td class="c">—</td><td class="c">Son équipe</td><td class="c">—</td></tr>
+  <tr><td>Paie</td><td class="c">Oui</td><td class="c">—</td><td class="c">—</td><td class="c">Oui</td><td class="c">—</td><td class="c">—</td><td class="c">—</td></tr>
+  <tr><td>Mes missions et pointage</td><td class="c">—</td><td class="c">—</td><td class="c">—</td><td class="c">—</td><td class="c">—</td><td class="c">Oui</td><td class="c">Oui</td></tr>
+  <tr><td>Mariages, partenaires, fournisseurs</td><td class="c">Oui</td><td class="c">Oui</td><td class="c">Oui</td><td class="c">Lecture</td><td class="c">—</td><td class="c">—</td><td class="c">—</td></tr>
+  <tr><td>Équipe, paramètres, import du matériel</td><td class="c">Oui</td><td class="c">—</td><td class="c">—</td><td class="c">—</td><td class="c">—</td><td class="c">—</td><td class="c">—</td></tr>
+</table>
+<p style="margin-top:8mm;color:#85829f;font-size:9pt">Une question qui n’est pas dans ce manuel ? Contactez l’équipe Wedivo depuis l’application ou par WhatsApp.</p>
+
+</body>
+</html>

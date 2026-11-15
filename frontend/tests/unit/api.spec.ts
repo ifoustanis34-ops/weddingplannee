@@ -52,6 +52,13 @@ describe('toApiError', () => {
     expect(error.fieldError('companyName')).toBe('Obligatoire.')
   })
 
+  it('explains a file refused by the web server as too large', () => {
+    const error = toApiError(axiosError(413, '<html>413 Request Entity Too Large</html>'))
+
+    expect(error.code).toBe('file_too_large')
+    expect(error.message).toContain('trop lourd')
+  })
+
   it('explains network failures', () => {
     const error = toApiError(new AxiosError('Network Error'))
 

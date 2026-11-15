@@ -29,6 +29,8 @@ interface ErrorBody {
 }
 
 const NETWORK_MESSAGE = 'Connexion impossible. Vérifiez votre réseau puis réessayez.'
+const TOO_LARGE_MESSAGE =
+  'Fichier trop lourd pour le serveur. Choisissez une image plus légère (moins de 5 Mo) ou réduisez-la.'
 const UNKNOWN_MESSAGE = 'Une erreur inattendue est survenue. Réessayez dans un instant.'
 
 function normalizeFields(raw: unknown): Record<string, string[]> {
@@ -46,6 +48,8 @@ export function toApiError(error: unknown): ApiError {
   if (isAxiosError(error)) {
     if (!error.response) return new ApiError('network_error', NETWORK_MESSAGE)
     const { status, data } = error.response
+    // Refused by the web server before reaching Wedivo (Nginx « client_max_body_size »).
+    if (status === 413) return new ApiError('file_too_large', TOO_LARGE_MESSAGE, status)
     const body = (data && typeof data === 'object' ? data : {}) as ErrorBody
     return new ApiError(
       typeof body.code === 'string' ? body.code : `http_${status}`,

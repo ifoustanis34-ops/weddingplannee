@@ -31,6 +31,9 @@ FROM base AS prod
 COPY --chown=wedivo:wedivo . .
 RUN DJANGO_SECRET_KEY=build DATABASE_URL=sqlite:///tmp/build.db \
     python manage.py collectstatic --noinput --settings=config.settings.prod
+# Uploaded files (photos, logos, PDF): owned by the app user, so a volume mounted here starts
+# writable (Docker copies this ownership into a new named volume).
+RUN mkdir -p /app/media && chown wedivo:wedivo /app/media
 USER wedivo
 CMD ["gunicorn", "config.asgi:application", "-k", "uvicorn_worker.UvicornWorker", \
      "--bind", "0.0.0.0:8000", "--workers", "3", "--access-logfile", "-"]

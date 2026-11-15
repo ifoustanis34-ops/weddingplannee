@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ArrowLeftRight, ImageUp, Package, Pencil, QrCode, Trash2, Wrench } from '@lucide/vue'
-import { computed, ref } from 'vue'
+import { computed, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 import { api } from '@/api/client'
@@ -67,6 +67,12 @@ const ring = computed(() => {
 
 // --- Photo --------------------------------------------------------------------------------------
 const photoInput = ref<HTMLInputElement | null>(null)
+// A photo the server no longer has shows the placeholder, not a broken image (feedback 15/11/2026).
+const photoFailed = ref(false)
+watch(
+  () => item.data.value?.photoUrl,
+  () => (photoFailed.value = false),
+)
 const uploadPhoto = useStockMutation((file: File) => stockApi.uploadPhoto(props.itemId!, file))
 const removePhoto = useStockMutation(() => stockApi.removePhoto(props.itemId!))
 async function onPhoto(event: Event): Promise<void> {
@@ -167,10 +173,11 @@ const occupancyMax = computed(() =>
       <!-- Photo -->
       <section class="relative overflow-hidden rounded-wd-lg bg-surface-2">
         <img
-          v-if="item.data.value.photoUrl"
+          v-if="item.data.value.photoUrl && !photoFailed"
           :src="item.data.value.photoUrl"
           :alt="item.data.value.name"
           class="aspect-[16/9] w-full object-cover"
+          @error="photoFailed = true"
         />
         <div v-else class="flex aspect-[16/9] items-center justify-center text-muted">
           <Package class="size-12" aria-hidden="true" />

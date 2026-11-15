@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import logging
 from typing import Any
 
 from rest_framework import exceptions, status
@@ -64,9 +65,26 @@ def _flatten_fields(detail: Any) -> dict[str, list[str]]:
     return fields
 
 
+logger = logging.getLogger(__name__)
+
+STORAGE_MESSAGE = (
+    "Le fichier n’a pas pu être enregistré sur le serveur (espace de stockage indisponible). "
+    "Réessayez plus tard ou prévenez l’administrateur de la plateforme."
+)
+
+
 def exception_handler(exc: Exception, context: dict[str, Any]) -> Response | None:
     response = drf_exception_handler(exc, context)
     if response is None:
+        if isinstance(exc, OSError):
+            # Photos, logos, receipts: the media folder is missing or not writable on the server
+            # (feedback 15/11/2026). Said plainly instead of « Une erreur est survenue »; the
+            # traceback stays in the logs for the administrator.
+            logger.exception("File storage failed")
+            return Response(
+                {"code": "storage_unavailable", "message": STORAGE_MESSAGE, "fields": {}},
+                status=503,
+            )
         return None
 
     if isinstance(exc, BusinessError):

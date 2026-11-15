@@ -2,14 +2,20 @@
 
 from __future__ import annotations
 
+import io
 from collections.abc import Callable
 from datetime import timedelta
+from pathlib import Path
 from typing import Any
+from unittest import mock
 
 import pytest
+from django.core.files.storage import FileSystemStorage
+from django.core.files.uploadedfile import SimpleUploadedFile
 from django.db import connection
 from django.urls import reverse
 from django.utils import timezone
+from PIL import Image
 from rest_framework.test import APIClient
 
 from accounts.models import Membership, User
@@ -372,6 +378,35 @@ def test_grid_labels_and_availability_endpoints(
     assert period["items"][0]["available"] == 5
     pdf = client.get(reverse("item-labels", args=[item.pk]), {"count": 3})
     assert pdf["Content-Type"] == "application/pdf" and pdf.content[:4] == b"%PDF"
+
+
+def test_an_item_photo_is_stored_and_a_broken_storage_is_said_plainly(
+    client_for: Callable[..., APIClient],
+    org_a: Organization,
+    owner_a: User,
+    settings: Any,
+    tmp_path: Path,
+) -> None:
+    settings.MEDIA_ROOT = tmp_path
+    item = make_item(org_a, owner_a, quantity=10)
+    client = client_for(owner_a, org_a)
+    url = reverse("item-photo", args=[item.pk])
+
+    buffer = io.BytesIO()
+    Image.new("RGB", (1600, 1200), (200, 30, 90)).save(buffer, format="JPEG")
+    upload = SimpleUploadedFile("chaise.jpg", buffer.getvalue(), content_type="image/jpeg")
+    stored = client.post(url, {"file": upload}, format="multipart")
+    assert stored.status_code == 200
+    photo = client.get(stored.json()["photo_url"])
+    assert photo.status_code == 200 and photo["Content-Type"] == "image/jpeg"
+
+    # Online, a media folder the application cannot write to (feedback 15/11/2026).
+    upload = SimpleUploadedFile("chaise.jpg", buffer.getvalue(), content_type="image/jpeg")
+    with mock.patch.object(FileSystemStorage, "_save", side_effect=PermissionError(13, "denied")):
+        refused = client.post(url, {"file": upload}, format="multipart")
+    assert refused.status_code == 503
+    assert refused.json()["code"] == "storage_unavailable"
+    assert "administrateur" in refused.json()["message"]
 
 
 # --- Alerts (§5.4) ------------------------------------------------------------------------------

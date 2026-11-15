@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { Package } from '@lucide/vue'
-import { computed } from 'vue'
+import { computed, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 import { formatAmount } from '@/composables/useMoney'
@@ -16,6 +16,12 @@ const today = computed(() => props.item.today)
 const low = computed(
   () => props.item.alertThreshold > 0 && (today.value?.available ?? 0) <= props.item.alertThreshold,
 )
+// A photo the server no longer has shows the placeholder, not a broken image (feedback 15/11/2026).
+const photoFailed = ref(false)
+watch(
+  () => props.item.photoUrl,
+  () => (photoFailed.value = false),
+)
 </script>
 
 <template>
@@ -27,11 +33,12 @@ const low = computed(
   >
     <div class="relative aspect-[4/3] w-full bg-surface-2">
       <img
-        v-if="item.photoUrl"
+        v-if="item.photoUrl && !photoFailed"
         :src="item.photoUrl"
         alt=""
         class="size-full object-cover"
         loading="lazy"
+        @error="photoFailed = true"
       />
       <div v-else class="flex size-full items-center justify-center text-muted">
         <Package class="size-10" aria-hidden="true" />

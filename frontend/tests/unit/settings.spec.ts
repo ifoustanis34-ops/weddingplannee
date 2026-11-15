@@ -215,21 +215,15 @@ describe('InviteModal', () => {
 })
 
 describe('PlanTab', () => {
-  it('marks the current offer and switches to another one', async () => {
-    vi.mocked(api.post).mockResolvedValue({ data: { plan: 'essentiel' } })
+  it('says every feature is included, with no offer nor price (15/11/2026)', async () => {
     const { wrapper } = mountWithPlugins(PlanTab)
     signIn()
     await flushPromises()
 
-    expect(wrapper.text()).toContain('Offre actuelle')
-    expect(wrapper.text()).toMatch(/35\s000/)
-    await wrapper
-      .findAll('button')
-      .find((b) => b.text() === 'Passer à Essentiel')!
-      .trigger('click')
-    await flushPromises()
-
-    expect(api.post).toHaveBeenCalledWith('/organization/plan', { plan: 'essentiel' })
+    expect(wrapper.text()).toContain('Toutes les fonctionnalités incluses')
+    expect(wrapper.text()).toContain('prochaine mise à jour')
+    expect(wrapper.text()).not.toMatch(/FCFA|Passer à/)
+    expect(api.post).not.toHaveBeenCalled()
   })
 })
 

@@ -155,3 +155,22 @@ def test_slug_availability_and_suggestion(org_a: Organization) -> None:
     }
     suggestion = client.get(url, {"name": "Agence A"}).json()
     assert suggestion == {"slug": "agence-a-2", "available": True, "reason": None}
+
+
+@pytest.mark.parametrize(
+    ("country", "currency", "zone"),
+    [
+        ("CM", "XAF", "Africa/Douala"),
+        ("GA", "XAF", "Africa/Libreville"),
+        ("ci", "XOF", "Africa/Abidjan"),
+    ],
+)
+def test_currency_and_time_zone_follow_the_country(country: str, currency: str, zone: str) -> None:
+    data = payload(country=country, city="Douala", phone="+237 699 12 34 56")
+    data.pop("plan")  # no offer to choose at sign-up for now (feedback 15/11/2026)
+    response = APIClient().post(SIGNUP_URL, data, format="json")
+
+    assert response.status_code == 201, response.json()
+    organization = Organization.objects.get(slug="maison-elegance")
+    assert (organization.currency, organization.timezone) == (currency, zone)
+    assert organization.plan == Organization.Plan.PRO

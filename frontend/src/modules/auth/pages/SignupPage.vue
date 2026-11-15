@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { toTypedSchema } from '@/app/zodSchema'
-import { useQuery } from '@tanstack/vue-query'
 import { CircleCheck, LoaderCircle } from '@lucide/vue'
 import { type TypedSchema, useForm } from 'vee-validate'
 import { computed, ref, watch } from 'vue'
@@ -8,8 +7,6 @@ import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
 
 import { type Plan, type SignupPayload, authApi } from '@/api/auth'
-import { plansApi } from '@/api/plans'
-import { formatMoney } from '@/composables/useMoney'
 import { useServerErrors } from '@/composables/useServerErrors'
 import { useToast } from '@/composables/useToast'
 import { WButton, WInput, WSelect } from '@/design'
@@ -40,19 +37,8 @@ const STEPS = [
     fields: ['companyName', 'city', 'country', 'weddingsPerYear'],
   },
   { key: 'account', schema: accountStepSchema, fields: ['fullName', 'email', 'phone', 'password'] },
-  { key: 'space', schema: spaceStepSchema, fields: ['slug', 'plan'] },
+  { key: 'space', schema: spaceStepSchema, fields: ['slug'] },
 ] as const
-// Offers and prices come from the database (never from code); names are a fallback offline.
-const FALLBACK_PLANS: Plan[] = ['essentiel', 'pro', 'agence']
-const plans = useQuery({ queryKey: ['plans'], queryFn: plansApi.list, staleTime: 3_600_000 })
-const planOptions = computed<
-  { code: Plan; name: string; description?: string; monthlyPrice?: number }[]
->(
-  () =>
-    plans.data.value ??
-    FALLBACK_PLANS.map((code) => ({ code, name: t(`auth.signup.plans.${code}`) })),
-)
-
 const step = ref(0)
 // One form across steps: values survive going back and forth; the current step's fields are
 // required, the others stay optional (but still validated when filled).
@@ -65,7 +51,7 @@ const currentSchema = computed(
 const { defineField, errors, handleSubmit, isSubmitting, values } = useForm<SignupForm>({
   validationSchema: currentSchema,
   keepValuesOnUnmount: true,
-  initialValues: { country: 'CI', plan: 'pro' as Plan, phone: '' },
+  initialValues: { country: 'CM', plan: 'pro' as Plan, phone: '' },
 })
 const [companyName, companyNameAttrs] = defineField('companyName')
 const [city, cityAttrs] = defineField('city')
@@ -76,7 +62,6 @@ const [email, emailAttrs] = defineField('email')
 const [phone, phoneAttrs] = defineField('phone')
 const [password, passwordAttrs] = defineField('password')
 const [slug, slugAttrs] = defineField('slug')
-const [plan] = defineField('plan')
 
 const countryOptions = COUNTRIES.map(([value, label]) => ({ value, label }))
 const volumeOptions = computed(() =>
@@ -165,7 +150,7 @@ async function submit(): Promise<void> {
   const payload = {
     companyName: String(values.companyName ?? '').trim(),
     city: String(values.city ?? '').trim(),
-    country: String(values.country ?? 'CI'),
+    country: String(values.country ?? 'CM'),
     weddingsPerYear:
       typeof values.weddingsPerYear === 'number' && !Number.isNaN(values.weddingsPerYear)
         ? values.weddingsPerYear
@@ -334,39 +319,10 @@ async function submit(): Promise<void> {
           {{ slugState.checking ? t('auth.signup.slugChecking') : t('auth.signup.slugAvailable') }}
         </p>
 
-        <fieldset>
-          <legend class="mb-1.5 text-[13px] font-bold text-ink-2">
-            {{ t('auth.signup.plan') }}
-          </legend>
-          <div v-if="plans.isPending.value" class="flex flex-col gap-2" aria-hidden="true">
-            <div v-for="n in 3" :key="n" class="skeleton h-[68px] rounded-wd" />
-          </div>
-          <div v-else class="flex flex-col gap-2">
-            <label
-              v-for="option in planOptions"
-              :key="option.code"
-              class="flex cursor-pointer items-center gap-3 rounded-wd border bg-surface px-4 py-3 transition-[border-color,box-shadow] has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-violet"
-              :class="
-                plan === option.code
-                  ? 'border-violet shadow-[0_0_0_3px_var(--violet-soft)]'
-                  : 'border-line-2 hover:bg-surface-2'
-              "
-            >
-              <input v-model="plan" type="radio" name="plan" :value="option.code" class="sr-only" />
-              <span class="min-w-0 flex-1">
-                <span class="block font-bold text-ink">{{ option.name }}</span>
-                <span v-if="option.description" class="block text-[13px] text-muted">{{
-                  option.description
-                }}</span>
-              </span>
-              <span v-if="option.monthlyPrice !== undefined" class="text-right whitespace-nowrap">
-                <span class="num font-semibold">{{ formatMoney(option.monthlyPrice ?? 0) }}</span>
-                <span class="text-[13px] text-muted"> {{ t('auth.signup.perMonth') }}</span>
-              </span>
-            </label>
-          </div>
-          <p class="mt-2 text-[12.5px] text-muted">{{ t('auth.signup.planHint') }}</p>
-        </fieldset>
+        <!-- No offer nor price for now (feedback 15/11/2026): all features included. -->
+        <p class="rounded-wd bg-violet-soft px-3.5 py-3 text-[13.5px] text-ink-2">
+          {{ t('auth.signup.allIncluded') }}
+        </p>
       </template>
 
       <div class="mt-2 flex gap-2">

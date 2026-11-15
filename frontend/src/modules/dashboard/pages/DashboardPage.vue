@@ -76,7 +76,11 @@ const organization = useQuery({
 })
 const timeZone = computed(() => organization.data.value?.timezone ?? DEFAULT_TIMEZONE)
 
+/** Subscriptions and their payment come with a later update (feedback 15/11/2026). */
+const SUBSCRIPTIONS_ENABLED = false as boolean
 const trialDays = computed(() => {
+  // No subscription to pay for now (feedback 15/11/2026): no trial to count down.
+  if (SUBSCRIPTIONS_ENABLED === false) return null
   // Lifetime access (given by the Wedivo team): no trial to count down.
   if (organization.data.value?.lifetimeAccess) return null
   const ends = organization.data.value?.trialEndsAt

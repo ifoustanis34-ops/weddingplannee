@@ -235,13 +235,15 @@ export default {
       },
       fullName: 'Nom complet',
       phone: 'Téléphone (WhatsApp)',
-      phoneHint: 'Avec l’indicatif, ex. +225 07 08 12 34 56',
+      phoneHint: 'Avec l’indicatif, ex. +237 6 99 12 34 56',
       passwordHint: '8 caractères minimum.',
       slug: 'Adresse de votre espace',
       slugChecking: 'Vérification…',
       slugAvailable: 'Adresse disponible.',
       plan: 'Offre',
       planHint: '14 jours d’essai gratuit, sans moyen de paiement.',
+      allIncluded:
+        'Toutes les fonctionnalités de Wedivo sont incluses, sans moyen de paiement. Les abonnements arriveront avec une prochaine mise à jour.',
       perMonth: '/ mois',
       continue: 'Continuer',
       plans: {
@@ -2570,6 +2572,18 @@ export default {
       subtitle: 'Utilisé pour composer vos devis en quelques clics',
     },
     plan: {
+      includedTitle: 'Toutes les fonctionnalités incluses',
+      includedText:
+        'Votre espace a accès à tout Wedivo, sans limite d’utilisateurs et sans moyen de paiement.',
+      later: 'Les abonnements et leur paiement arriveront avec une prochaine mise à jour.',
+      features: {
+        clients: 'Clients, devis et factures',
+        reservations: 'Réservations et calendrier',
+        stock: 'Stock et matériel des partenaires',
+        finance: 'Finances et rapports',
+        team: 'Équipe, personnel et paie',
+        weddings: 'Mariages, invités et billets',
+      },
       allIncluded:
         'Toutes les fonctionnalités de Wedivo sont incluses, quelle que soit votre offre, sans limite d’utilisateurs. Les futurs modules pourront être réservés à certaines offres.',
       current: 'Offre actuelle',

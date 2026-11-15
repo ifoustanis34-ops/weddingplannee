@@ -47,7 +47,9 @@ export const spaceStepSchema = z.object({
   slug: required(t('validation.slugShort'))
     .min(3, t('validation.slugShort'))
     .regex(SLUG_PATTERN, t('validation.slug')),
-  plan: z.enum(['essentiel', 'pro', 'agence']),
+  // No offer to choose for now (feedback 15/11/2026): every agency starts on « Pro », all
+  // features included; subscriptions come with a later update.
+  plan: z.enum(['essentiel', 'pro', 'agence']).optional().default('pro'),
 })
 
 /** Whole signup form; each wizard step requires only its own fields. */
@@ -63,16 +65,22 @@ export const resetSchema = z
     path: ['confirm'],
   })
 
-/** Countries offered at sign-up, in the prototype order (complement §6). */
+/** Countries offered at sign-up (same list as organizations.services.COUNTRY_DEFAULTS). */
 export const COUNTRIES = [
+  // Cameroon first and preselected (feedback 15/11/2026), then the CEMAC zone, then UEMOA.
+  ['CM', 'Cameroun'],
+  ['GA', 'Gabon'],
+  ['CG', 'Congo'],
+  ['TD', 'Tchad'],
+  ['CF', 'Centrafrique'],
+  ['GQ', 'Guinée équatoriale'],
   ['CI', 'Côte d’Ivoire'],
   ['SN', 'Sénégal'],
-  ['CM', 'Cameroun'],
   ['BJ', 'Bénin'],
   ['TG', 'Togo'],
   ['BF', 'Burkina Faso'],
   ['ML', 'Mali'],
-  ['GA', 'Gabon'],
+  ['NE', 'Niger'],
 ] as const
 
 /**

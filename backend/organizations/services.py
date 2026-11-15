@@ -80,6 +80,28 @@ def invalidate_organization(organization: Organization, *, old_slug: str | None 
         cache.delete(_slug_cache_key(old_slug))
 
 
+# Currency and time zone follow the country chosen at sign-up (feedback 15/11/2026: an agency
+# in Cameroon gets the CEMAC franc and Douala time, not the Ivorian defaults).
+COUNTRY_DEFAULTS: dict[str, tuple[str, str]] = {
+    # CEMAC: franc CFA XAF
+    "CM": (Organization.Currency.XAF, "Africa/Douala"),
+    "GA": (Organization.Currency.XAF, "Africa/Libreville"),
+    "CG": (Organization.Currency.XAF, "Africa/Brazzaville"),
+    "TD": (Organization.Currency.XAF, "Africa/Ndjamena"),
+    "CF": (Organization.Currency.XAF, "Africa/Bangui"),
+    "GQ": (Organization.Currency.XAF, "Africa/Malabo"),
+    # UEMOA: franc CFA XOF
+    "CI": (Organization.Currency.XOF, "Africa/Abidjan"),
+    "SN": (Organization.Currency.XOF, "Africa/Dakar"),
+    "BJ": (Organization.Currency.XOF, "Africa/Porto-Novo"),
+    "TG": (Organization.Currency.XOF, "Africa/Lome"),
+    "BF": (Organization.Currency.XOF, "Africa/Ouagadougou"),
+    "ML": (Organization.Currency.XOF, "Africa/Bamako"),
+    "NE": (Organization.Currency.XOF, "Africa/Niamey"),
+}
+DEFAULT_COUNTRY = "CM"
+
+
 def create_organization(
     *,
     name: str,
@@ -91,11 +113,16 @@ def create_organization(
     weddings_enabled: bool = False,
 ) -> Organization:
     """Create a company space with its 14-day Pro trial (called inside the signup transaction)."""
+    currency, zone = COUNTRY_DEFAULTS.get(
+        country.upper(), (Organization.Currency.XAF, "Africa/Douala")
+    )
     organization = Organization.objects.create(
         name=name,
         slug=slug,
         city=city,
         country=country.upper(),
+        currency=currency,
+        timezone=zone,
         weddings_per_year=weddings_per_year,
         weddings_enabled=weddings_enabled,
         plan=plan,

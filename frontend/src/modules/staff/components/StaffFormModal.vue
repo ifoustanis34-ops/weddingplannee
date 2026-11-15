@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Camera, CircleCheck, IdCard, KeyRound, Trash2 } from '@lucide/vue'
+import { Camera, CircleCheck, IdCard, ImageUp, KeyRound, Trash2 } from '@lucide/vue'
 import { computed, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 
@@ -178,20 +178,30 @@ async function submit(): Promise<void> {
         >
           <Camera class="size-6" aria-hidden="true" />
         </div>
-        <label
-          class="inline-flex h-10 items-center gap-2 rounded-[10px] border border-violet/45 px-4 font-bold text-violet hover:bg-violet-soft"
-        >
-          <Camera class="size-[18px]" aria-hidden="true" />{{
-            preview ? t('staff.form.changePhoto') : t('staff.form.addPhoto')
-          }}
-          <input
-            type="file"
-            accept="image/jpeg,image/png,image/webp"
-            capture="user"
-            class="sr-only"
-            @change="pick"
-          />
-        </label>
+        <!-- Any picture from the gallery, or one taken now (feedback 15/11/2026); it is made
+             square and light before sending (app/images.ts). -->
+        <div class="flex flex-col gap-2">
+          <label
+            class="inline-flex h-10 cursor-pointer items-center gap-2 rounded-[10px] border border-violet/45 px-4 font-bold text-violet hover:bg-violet-soft"
+          >
+            <ImageUp class="size-[18px]" aria-hidden="true" />{{
+              preview ? t('staff.form.changePhoto') : t('staff.form.choosePhoto')
+            }}
+            <input type="file" accept="image/*" class="sr-only" @change="pick" />
+          </label>
+          <label
+            class="inline-flex h-10 cursor-pointer items-center gap-2 rounded-[10px] px-4 font-bold text-ink-2 hover:bg-surface-2"
+          >
+            <Camera class="size-[18px]" aria-hidden="true" />{{ t('staff.form.takePhoto') }}
+            <input
+              type="file"
+              accept="image/*"
+              capture="environment"
+              class="sr-only"
+              @change="pick"
+            />
+          </label>
+        </div>
       </div>
       <!-- Wedivo access (feedback 13/11/2026): « Mes missions » for this person -->
       <div

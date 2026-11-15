@@ -3,6 +3,7 @@ import { computed, type MaybeRefOrGetter, toValue } from 'vue'
 
 import type { Role } from '@/api/auth'
 import { api } from '@/api/client'
+import { prepareImage } from '@/app/images'
 
 /** Staff (reservations-stock.md §7): people, assignments, check-in, pay, « Mes missions ». */
 
@@ -268,9 +269,9 @@ export const staffApi = {
     api.post<StaffTask>(`/staff-tasks/${id}/validate`).then((r) => r.data),
   rejectTask: (id: string, reason: string) =>
     api.post<StaffTask>(`/staff-tasks/${id}/reject`, { reason }).then((r) => r.data),
-  taskPhoto: (id: string, file: File) => {
+  taskPhoto: async (id: string, file: File) => {
     const form = new FormData()
-    form.append('file', file)
+    form.append('file', await prepareImage(file))
     return api.post<StaffTask>(`/staff-tasks/${id}/photo`, form).then((r) => r.data)
   },
   /** « Créer son accès »: a Wedivo account linked to the record (owner only). */
@@ -287,9 +288,10 @@ export const staffApi = {
     api
       .post<{ email: string; role: Role; createdAccount: boolean }>(`/staff/${id}/account`, input)
       .then((r) => r.data),
-  photo: (id: string, file: File) => {
+  /** The person's photo: square, ready for the record and the badge (feedback 15/11/2026). */
+  photo: async (id: string, file: File) => {
     const form = new FormData()
-    form.append('file', file)
+    form.append('file', await prepareImage(file, { square: true, maxSide: 800 }))
     return api.post<{ photoUrl: string }>(`/staff/${id}/photo`, form).then((r) => r.data)
   },
   daySheet: (day: string, reservation?: string) =>

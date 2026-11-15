@@ -252,6 +252,40 @@ def process_raster(content: bytes, *, transparent: bool) -> ProcessedImage:
     )
 
 
+UNREADABLE_PHOTO = (
+    "Cette photo n’a pas pu être lue. Choisissez une image JPEG, PNG ou WebP "
+    "(sur iPhone : Réglages › Appareil photo › Formats › « Le plus compatible »)."
+)
+
+
+def process_photo(content: bytes, *, max_side: int = MAX_SIDE) -> ProcessedImage:
+    """A photo (staff, task, equipment), not a logo: turned the right way up, ≤ ``max_side`` px,
+    stored as JPEG — 5 to 10 times lighter than PNG for a picture (feedback 15/11/2026)."""
+    if len(content) > MAX_BYTES:
+        raise BusinessError(
+            "invalid",
+            "Photo trop lourde : 5 Mo maximum.",
+            {"file": ["Fichier trop lourd."]},
+        )
+    try:
+        with Image.open(io.BytesIO(content)) as opened:
+            opened.load()
+            image = ImageOps.exif_transpose(opened)
+    except (UnidentifiedImageError, OSError, Image.DecompressionBombError) as exc:
+        raise BusinessError("invalid", UNREADABLE_PHOTO, {"file": ["Format illisible."]}) from exc
+    if image.mode in ("RGBA", "LA", "P"):
+        flat = Image.new("RGB", image.size, (255, 255, 255))
+        rgba = image.convert("RGBA")
+        flat.paste(rgba, mask=rgba.getchannel("A"))
+        image = flat
+    else:
+        image = image.convert("RGB")
+    image.thumbnail((max_side, max_side))
+    output = io.BytesIO()
+    image.save(output, format="JPEG", quality=85, optimize=True, progressive=True)
+    return ProcessedImage(content=output.getvalue(), extension="jpg", content_type="image/jpeg")
+
+
 def process_upload(content: bytes) -> ProcessedImage:
     kind = sniff(content)
     if kind == "svg":

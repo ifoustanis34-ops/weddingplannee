@@ -179,7 +179,7 @@ const occupancyMax = computed(() =>
           <input
             ref="photoInput"
             type="file"
-            accept="image/jpeg,image/png,image/webp"
+            accept="image/*"
             class="sr-only"
             :aria-label="t('stock.drawer.addPhoto')"
             @change="onPhoto"

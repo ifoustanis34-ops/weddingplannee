@@ -439,7 +439,7 @@ class StaffPhotoView(APIView):
         content = upload.read()
         if images.sniff(content) == "svg":
             raise BusinessError("invalid", "Choisissez une photo (JPEG, PNG ou WebP).")
-        processed = images.process_raster(content, transparent=False)
+        processed = images.process_photo(content)
         if staff.photo:
             staff.photo.delete(save=False)
         staff.photo.save(f"photo.{processed.extension}", ContentFile(processed.content), save=True)
@@ -814,7 +814,7 @@ class TaskPhotoView(TaskDetailView):
         content = upload.read()
         if images.sniff(content) == "svg":
             raise BusinessError("invalid", "Choisissez une photo (JPEG, PNG ou WebP).")
-        processed = images.process_raster(content, transparent=False)
+        processed = images.process_photo(content)
         task.photo.save(f"photo.{processed.extension}", ContentFile(processed.content), save=True)
         return Response(TaskSerializer(task).data)
 

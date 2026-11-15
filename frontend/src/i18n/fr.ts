@@ -2124,6 +2124,8 @@ export default {
       notes: 'Notes',
       active: 'Toujours dans l’équipe',
       addPhoto: 'Ajouter une photo',
+      choosePhoto: 'Choisir une photo',
+      takePhoto: 'Prendre une photo',
       department: 'Département',
       departmentPlaceholder: 'Ex. Logistique, Décoration',
       number: 'Matricule :',

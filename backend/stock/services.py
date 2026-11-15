@@ -152,7 +152,7 @@ def store_photo(item: Item, content: bytes) -> Item:
         raise BusinessError(
             "invalid", "Choisissez une photo (JPEG, PNG ou WebP).", {"file": ["Format refusé."]}
         )
-    processed = images.process_raster(content, transparent=False)
+    processed = images.process_photo(content)
     if item.photo:
         item.photo.delete(save=False)
     item.photo.save(f"photo.{processed.extension}", ContentFile(processed.content), save=False)

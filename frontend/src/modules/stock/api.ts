@@ -2,6 +2,7 @@ import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tansta
 import { type MaybeRefOrGetter, computed, toValue } from 'vue'
 
 import { api } from '@/api/client'
+import { prepareImage } from '@/app/images'
 
 import type {
   AvailabilityGrid,
@@ -85,9 +86,9 @@ export const stockApi = {
   createItem: (input: ItemInput) => api.post<Item>('/items', input).then((r) => r.data),
   updateItem: (id: string, input: Partial<ItemInput>) =>
     api.patch<Item>(`/items/${id}`, input).then((r) => r.data),
-  uploadPhoto: (id: string, file: File) => {
+  uploadPhoto: async (id: string, file: File) => {
     const form = new FormData()
-    form.append('file', file)
+    form.append('file', await prepareImage(file))
     return api.post<Item>(`/items/${id}/photo`, form).then((r) => r.data)
   },
   removePhoto: (id: string) => api.delete(`/items/${id}/photo`).then(() => undefined),

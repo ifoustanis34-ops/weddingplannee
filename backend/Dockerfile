@@ -29,7 +29,11 @@ CMD ["python", "manage.py", "runserver", "0.0.0.0:8000"]
 
 FROM base AS prod
 COPY --chown=wedivo:wedivo . .
-RUN DJANGO_SECRET_KEY=build DATABASE_URL=sqlite:///tmp/build.db \
+# Build-time placeholders only, long enough for the production checks (config/settings/prod.py):
+# collectstatic needs no real secret; the real keys come from the server's .env at runtime.
+RUN DJANGO_SECRET_KEY=build-only-placeholder-never-used-at-runtime-0123456789abcdef \
+    DOCUMENTS_MASTER_KEY=build-only-placeholder-never-used-at-runtime \
+    DATABASE_URL=sqlite:///tmp/build.db \
     python manage.py collectstatic --noinput --settings=config.settings.prod
 # Uploaded files (photos, logos, PDF): owned by the app user, so a volume mounted here starts
 # writable (Docker copies this ownership into a new named volume).

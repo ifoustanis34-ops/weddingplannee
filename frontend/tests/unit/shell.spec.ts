@@ -141,13 +141,15 @@ describe('SidebarContent', () => {
 })
 
 describe('SignupPage', () => {
-  it('labels the three steps, starts in Cameroon and shows no price (15/11/2026)', async () => {
+  it('labels the three steps, asks no country and shows no price (16/11/2026)', async () => {
     const { wrapper } = mountWithPlugins(SignupPage)
     await settle()
 
     const labels = wrapper.findAll('ol li').map((li) => li.text())
     expect(labels).toEqual(['1. Entreprise', '2. Votre compte', '3. Votre espace'])
-    expect((wrapper.find('select').element as HTMLSelectElement).value).toBe('CM')
+    // Neither a country list nor « mariages organisés par an » (16/11/2026): name and city only.
+    expect(wrapper.find('select').exists()).toBe(false)
+    expect(wrapper.text()).not.toMatch(/Pays|Mariages organisés/)
     expect(wrapper.text()).not.toMatch(/FCFA|\/ mois/)
     expect(plansApi.list).not.toHaveBeenCalled()
   })

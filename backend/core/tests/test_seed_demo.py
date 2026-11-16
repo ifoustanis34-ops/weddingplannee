@@ -15,8 +15,17 @@ def test_seed_demo_is_idempotent() -> None:
     assert (organization.city, organization.country) == ("Douala", "CM")
     assert (organization.currency, organization.timezone) == ("XAF", "Africa/Douala")
     roles = set(Membership.objects.filter(organization=organization).values_list("role", flat=True))
-    # The team lead and a staff member log in to « Mes missions » (§7).
-    assert roles == {"owner", "planner", "assistant", "accountant", "team_lead", "staff"}
+    # The team lead and a staff member log in to « Mes missions » (§7); the storekeeper too, so
+    # the presentation mode shows every point of view (16/11/2026).
+    assert roles == {
+        "owner",
+        "planner",
+        "assistant",
+        "accountant",
+        "storekeeper",
+        "team_lead",
+        "staff",
+    }
 
     from core.tenant import tenant_context
     from staff.models import Attendance, PayPeriod, StaffMember

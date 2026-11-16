@@ -24,7 +24,8 @@ PEOPLE = [
     ("Didier Kra", "Chef d’équipe", "employee", "monthly", 200_000, "+237 606 67 78 89",
      ("didier.kra@maison-elegance.ci", Membership.Role.TEAM_LEAD)),
     ("Nadège Brou", "Comptable", "employee", "monthly", 220_000, "+237 664 45 56 67", None),
-    ("Joël Mbarga", "Magasinier", "employee", "monthly", 150_000, "+237 629 08 07 06", None),
+    ("Joël Mbarga", "Magasinier", "employee", "monthly", 150_000, "+237 629 08 07 06",
+     ("joel.mbarga@maison-elegance.ci", Membership.Role.STOREKEEPER)),
     ("Serge Atangana", "Chauffeur livreur", "employee", "monthly", 140_000, "+237 601 21 31 41",
      None),
     ("Brice Ndzana", "Installateur", "day_worker", "daily", 8_000, "+237 622 12 22 32", None),
@@ -90,9 +91,20 @@ def fill_departments() -> None:
         StaffMember.objects.filter(position=position, department="").update(department=department)
 
 
+def ensure_logins() -> None:
+    """Every demo role has its account (the presentation mode shows each point of view), also
+    in a base seeded before an account was added to `PEOPLE`."""
+    for name, _position, _kind, _mode, _rate, phone, login in PEOPLE:
+        if login is None:
+            continue
+        user = _login(name, phone, *login)
+        StaffMember.objects.filter(full_name=name, user__isnull=True).update(user=user)
+
+
 def seed(owner: User) -> bool:
     if StaffMember.objects.exists():
         fill_departments()
+        ensure_logins()
         return False
     people: dict[str, StaffMember] = {}
     for name, position, kind, mode, rate, phone, login in PEOPLE:

@@ -28,6 +28,7 @@ import SidebarContent from './SidebarContent.vue'
 import ThemeToggle from './ThemeToggle.vue'
 import AlertCenter from '@/modules/alerts/components/AlertCenter.vue'
 import GuidedTour from '@/components/GuidedTour.vue'
+import PresentationPlayer from '@/components/PresentationPlayer.vue'
 import { useOrgTimezone } from '@/composables/useOrgTimezone'
 
 /** Application shell (complement §5): sidebar, top bar, mobile drawer and tab bar, Ctrl+K. */
@@ -281,5 +282,6 @@ useOrgTimezone()
       :group-order="GROUP_ORDER"
     />
     <GuidedTour />
+    <PresentationPlayer />
   </div>
 </template>

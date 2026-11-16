@@ -178,6 +178,11 @@ DJANGO_ADMIN_URL = env.str("DJANGO_ADMIN_URL", default="admin/" if DEBUG else ""
 VAPID_PUBLIC_KEY = env("VAPID_PUBLIC_KEY", default="")
 VAPID_PRIVATE_KEY = env("VAPID_PRIVATE_KEY", default="")
 VAPID_SUBJECT = env("VAPID_SUBJECT", default="mailto:support@wedivo.app")
+
+# Presentation mode (feedback 16/11/2026): the app plays the journeys of a fictitious agency and
+# switches between its roles without a password. Off unless asked, and only in these spaces.
+DEMO_MODE = env.bool("DEMO_MODE", default=False)
+DEMO_ORGANIZATIONS = env.list("DEMO_ORGANIZATIONS", default=["maison-elegance"])
 DEFAULT_FROM_EMAIL = env("DEFAULT_FROM_EMAIL", default="Wedivo <no-reply@wedivo.app>")
 
 SPECTACULAR_SETTINGS = {

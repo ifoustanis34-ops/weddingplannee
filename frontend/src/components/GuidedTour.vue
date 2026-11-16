@@ -5,6 +5,7 @@ import { useI18n } from 'vue-i18n'
 import { useRoute, useRouter } from 'vue-router'
 
 import { postponeTour, tourPostponed, tourSteps, useTour } from '@/app/tour'
+import { presenting } from '@/modules/presentation/player'
 import { WButton, WModal } from '@/design'
 import { useSessionStore } from '@/stores/session'
 
@@ -25,6 +26,7 @@ const shouldOffer = computed(
     session.role !== null &&
     !postponed.value &&
     !tour.running.value &&
+    !presenting.value && // the presentation mode plays: no question on top of it
     route.name !== 'profile',
 )
 let offerTimer: ReturnType<typeof setTimeout> | undefined

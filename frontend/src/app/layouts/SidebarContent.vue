@@ -1,11 +1,12 @@
 <script setup lang="ts">
-import { Compass, LogOut, ShieldCheck, UserRound } from '@lucide/vue'
+import { Compass, LogOut, MonitorPlay, ShieldCheck, UserRound } from '@lucide/vue'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRoute } from 'vue-router'
 
 import { menuItems, NAV_GROUPS, type NavItem, phaseTag } from '@/app/navigation'
 import { useTour } from '@/app/tour'
+import { useDemoConfig } from '@/modules/presentation/api'
 import { WAvatar, WLogo, WPhaseTag } from '@/design'
 import { useSessionStore } from '@/stores/session'
 
@@ -17,6 +18,13 @@ const { t } = useI18n()
 const route = useRoute()
 const session = useSessionStore()
 const tour = useTour()
+// « Mode présentation »: only on a demo agency, for the roles who present (not the field).
+const demo = useDemoConfig()
+const canPresent = computed(
+  () =>
+    Boolean(demo.data.value?.enabled) &&
+    ['owner', 'planner', 'assistant', 'accountant'].includes(session.role ?? ''),
+)
 function startTour(): void {
   emit('navigate')
   tour.start()
@@ -82,6 +90,14 @@ const isActive = (item: NavItem) => route.name === item.routeName || route.meta.
         @click="emit('navigate')"
       >
         <ShieldCheck class="size-[18px]" aria-hidden="true" />{{ t('platform.nav.openConsole') }}
+      </RouterLink>
+      <RouterLink
+        v-if="canPresent"
+        :to="{ name: 'presentation' }"
+        class="mb-1 flex items-center gap-[11px] rounded-[10px] px-2.5 py-2 text-[14px] font-semibold text-ink-2 hover:bg-surface-2 hover:text-ink"
+        @click="emit('navigate')"
+      >
+        <MonitorPlay class="size-[18px]" aria-hidden="true" />{{ t('presentation.nav') }}
       </RouterLink>
       <button
         type="button"

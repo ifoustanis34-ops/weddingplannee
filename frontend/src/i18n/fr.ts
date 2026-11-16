@@ -3071,4 +3071,200 @@ export default {
       'Nouvelles missions, tâches, paiements et alertes urgentes, directement sur cet appareil.',
     later: 'Plus tard',
   },
+  presentation: {
+    nav: 'Mode présentation',
+    page: {
+      title: 'Mode présentation',
+      subtitle:
+        'Choisissez un parcours : Wedivo le joue tout seul sur les données fictives de l’agence de démonstration, écran après écran, pendant que vous commentez.',
+      play: 'Lancer le parcours',
+      length: '{steps} étapes · environ {minutes} min',
+      keys: 'Pendant la lecture : Espace pour mettre en pause, flèches ← → pour reculer ou avancer, Échap pour quitter. La vitesse se change à tout moment.',
+      missingRole: 'Il manque un compte de ce rôle dans l’agence de démonstration.',
+      loadError: 'Impossible de vérifier le mode présentation.',
+      closedTitle: 'Réservé à l’agence de démonstration',
+      closedText:
+        'Le mode présentation joue les parcours sur des données fictives. Il s’ouvre seulement sur une agence de démonstration (réglage DEMO_MODE du serveur).',
+    },
+    player: {
+      label: 'Lecture du parcours',
+      step: 'Étape {n} sur {total}',
+      seenBy: 'Vu par : {role}',
+      play: 'Reprendre',
+      pause: 'Pause',
+      previous: 'Étape précédente',
+      next: 'Étape suivante',
+      replay: 'Rejouer',
+      quit: 'Quitter',
+      speed: 'Vitesse',
+      loading: 'Ouverture…',
+      doneTitle: 'Parcours terminé',
+      doneText: 'Rejouez-le, ou quittez pour choisir un autre parcours.',
+    },
+    scenarios: {
+      agency: {
+        title: 'L’agence en un coup d’œil',
+        description:
+          'Le propriétaire ouvre Wedivo le matin : la journée, les réservations, la logistique, le matériel et l’argent.',
+        steps: {
+          dashboard: {
+            title: 'Le tableau de bord',
+            text: 'Chiffre d’affaires, encaissements, soldes à recevoir, alertes et planning de la semaine : en dix secondes, le propriétaire sait comment va l’agence et ce qui l’attend aujourd’hui.',
+          },
+          reservations: {
+            title: 'Toutes les réservations',
+            text: 'Chaque commande d’un client, du brouillon à la clôture : les montants, ce qui est payé, le solde et la prochaine étape logistique.',
+          },
+          ongoing: {
+            title: 'Une réservation ouverte',
+            text: 'Le matériel réservé, les dates de livraison, d’installation et de retour, les paiements et la caution, l’équipe affectée et les documents : tout le dossier sur une seule fiche.',
+          },
+          calendar: {
+            title: 'Le planning logistique',
+            text: 'Livraisons, installations, récupérations et retours de toutes les réservations, jour par jour, avec le véhicule et l’équipe.',
+          },
+          availability: {
+            title: 'La disponibilité du matériel',
+            text: 'Pour chaque article, ce qui reste libre sur les 30 prochains jours, compte tenu des réservations, des sorties et de la maintenance. Fini les doubles locations.',
+          },
+          treasury: {
+            title: 'La trésorerie',
+            text: 'L’argent encaissé, ce qui reste à recevoir, les dépenses et le solde du mois, comparés à la période précédente.',
+          },
+          reports: {
+            title: 'Les rapports',
+            text: 'Chiffre d’affaires, événements les plus rentables, articles qui rapportent, impayés : prêts en PDF ou Excel pour le comptable.',
+          },
+        },
+      },
+      rental: {
+        title: 'Une location de A à Z',
+        description:
+          'Le wedding planner suit un client : sa fiche, sa réservation, le matériel des partenaires, la logistique et la facture.',
+        steps: {
+          client: {
+            title: 'La fiche du client',
+            text: 'Coordonnées, commandes passées, chiffre d’affaires réalisé et solde encore dû : le planner connaît son client avant de l’appeler.',
+          },
+          confirmed: {
+            title: 'La réservation confirmée',
+            text: 'Une fois l’acompte reçu, le matériel est bloqué pour ces dates. La fiche montre les étapes à venir et ce qu’il reste à encaisser.',
+          },
+          partners: {
+            title: 'Le matériel des partenaires',
+            text: 'Quand le stock ne suffit pas, Wedivo propose le complément chez les partenaires, à confirmer par un appel, avec leur prix.',
+          },
+          logistics: {
+            title: 'La semaine de l’équipe',
+            text: 'Le calendrier de la semaine : qui livre, qui installe et qui récupère, réservation par réservation.',
+          },
+          quotes: {
+            title: 'Les devis',
+            text: 'Un devis soigné en quelques minutes à partir du catalogue, aux couleurs de l’agence, envoyé avec un lien que le client peut accepter.',
+          },
+          invoices: {
+            title: 'Les factures',
+            text: 'Facture d’acompte puis facture finale, numérotées sans trou ; le statut payé, partiel ou en retard se met à jour avec les paiements.',
+          },
+        },
+      },
+      storekeeper: {
+        title: 'Le magasinier',
+        description:
+          'Le magasinier voit le matériel, les sorties et les retours, sans aucun montant.',
+        steps: {
+          home: {
+            title: 'L’accueil du magasinier',
+            text: 'Le matériel du jour et les alertes de stock : ce qui sort, ce qui rentre, ce qui manque.',
+          },
+          stock: {
+            title: 'Le stock',
+            text: 'Chaque article avec sa quantité disponible, réservée, sortie ou en maintenance. Les prix sont masqués pour ce rôle.',
+          },
+          item: {
+            title: 'Un article sous son seuil',
+            text: 'Wedivo prévient quand un article passe sous son seuil : le magasinier voit son occupation, ses unités et ses derniers mouvements.',
+          },
+          checkout: {
+            title: 'Préparer une sortie',
+            text: 'Sur la réservation, le bon de sortie liste le matériel à charger ; au retour, il note ce qui est rendu, abîmé ou manquant.',
+          },
+          movements: {
+            title: 'Le journal des mouvements',
+            text: 'Chaque entrée et chaque sortie est tracée, avec la personne et la date. Une erreur s’annule avec un motif, rien ne s’efface.',
+          },
+          inventory: {
+            title: 'L’inventaire',
+            text: 'Le comptage du stock réel : les écarts deviennent des ajustements, et les quantités restent justes.',
+          },
+        },
+      },
+      field: {
+        title: 'L’équipe sur le terrain',
+        description:
+          'Le chef d’équipe et le personnel sur leur téléphone : missions, pointage et tâches ; le planner valide.',
+        steps: {
+          leadSpace: {
+            title: 'L’espace du chef d’équipe',
+            text: 'Sa prochaine mission, ses chiffres et son équipe du jour : il pointe l’arrivée de chacun directement depuis l’accueil.',
+          },
+          leadMissions: {
+            title: 'Ses missions',
+            text: 'Aujourd’hui, demain, cette semaine : l’adresse avec l’itinéraire, le matériel à installer, les tâches et l’équipe.',
+          },
+          staffSpace: {
+            title: 'L’espace d’un employé',
+            text: 'Chaque employé voit sa journée, ses heures, sa ponctualité et ses tâches. Aucun montant, aucune donnée des autres.',
+          },
+          staffMissions: {
+            title: 'Pointer et cocher ses tâches',
+            text: 'Arrivée, départ, tâche faite avec une photo : le travail remonte en temps réel, avec une notification au responsable.',
+          },
+          tasks: {
+            title: 'Valider le travail',
+            text: 'Le planner voit les tâches faites et les valide, ou les renvoie avec un motif. Rien n’est oublié avant l’événement.',
+          },
+          attendance: {
+            title: 'Les présences du jour',
+            text: 'Qui est arrivé, qui est en retard, qui est absent : le pointage sert ensuite à la paie.',
+          },
+        },
+      },
+      money: {
+        title: 'Finances, personnel et paie',
+        description:
+          'Ce que l’agence gagne, ce que lui rapporte chaque événement et comment elle paie son équipe.',
+        steps: {
+          treasury: {
+            title: 'La trésorerie',
+            text: 'Encaissé, à encaisser, dépensé : le solde réel de l’agence, mois après mois.',
+          },
+          invoices: {
+            title: 'Factures et avoirs',
+            text: 'Toutes les factures émises, leur statut et les avoirs en cas d’annulation.',
+          },
+          profitability: {
+            title: 'La rentabilité',
+            text: 'Par événement, par prestation et par article : ce qui rapporte vraiment, une fois le transport, les achats et le personnel déduits.',
+          },
+          staff: {
+            title: 'Le personnel',
+            text: 'Salariés, journaliers et prestataires, leur disponibilité du jour, leurs badges et leur accès à Wedivo.',
+          },
+          payDay: {
+            title: 'Payer la journée',
+            text: 'Les journaliers sont payés le jour même, d’après leur pointage, en un clic ; la dépense est enregistrée automatiquement.',
+          },
+          salaries: {
+            title: 'Les salaires du mois',
+            text: 'La paie du mois se calcule toute seule (jours, missions, heures, primes, avances), sans compter deux fois ce qui a déjà été payé.',
+          },
+          reports: {
+            title: 'Les rapports',
+            text: 'Pour finir, tous les chiffres de l’agence prêts à partager.',
+          },
+        },
+      },
+    },
+  },
 }

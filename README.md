@@ -51,10 +51,13 @@ Mot de passe commun : `Wedivo-demo-2026`
 | Assistant | mariam.traore@maison-elegance.ci |
 | Comptable | serge.bamba@maison-elegance.ci |
 | Chef d’équipe | didier.kra@maison-elegance.ci |
+| Magasinier | joel.mbarga@maison-elegance.ci |
 | Personnel | linda.abena@maison-elegance.ci |
 | Seconde agence (propriétaire) | koffi.nguessan@atelier-bassam.ci |
 
 L’espace se choisit par le sous-domaine (`maison-elegance.wedivo.app`) s’il y en a un, sinon par l’en-tête `X-Organization` que l’application envoie : Wedivo fonctionne aussi sur une seule adresse. Désactivable en production avec `TENANT_HEADER_ENABLED=false`.
+
+Mode présentation : menu « Mode présentation » (agence de démonstration seulement). Wedivo joue tout seul cinq parcours sur les données fictives — l’agence en un coup d’œil, une location de A à Z, le magasinier, l’équipe sur le terrain, finances et paie — en passant d’un rôle à l’autre ; Espace = pause, ← → = étape, Échap = quitter. Activé en développement ; en ligne, seulement avec `DEMO_MODE=true` et `DEMO_ORGANIZATIONS=<adresse de l’agence de démo>` (à ne jamais activer sur une vraie agence : le changement de rôle se fait sans mot de passe).
 
 Notifications push : générer des clés avec `docker compose -f infra/docker-compose.dev.yml exec api python manage.py generate_vapid_keys` et les copier dans `.env` (voir `.env.example`).
 

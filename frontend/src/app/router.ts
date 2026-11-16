@@ -1,6 +1,7 @@
 import { createRouter, createWebHistory, type RouteRecordRaw } from 'vue-router'
 
 import { accountRoutes } from '@/modules/account/routes'
+import { presentationRoutes } from '@/modules/presentation/routes'
 import { calendarRoutes } from '@/modules/calendar/routes'
 import { catalogRoutes } from '@/modules/catalog/routes'
 import { crmRoutes } from '@/modules/crm/routes'
@@ -60,6 +61,7 @@ const routes: RouteRecordRaw[] = [
   ...reportRoutes,
   ...staffRoutes,
   ...accountRoutes,
+  ...presentationRoutes,
   ...platformRoutes,
   {
     // Team invitation link (backend accounts/tasks.py).

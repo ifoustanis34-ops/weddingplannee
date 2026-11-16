@@ -9,11 +9,12 @@ import { useRouter } from 'vue-router'
 import { type Plan, type SignupPayload, authApi } from '@/api/auth'
 import { useServerErrors } from '@/composables/useServerErrors'
 import { useToast } from '@/composables/useToast'
-import { WButton, WInput } from '@/design'
+import { WButton, WInput, WSelect } from '@/design'
 import { useSessionStore } from '@/stores/session'
 
 import PasswordInput from '../components/PasswordInput.vue'
 import {
+  COUNTRIES,
   SLUG_PATTERN,
   type SignupForm,
   accountStepSchema,
@@ -32,7 +33,7 @@ const STEPS = [
   {
     key: 'company',
     schema: companyStepSchema,
-    fields: ['companyName', 'city'],
+    fields: ['companyName', 'city', 'country'],
   },
   { key: 'account', schema: accountStepSchema, fields: ['fullName', 'email', 'phone', 'password'] },
   { key: 'space', schema: spaceStepSchema, fields: ['slug'] },
@@ -53,11 +54,15 @@ const { defineField, errors, handleSubmit, isSubmitting, values } = useForm<Sign
 })
 const [companyName, companyNameAttrs] = defineField('companyName')
 const [city, cityAttrs] = defineField('city')
+const [country, countryAttrs] = defineField('country')
 const [fullName, fullNameAttrs] = defineField('fullName')
 const [email, emailAttrs] = defineField('email')
 const [phone, phoneAttrs] = defineField('phone')
 const [password, passwordAttrs] = defineField('password')
 const [slug, slugAttrs] = defineField('slug')
+
+// Cameroon first in the list and preselected (16/11/2026); the others one click away.
+const countryOptions = COUNTRIES.map(([value, label]) => ({ value, label }))
 
 // --- Server errors ---------------------------------------------------------------------
 // Kept apart from vee-validate: changing step swaps the schema and resets its errors. A server
@@ -138,9 +143,8 @@ async function submit(): Promise<void> {
   const payload = {
     companyName: String(values.companyName ?? '').trim(),
     city: String(values.city ?? '').trim(),
-    // Every agency signs up in Cameroon (feedback 16/11/2026: no country to choose); the number
-    // of weddings a year is no longer asked.
-    country: 'CM',
+    country: String(values.country ?? 'CM'),
+    // « Mariages organisés par an » is no longer asked (16/11/2026).
     weddingsPerYear: null,
     fullName: String(values.fullName ?? '').trim(),
     email: String(values.email ?? '').trim(),
@@ -208,14 +212,24 @@ async function submit(): Promise<void> {
           autocomplete="organization"
           required
         />
-        <WInput
-          v-model="city"
-          v-bind="cityAttrs"
-          :label="t('auth.signup.city')"
-          :error="fieldError('city')"
-          autocomplete="address-level2"
-          required
-        />
+        <div class="grid gap-4 sm:grid-cols-2">
+          <WInput
+            v-model="city"
+            v-bind="cityAttrs"
+            :label="t('auth.signup.city')"
+            :error="fieldError('city')"
+            autocomplete="address-level2"
+            required
+          />
+          <WSelect
+            v-model="country"
+            v-bind="countryAttrs"
+            :label="t('auth.signup.country')"
+            :options="countryOptions"
+            :error="fieldError('country')"
+            required
+          />
+        </div>
       </template>
 
       <template v-else-if="step === 1">

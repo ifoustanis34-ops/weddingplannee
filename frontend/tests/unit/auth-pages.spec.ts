@@ -89,7 +89,8 @@ describe('SignupPage', () => {
     const mounted = mountWithPlugins(SignupPage)
     await fillStep(mounted.wrapper, {
       'input[autocomplete="organization"]': 'Doux Moments',
-      'input[autocomplete="address-level2"]': 'Douala',
+      'input[autocomplete="address-level2"]': 'Dakar',
+      select: 'SN',
     })
     await fillStep(mounted.wrapper, {
       'input[autocomplete="name"]': 'Awa Diop',
@@ -122,9 +123,9 @@ describe('SignupPage', () => {
 
     expect(authApi.signup).toHaveBeenCalledWith({
       companyName: 'Doux Moments',
-      city: 'Douala',
-      // No country to choose: every agency signs up in Cameroon (16/11/2026).
-      country: 'CM',
+      city: 'Dakar',
+      // Cameroon is preselected, another country can still be chosen (16/11/2026).
+      country: 'SN',
       weddingsPerYear: null,
       fullName: 'Awa Diop',
       email: 'awa@doux-moments.sn',

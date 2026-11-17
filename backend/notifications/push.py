@@ -39,11 +39,30 @@ def notify(
     kind: str = "",
     tag: str | None = None,
 ) -> None:
-    """Queue a notification for these users (every device of theirs), after the commit."""
+    """Notify these users: a row in their inbox right away (unread count, app icon badge), then
+    the push to every device of theirs after the commit (when the VAPID keys are set)."""
+    from .models import Notification
+
     ids = sorted({str(u) for u in user_ids if u})
-    if not ids or not enabled():
+    if not ids:
         return
     organization = require_current_organization()
+    Notification.objects.bulk_create(
+        [
+            # bulk_create skips save(): the organization is given explicitly (RLS).
+            Notification(
+                organization=organization,
+                user_id=user,
+                kind=kind,
+                title=title[:200],
+                body=body[:500],
+                url=url[:300],
+            )
+            for user in ids
+        ]
+    )
+    if not enabled():
+        return
     payload = {
         # The space in the title: a phone may receive the notifications of several agencies.
         "title": f"{organization.name} · {title}",

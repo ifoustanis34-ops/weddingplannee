@@ -290,6 +290,10 @@ def accept_quote(quote: Quote, *, user: User | None, online: bool = False) -> Qu
     quote.status = Quote.Status.ACCEPTED
     quote.accepted_at = timezone.now()
     quote.save(update_fields=["status", "accepted_at", "updated_at"])
+    if online:  # the client answered on the public page: the managers hear it at once
+        from notifications import flow
+
+        flow.quote_answer(quote, accepted=True)
     return quote
 
 
@@ -302,6 +306,10 @@ def refuse_quote(
     quote.refused_at = timezone.now()
     quote.refusal_reason = reason.strip()
     quote.save(update_fields=["status", "refused_at", "refusal_reason", "updated_at"])
+    if online:
+        from notifications import flow
+
+        flow.quote_answer(quote, accepted=False)
     return quote
 
 

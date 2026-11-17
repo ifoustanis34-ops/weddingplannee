@@ -93,6 +93,23 @@ export default {
     openMenu: 'Ouvrir le menu',
     menu: 'Menu',
   },
+  notifications: {
+    title: 'Notifications',
+    panel: 'Notifications et alertes',
+    subtitle: 'Ce qui s’est passé, en temps réel',
+    empty: 'Aucune notification pour le moment.',
+    readAll: 'Tout marquer comme lu',
+    unreadMark: 'Non lue',
+    bellLabel: 'Notifications : {unread} non lues · Alertes : {alerts} en cours',
+    ago: {
+      now: 'À l’instant',
+      minutes: 'Il y a {n} min',
+      hours: 'Il y a {n} h',
+      yesterday: 'Hier',
+      days: 'Il y a {n} j',
+      date: 'Le {date}',
+    },
+  },
   alerts: {
     title: 'Alertes',
     subtitle: 'Les plus urgentes d’abord',

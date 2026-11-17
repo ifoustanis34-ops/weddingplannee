@@ -11,4 +11,15 @@ urlpatterns = [
         name="push-subscriptions-remove",
     ),
     path("push/test", views.PushTestView.as_view(), name="push-test"),
+    path("notifications", views.NotificationListView.as_view(), name="notifications"),
+    path(
+        "notifications/read-all",
+        views.NotificationReadAllView.as_view(),
+        name="notifications-read-all",
+    ),
+    path(
+        "notifications/<uuid:pk>/read",
+        views.NotificationReadView.as_view(),
+        name="notification-read",
+    ),
 ]

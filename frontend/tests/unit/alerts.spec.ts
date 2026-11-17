@@ -37,8 +37,36 @@ const ALERTS = {
   ],
 }
 
-async function mountBell() {
-  vi.mocked(api.get).mockResolvedValue({ data: ALERTS })
+const INBOX = {
+  results: [
+    {
+      id: 'n1',
+      kind: 'task',
+      title: 'Tâche faite, à valider',
+      body: 'Dresser les tables · Linda Abena',
+      url: '/tasks',
+      read: false,
+      createdAt: new Date(Date.now() - 5 * 60_000).toISOString(),
+    },
+    {
+      id: 'n2',
+      kind: 'payment',
+      title: 'Paiement reçu',
+      body: 'RES-2026-0005',
+      url: '/reservations',
+      read: true,
+      createdAt: new Date(Date.now() - 3 * 3600_000).toISOString(),
+    },
+  ],
+  unread: 1,
+  unreadAll: 1,
+}
+
+async function mountBell(inbox: typeof INBOX | null = null) {
+  // The API client is mocked whole: data as the app receives it (camelCase), alerts and inbox.
+  vi.mocked(api.get).mockImplementation((url: string) =>
+    Promise.resolve({ data: url === '/notifications' ? (inbox ?? INBOX) : ALERTS }),
+  )
   vi.mocked(api.post).mockResolvedValue({ data: ALERTS.results[0] })
   const mounted = mountWithPlugins(AlertCenter)
   const session = useSessionStore()
@@ -53,6 +81,7 @@ async function mountBell() {
     },
   ]
   session.selectOrganization('m')
+  if (inbox) session.status = 'authenticated'
   await flushPromises()
   return mounted
 }
@@ -67,7 +96,7 @@ describe('AlertCenter (the bell)', () => {
     const { wrapper } = await mountBell()
     const bell = wrapper.get('[data-testid="alert-bell"]')
 
-    expect(bell.attributes('aria-label')).toBe('Alertes : 2 en cours')
+    expect(bell.attributes('aria-label')).toBe('Notifications : 0 non lues · Alertes : 2 en cours')
     await bell.trigger('click')
 
     const text = wrapper.text()
@@ -85,5 +114,23 @@ describe('AlertCenter (the bell)', () => {
     await flushPromises()
 
     expect(api.post).toHaveBeenCalledWith('/alerts/a1/dismiss')
+  })
+
+  it('shows the unread notifications first, like WhatsApp, and opens one', async () => {
+    const { wrapper, router } = await mountBell(INBOX)
+    const bell = wrapper.get('[data-testid="alert-bell"]')
+    expect(bell.text()).toBe('1')
+    expect(document.title).toBe('(1) Wedivo')
+
+    await bell.trigger('click')
+    expect(wrapper.text()).toContain('Tâche faite, à valider')
+    expect(wrapper.text()).toContain('Il y a 5 min')
+    expect(wrapper.text()).toContain('Il y a 3 h')
+
+    const item = wrapper.findAll('li button').find((b) => b.text().includes('Tâche faite'))
+    await item!.trigger('click')
+    await flushPromises()
+    expect(api.post).toHaveBeenCalledWith('/notifications/n1/read')
+    expect(router.currentRoute.value.fullPath).toBe('/tasks')
   })
 })

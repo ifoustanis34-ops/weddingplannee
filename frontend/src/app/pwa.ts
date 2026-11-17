@@ -43,8 +43,12 @@ export function pushSupported(): boolean {
 const REFRESH: Record<string, string[][]> = {
   mission: [['staff']],
   task: [['staff']],
+  pay: [['staff']],
+  attendance: [['staff']],
   alert: [['alerts'], ['dashboard']],
   payment: [['reservations'], ['dashboard'], ['billing']],
+  reservation: [['reservations'], ['dashboard'], ['calendar'], ['stock']],
+  quote: [['quotes'], ['dashboard']],
 }
 
 export function setupPwa(queryClient: QueryClient): void {
@@ -65,6 +69,8 @@ export function setupPwa(queryClient: QueryClient): void {
   navigator.serviceWorker.addEventListener('message', (event: MessageEvent) => {
     const data = event.data as { type?: string; kind?: string } | null
     if (data?.type !== 'push') return
+    // The bell (and the app icon count) first, then what the event changed on screen.
+    void queryClient.invalidateQueries({ queryKey: ['notifications'] })
     for (const key of REFRESH[data.kind ?? ''] ?? [['alerts']])
       void queryClient.invalidateQueries({ queryKey: key })
   })

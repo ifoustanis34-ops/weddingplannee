@@ -13,10 +13,11 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from core.exceptions import BusinessError
+from core.permissions import IsTenantMember
 
 from . import push
-from .models import PushSubscription
-from .tasks import deliver
+from .models import Notification, PushSubscription
+from .tasks import deliver, unread_counts
 
 
 class KeysSerializer(serializers.Serializer[Any]):
@@ -101,3 +102,62 @@ class PushTestView(APIView):
                 "no_device", "Aucun appareil n’a reçu la notification : réactivez-les ici."
             )
         return Response({"sent": sent})
+
+
+# --- Inbox (feedback 17/11/2026: like WhatsApp, unread count and badge on the app icon) ---------
+
+
+def _row(n: Notification) -> dict[str, Any]:
+    return {
+        "id": str(n.pk),
+        "kind": n.kind,
+        "title": n.title,
+        "body": n.body,
+        "url": n.url,
+        "read": n.read_at is not None,
+        "created_at": n.created_at,
+    }
+
+
+class NotificationListView(APIView):
+    """The latest 50 notifications of the signed-in person in this space, the unread count here
+    and over every space (`unread_all`, the number on the app icon)."""
+
+    permission_classes = [IsTenantMember]
+    open_to_field_roles = True
+
+    def get(self, request: Request) -> Response:
+        mine = Notification.objects.filter(user=request.user)
+        return Response(
+            {
+                "results": [_row(n) for n in mine[:50]],
+                "unread": mine.filter(read_at__isnull=True).count(),
+                "unread_all": unread_counts([str(request.user.pk)]).get(str(request.user.pk), 0),
+            }
+        )
+
+
+class NotificationReadView(APIView):
+    permission_classes = [IsTenantMember]
+    open_to_field_roles = True
+
+    def post(self, request: Request, pk: str) -> Response:
+        from django.utils import timezone
+
+        Notification.objects.filter(pk=pk, user=request.user, read_at__isnull=True).update(
+            read_at=timezone.now()
+        )
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+class NotificationReadAllView(APIView):
+    permission_classes = [IsTenantMember]
+    open_to_field_roles = True
+
+    def post(self, request: Request) -> Response:
+        from django.utils import timezone
+
+        Notification.objects.filter(user=request.user, read_at__isnull=True).update(
+            read_at=timezone.now()
+        )
+        return Response(status=status.HTTP_204_NO_CONTENT)

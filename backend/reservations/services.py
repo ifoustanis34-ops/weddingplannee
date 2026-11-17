@@ -19,6 +19,8 @@ from core.exceptions import BusinessError
 from core.tenant import require_current_organization
 from finance import invoicing as finance_invoicing
 from finance import revenues as finance_revenues
+from notifications import flow
+from notifications.flow import MANAGERS
 from organizations.models import DocumentSequence
 from organizations.numbering import next_number
 from organizations.timezones import org_tz
@@ -277,6 +279,9 @@ def create_reservation(data: dict[str, Any], lines: list[LineInput], *, user: Us
     recompute(reservation)
     reservation.save()
     log(reservation, "created", f"Réservation créée ({money(reservation.total)}).", user)
+    flow.reservation(
+        reservation, title="Nouvelle réservation", body=reservation.client.name, actor=user
+    )
     return reservation
 
 
@@ -478,6 +483,17 @@ def confirm(reservation: Reservation, *, user: User) -> Reservation:
         ),
         user,
     )
+    flow.reservation(
+        reservation,
+        title=(
+            "Réservation confirmée"
+            if reservation.status == Status.CONFIRMED
+            else "Réservation en attente d’acompte"
+        ),
+        body="matériel bloqué",
+        actor=user,
+        roles=("owner", "planner", "storekeeper"),
+    )
     return reservation
 
 
@@ -501,6 +517,12 @@ def advance(reservation: Reservation, status: str, *, user: User) -> Reservation
         reservation.returned_at = timezone.now()
     reservation.save(update_fields=["status", "returned_at", "updated_at"])
     log(reservation, "status", f"Étape : {Status(status).label}.", user)
+    flow.reservation(
+        reservation,
+        title=f"Réservation : {Status(status).label.lower()}",
+        actor=user,
+        roles=("owner", "planner", "storekeeper") if status == Status.PREPARING else MANAGERS,
+    )
     return reservation
 
 
@@ -545,6 +567,12 @@ def checkout(
     reservation.checked_out_at = timezone.now()
     reservation.save(update_fields=["status", "checked_out_at", "updated_at"])
     log(reservation, "checkout", "Matériel sorti de l’entrepôt (bon de sortie).", user)
+    flow.reservation(
+        reservation,
+        title="Matériel sorti de l’entrepôt",
+        actor=user,
+        roles=("owner", "planner", "storekeeper"),
+    )
     return reservation
 
 
@@ -662,6 +690,13 @@ def process_return(
         + (f" ; casse et pertes facturées : {money(int(damage))}." if damage else "."),
         user,
     )
+    flow.reservation(
+        reservation,
+        title="Matériel rentré" + (" avec casse ou pertes" if damage else ""),
+        body="casse et pertes à facturer" if damage else "",
+        actor=user,
+        roles=("owner", "planner", "storekeeper"),
+    )
     return reservation
 
 
@@ -704,6 +739,13 @@ def cancel(reservation: Reservation, *, reason: str, user: User, request: Any) -
         reservation,
         request=request,
         changes={"reason": reason, "refund_due": reservation.refund_due},
+    )
+    flow.reservation(
+        reservation,
+        title="Réservation annulée",
+        body=reason.strip()[:120],
+        actor=user,
+        roles=("owner", "planner", "storekeeper", "accountant"),
     )
     return reservation
 

@@ -66,8 +66,9 @@ test('the old prospect and reminder addresses lead to live pages', async ({ page
 test('the bell opens the alert center', async ({ page }) => {
   await login(page)
   await page.getByTestId('alert-bell').click()
-  const panel = page.getByRole('region', { name: 'Alertes' })
+  const panel = page.getByRole('region', { name: 'Notifications et alertes' })
   await expect(panel).toBeVisible()
+  await panel.getByRole('tab', { name: /Alertes/ }).click()
   await expect(panel.getByText(/Les plus urgentes d’abord/)).toBeVisible()
   await page.keyboard.press('Escape')
   await expect(panel).toBeHidden()

@@ -65,7 +65,8 @@ def refresh(today: date | None = None) -> int:
         alert = existing.get(key)
         if alert is None:
             created = Alert.objects.create(**found)
-            if created.severity == Alert.Severity.CRITICAL:
+            # Urgent and important situations reach their people at once (17/11/2026).
+            if created.severity in (Alert.Severity.CRITICAL, Alert.Severity.SERIOUS):
                 notify_alert(created)
             continue
         for field in ("kind", "severity", "title", "subtitle", "occurred_on", "data"):
@@ -94,7 +95,11 @@ def notify_alert(alert: Alert) -> None:
     ]
     push.notify(
         users,
-        title=f"Urgent · {alert.title}",
+        title=(
+            f"Urgent · {alert.title}"
+            if alert.severity == Alert.Severity.CRITICAL
+            else f"Important · {alert.title}"
+        ),
         body=alert.subtitle,
         url="/",
         kind="alert",

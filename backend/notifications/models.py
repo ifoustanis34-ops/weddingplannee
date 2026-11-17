@@ -11,6 +11,8 @@ import uuid
 from django.conf import settings
 from django.db import models
 
+from core.models import TenantModel
+
 
 class PushSubscription(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
@@ -30,3 +32,25 @@ class PushSubscription(models.Model):
 
     def __str__(self) -> str:
         return f"{self.user_id} · {self.endpoint[:40]}…"
+
+
+class Notification(TenantModel):
+    """One notification of a person in a space (feedback 17/11/2026: like WhatsApp, an inbox with
+    unread messages, a count on the app icon). Written by `push.notify()` for every event of the
+    flow, whether or not the person's devices receive the push."""
+
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="notifications"
+    )
+    kind = models.CharField(max_length=32, blank=True)  # mission, task, payment, alert, …
+    title = models.CharField(max_length=200)
+    body = models.CharField(max_length=500, blank=True)
+    url = models.CharField(max_length=300, default="/")
+    read_at = models.DateTimeField(null=True, blank=True)
+
+    class Meta(TenantModel.Meta):
+        ordering = ["-created_at"]
+        indexes = [models.Index(fields=["organization", "user", "read_at"])]
+
+    def __str__(self) -> str:
+        return self.title

@@ -6,7 +6,7 @@
  * - Push: shows the notification sent by the server; a click opens (or focuses) its page.
  * Registered as /sw.js?dev=1 during development: no caching at all, only push.
  */
-const VERSION = 'wedivo-v1'
+const VERSION = 'wedivo-v2'
 const SHELL = `${VERSION}-shell`
 const ASSETS = `${VERSION}-assets`
 const DEV = new URL(self.location.href).searchParams.has('dev')
@@ -83,9 +83,20 @@ self.addEventListener('push', (event) => {
     timestamp: Date.now(),
     data: { url: data.url || '/', kind: data.kind || '' },
   }
+  // The unread count on the app icon, like WhatsApp (Badging API, where supported).
+  const badge = Number.isInteger(data.badge) ? data.badge : null
+  const setBadge = () => {
+    try {
+      if (badge === null || !self.navigator.setAppBadge) return undefined
+      return badge > 0 ? self.navigator.setAppBadge(badge) : self.navigator.clearAppBadge()
+    } catch {
+      return undefined
+    }
+  }
   event.waitUntil(
     Promise.all([
       self.registration.showNotification(title, options),
+      Promise.resolve(setBadge()).catch(() => undefined),
       // An open app refreshes what changed (alerts, missions, tasks…) right away.
       self.clients
         .matchAll({ type: 'window', includeUncontrolled: true })

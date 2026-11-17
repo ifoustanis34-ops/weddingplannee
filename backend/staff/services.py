@@ -226,6 +226,10 @@ def check_in(assignment: Assignment, *, user: User, at: datetime | None = None) 
     attendance.recorded_by = user
     attendance.hours = _hours(attendance)
     attendance.save()
+    if attendance.status == Attendance.Status.LATE:
+        from notifications import flow
+
+        flow.attendance(assignment, title="Arrivée en retard", actor=user)
     return attendance
 
 
@@ -253,6 +257,9 @@ def mark_absent(assignment: Assignment, *, user: User, note: str = "") -> Attend
     attendance.note = note.strip()
     attendance.recorded_by = user
     attendance.save()
+    from notifications import flow
+
+    flow.attendance(assignment, title="Absence signalée", actor=user)
     return attendance
 
 
@@ -494,6 +501,17 @@ def validate_task(task: Any, *, user: User) -> Any:
     task.validated_at, task.validated_by = timezone.now(), user
     task.save()
     audit.record("staff_task.validated", task, changes={"title": task.title})
+    if task.staff.user_id is not None and str(task.staff.user_id) != str(user.pk):
+        from notifications import flow
+
+        flow.to_person(
+            task.staff.user_id,
+            title="Tâche validée",
+            body=f"{task.title} · {task.reservation.title}",
+            url="/mes-missions",
+            kind="task",
+            tag=f"task-{task.pk}",
+        )
     return task
 
 
@@ -633,6 +651,17 @@ def pay_now(
             "total": sum(p.amount for p in payments),
         },
     )
+    from notifications import flow
+
+    for payment in payments:  # the person learns it is paid (never the amount in the push)
+        flow.to_person(
+            payment.staff.user_id,
+            title="Paiement de votre journée",
+            body=f"Journée du {day:%d/%m/%Y} enregistrée comme payée.",
+            url="/mes-missions",
+            kind="pay",
+            tag=f"pay-{payment.pk}",
+        )
     return payments
 
 

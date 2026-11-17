@@ -2342,6 +2342,7 @@ export default {
       subtitle: 'Vos missions des 30 prochains jours et celles des 14 derniers.',
       none: 'Aucune mission prévue.',
       client: 'Client',
+      tasksCard: 'Tâches à faire',
       more: 'Détails',
       less: 'Masquer',
       untilDay: '{start} → le {date}',

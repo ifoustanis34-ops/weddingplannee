@@ -859,6 +859,7 @@ class MyMissionsView(APIView):
             missions.append(
                 {
                     **AssignmentSerializer(a).data,
+                    "kind": "mission",
                     "state": services.mission_state(a, now),
                     "client": reservation.client.name,
                     "client_phone": reservation.client.phone,
@@ -897,9 +898,78 @@ class MyMissionsView(APIView):
                     ),
                 }
             )
+        missions += _task_cards(mine, missions, start, now)
+        missions.sort(key=lambda m: m["start"])
         return Response(
             {"staff": {"id": str(mine.pk), "name": mine.full_name}, "missions": missions}
         )
+
+
+def _task_cards(
+    mine: StaffMember, missions: list[dict[str, Any]], start: datetime, now: datetime
+) -> list[dict[str, Any]]:
+    """Tasks given to the person on an event where they have no mission (feedback 17/11/2026:
+    « une tâche donnée doit apparaître ») — one card per event, shown like a mission: where,
+    when, the tasks to tick. No check-in: there is no mission to clock."""
+    covered = {str(m["reservation"]) for m in missions}
+    cards: dict[str, dict[str, Any]] = {}
+    tasks = (
+        StaffTask.objects.filter(
+            staff=mine,
+            reservation__event_start__gte=start - timedelta(days=14),
+            reservation__event_start__lt=start + timedelta(days=31),
+        )
+        .exclude(reservation__status="cancelled")
+        .select_related("reservation", "reservation__client", "staff")
+        .order_by("reservation__event_start", "created_at")
+    )
+    for task in tasks:
+        reservation = task.reservation
+        key = str(reservation.pk)
+        if key in covered:
+            continue
+        if key not in cards:
+            place = reservation.address or reservation.venue
+            end = reservation.event_end or reservation.event_start
+            cards[key] = {
+                "id": f"tasks-{reservation.pk}",
+                "kind": "tasks",
+                "staff": str(mine.pk),
+                "staff_name": mine.full_name,
+                "staff_position": mine.position,
+                "reservation": key,
+                "reservation_number": reservation.number,
+                "reservation_title": reservation.title,
+                "step": Assignment.Step.EVENT,
+                "step_label": "Tâches",
+                "role": "",
+                # Same format as the missions' dates (API strings), so they sort together.
+                "start": serializers.DateTimeField().to_representation(reservation.event_start),
+                "end": serializers.DateTimeField().to_representation(end),
+                "attendance": None,
+                "conflicts": [],
+                "state": "done" if end < now else "upcoming",
+                "_end": end,
+                "client": reservation.client.name,
+                "client_phone": reservation.client.phone,
+                "venue": reservation.venue,
+                "address": reservation.address,
+                "maps_url": (
+                    "https://www.google.com/maps/search/?api=1&query=" + urllib.parse.quote(place)
+                    if place
+                    else None
+                ),
+                "equipment": [],
+                "tasks": [],
+                "team": [],
+            }
+        cards[key]["tasks"].append(TaskSerializer(task).data)
+    # Still to do on a past event: the card stays « en cours » so it is not forgotten.
+    for card in cards.values():
+        card.pop("_end")
+        if card["state"] == "done" and any(t["status"] == "todo" for t in card["tasks"]):
+            card["state"] = "in_progress"
+    return list(cards.values())
 
 
 class MyOverviewView(APIView):

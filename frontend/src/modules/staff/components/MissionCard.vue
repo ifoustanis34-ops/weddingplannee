@@ -4,6 +4,7 @@ import {
   CheckCircle2,
   ChevronDown,
   Clock,
+  ListChecks,
   LogIn,
   LogOut,
   MapPin,
@@ -26,8 +27,9 @@ import { taskProgress } from '../missions'
 
 /**
  * One mission (feedback 13/11/2026: « missions bien organisées »): the date, the step, where and
- * when, the state; the main action (arrival, departure) always in reach; tasks, equipment and the
- * team (team lead) in a fold, open by default for what is on today.
+ * when, the state; the main action (arrival, departure) always in reach; the tasks always in
+ * sight (17/11/2026); equipment and team (team lead) in a fold. A « Tâches » card (tasks given on
+ * an event without a mission) has no clocking.
  */
 const props = defineProps<{ mission: Mission; open?: boolean }>()
 const { t } = useI18n()
@@ -47,7 +49,13 @@ const hours = computed(() => {
         date: end.slice(8, 10) + '/' + end.slice(5, 7),
       })
 })
-const step = computed(() => KIND_STYLE[props.mission.step === 'all' ? 'event' : props.mission.step])
+const onlyTasks = computed(() => props.mission.kind === 'tasks')
+const step = computed(() =>
+  onlyTasks.value
+    ? { ...KIND_STYLE.task, icon: ListChecks }
+    : KIND_STYLE[props.mission.step === 'all' ? 'event' : props.mission.step],
+)
+const hasFold = computed(() => props.mission.equipment.length > 0 || props.mission.team.length > 0)
 const progress = computed(() => taskProgress(props.mission.tasks))
 const STATE_TONE = { upcoming: 'grey', in_progress: 'violet', done: 'green' } as const
 
@@ -107,7 +115,9 @@ const chip =
             class="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11.5px] font-bold"
             :class="step.chip"
           >
-            <component :is="step.icon" class="size-3.5" aria-hidden="true" />{{ mission.stepLabel }}
+            <component :is="step.icon" class="size-3.5" aria-hidden="true" />{{
+              onlyTasks ? t('staff.missions.tasksCard') : mission.stepLabel
+            }}
           </span>
           <WBadge :tone="STATE_TONE[mission.state]">{{
             t(`staff.missions.states.${mission.state}`)
@@ -132,7 +142,7 @@ const chip =
     </div>
 
     <div class="flex flex-wrap items-center gap-2 px-4 pb-4">
-      <template v-if="mission.state !== 'done'">
+      <template v-if="mission.state !== 'done' && !onlyTasks">
         <WButton
           v-if="!mission.attendance?.checkIn"
           :loading="act.isPending.value"
@@ -160,6 +170,7 @@ const chip =
         ><Phone class="size-[15px]" aria-hidden="true" />{{ t('staff.missions.client') }}</a
       >
       <button
+        v-if="hasFold"
         type="button"
         class="ml-auto inline-flex h-9 items-center gap-1.5 rounded-[10px] px-2.5 text-[13px] font-bold text-violet hover:bg-violet-soft"
         :aria-expanded="expanded"
@@ -187,59 +198,58 @@ const chip =
       </div>
     </div>
 
-    <div v-if="expanded" class="grid gap-4 border-t border-line bg-surface-2/50 p-4">
-      <section v-if="mission.tasks.length" :aria-label="t('staff.missions.tasks')">
-        <h4 class="text-[12.5px] font-bold text-muted">{{ t('staff.missions.tasks') }}</h4>
-        <ul class="mt-2 flex flex-col gap-1.5">
-          <li
-            v-for="item in mission.tasks"
-            :key="item.id"
-            class="flex flex-wrap items-center gap-2 rounded-wd bg-surface px-3 py-2"
+    <section v-if="mission.tasks.length" class="px-4 pb-4" :aria-label="t('staff.missions.tasks')">
+      <ul class="flex flex-col gap-1.5">
+        <li
+          v-for="item in mission.tasks"
+          :key="item.id"
+          class="flex flex-wrap items-center gap-2 rounded-wd border border-line bg-surface-2/40 px-3 py-2"
+        >
+          <button
+            type="button"
+            class="flex min-w-0 flex-1 items-center gap-2.5 text-left text-[14px]"
+            :aria-pressed="item.status !== 'todo'"
+            :disabled="item.status === 'validated'"
+            @click="toggle(item)"
           >
-            <button
-              type="button"
-              class="flex min-w-0 flex-1 items-center gap-2.5 text-left text-[14px]"
-              :aria-pressed="item.status !== 'todo'"
-              :disabled="item.status === 'validated'"
-              @click="toggle(item)"
-            >
-              <CheckCircle2
-                class="size-5 shrink-0"
-                :class="item.status === 'todo' ? 'text-line-2' : 'text-green'"
-                aria-hidden="true"
-              />
-              <span :class="item.status !== 'todo' && 'text-muted line-through'">{{
-                item.title
-              }}</span>
-            </button>
-            <WBadge v-if="item.status === 'validated'" tone="green">{{
-              t('staff.tasks.columns.validated')
-            }}</WBadge>
-            <a
-              v-if="item.photoUrl"
-              :href="item.photoUrl"
-              target="_blank"
-              rel="noopener"
-              class="text-[12.5px] font-bold text-violet"
-              >{{ t('staff.missions.seePhoto') }}</a
-            >
-            <label
-              v-if="item.status !== 'validated'"
-              class="inline-flex cursor-pointer items-center gap-1 text-[12.5px] font-bold text-ink-2"
-            >
-              <Camera class="size-[15px]" aria-hidden="true" />{{ t('staff.missions.photo') }}
-              <input
-                type="file"
-                accept="image/*"
-                capture="environment"
-                class="sr-only"
-                @change="upload(item, $event)"
-              />
-            </label>
-          </li>
-        </ul>
-      </section>
+            <CheckCircle2
+              class="size-5 shrink-0"
+              :class="item.status === 'todo' ? 'text-line-2' : 'text-green'"
+              aria-hidden="true"
+            />
+            <span :class="item.status !== 'todo' && 'text-muted line-through'">{{
+              item.title
+            }}</span>
+          </button>
+          <WBadge v-if="item.status === 'validated'" tone="green">{{
+            t('staff.tasks.columns.validated')
+          }}</WBadge>
+          <a
+            v-if="item.photoUrl"
+            :href="item.photoUrl"
+            target="_blank"
+            rel="noopener"
+            class="text-[12.5px] font-bold text-violet"
+            >{{ t('staff.missions.seePhoto') }}</a
+          >
+          <label
+            v-if="item.status !== 'validated'"
+            class="inline-flex cursor-pointer items-center gap-1 text-[12.5px] font-bold text-ink-2"
+          >
+            <Camera class="size-[15px]" aria-hidden="true" />{{ t('staff.missions.photo') }}
+            <input
+              type="file"
+              accept="image/*"
+              capture="environment"
+              class="sr-only"
+              @change="upload(item, $event)"
+            />
+          </label>
+        </li>
+      </ul>
+    </section>
 
+    <div v-if="expanded && hasFold" class="grid gap-4 border-t border-line bg-surface-2/50 p-4">
       <section v-if="mission.equipment.length" :aria-label="t('staff.missions.equipment')">
         <h4 class="flex items-center gap-1.5 text-[12.5px] font-bold text-muted">
           <Package class="size-3.5" aria-hidden="true" />{{ t('staff.missions.equipment') }}

@@ -103,6 +103,8 @@ export interface StaffTask {
 export interface Mission extends Assignment {
   /** upcoming · in_progress (started or checked in) · done (over or checked out). */
   state: 'upcoming' | 'in_progress' | 'done'
+  /** `tasks`: tasks given on an event where the person has no mission (no clocking). */
+  kind: 'mission' | 'tasks'
   client: string
   clientPhone: string
   venue: string

@@ -72,3 +72,32 @@ def test_an_account_without_record_gets_an_empty_space(
 ) -> None:
     account = make_member(org_a, Role.STAFF)
     assert client_for(account, org_a).get(reverse("my-overview")).json() == {"staff": None}
+
+
+def test_a_task_without_mission_shows_as_its_own_card(
+    client_for: Callable[..., APIClient],
+    make_member: Callable[..., User],
+    org_a: Organization,
+    owner_a: User,
+) -> None:
+    """Feedback 17/11/2026: a task given to someone shows in « Mes missions », mission or not."""
+    with_mission = reservation(org_a, owner_a, 2)
+    without = reservation(org_a, owner_a, 5)
+    account = make_member(org_a, Role.STAFF)
+    linda = person(org_a, "Linda Abena", user=account)
+    with tenant_context(org_a):
+        services.assign(with_mission, linda, step="event", role="", user=owner_a)
+        StaffTask.objects.create(staff=linda, reservation=with_mission, title="Dresser")
+        StaffTask.objects.create(staff=linda, reservation=without, title="Vérifier les nappes")
+
+    missions = client_for(account, org_a).get(reverse("my-missions")).json()["missions"]
+
+    assert [(m["kind"], m["reservation"]) for m in missions] == [
+        ("mission", str(with_mission.pk)),
+        ("tasks", str(without.pk)),
+    ]
+    assert [t["title"] for t in missions[0]["tasks"]] == ["Dresser"]
+    card = missions[1]
+    assert [t["title"] for t in card["tasks"]] == ["Vérifier les nappes"]
+    assert card["attendance"] is None and card["state"] == "upcoming"
+    assert card["venue"] == "Salle Bellevue"

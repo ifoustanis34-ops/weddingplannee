@@ -222,6 +222,28 @@ def test_send_requires_the_client_email(client: APIClient, org_a: Organization) 
     assert response.json()["code"] == "client_email_missing"
 
 
+def test_send_by_whatsapp_needs_no_email_and_sends_none(
+    client_for: Callable[..., APIClient],
+    org_a: Organization,
+    make_member: Callable[..., User],
+    django_capture_on_commit_callbacks: Any,
+) -> None:
+    user = make_member(org_a, Membership.Role.PLANNER, is_verified=False)
+    client = client_for(user, org_a)
+    with tenant_context(org_a):
+        no_email = ClientFactory.create(email="")
+    body = create(client, no_email, [{"label": "A", "unit_price": 1, "quantity": 1}])
+
+    with django_capture_on_commit_callbacks(execute=True):
+        response = client.post(
+            reverse("quote-send", args=[body["id"]]), {"channel": "whatsapp"}, format="json"
+        )
+
+    assert response.status_code == 200, response.json()
+    assert response.json()["status"] == "sent"
+    assert mail.outbox == []
+
+
 def test_pdf_download(client: APIClient, customer: Client) -> None:
     body = create(
         client, customer, [{"label": "Coordination", "unit_price": 500_000, "quantity": 1}]

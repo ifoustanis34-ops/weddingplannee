@@ -207,6 +207,10 @@ class DuplicateSerializer(serializers.Serializer[Any]):
     )
 
 
+class SendSerializer(serializers.Serializer[Any]):
+    channel = serializers.ChoiceField(choices=["email", "whatsapp"], default="email")
+
+
 class RefuseSerializer(serializers.Serializer[Any]):
     reason = serializers.CharField(required=False, allow_blank=True, default="")
 

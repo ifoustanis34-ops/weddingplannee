@@ -16,14 +16,17 @@ RETRY = {"autoretry_for": (Exception,), "retry_backoff": True, "max_retries": 3}
 
 
 @shared_task(queue="pdf", **RETRY)  # type: ignore[untyped-decorator]
-def deliver_quote(organization_id: str, quote_id: str, sender_id: str) -> None:
-    """Generate the PDF of the sent version, then email it with the public link."""
+def deliver_quote(organization_id: str, quote_id: str, sender_id: str, email: bool = True) -> None:
+    """Generate the PDF of the sent version, then email it with the public link (``email``:
+    false when the planner sent the link by WhatsApp)."""
     with tenant_context_for_id(organization_id) as organization:
         quote = Quote.objects.select_related("client").filter(pk=quote_id).first()
-        if quote is None or quote.client is None or not quote.client.email:
+        if quote is None:
             return
         # The sent version is frozen (snapshot, PDF, PNG): never regenerated in silence.
         document = generation.generate(quote)
+        if not email or quote.client is None or not quote.client.email:
+            return
         content = generation.pdf_bytes(document)
         sender = User.objects.filter(pk=sender_id).first()
 

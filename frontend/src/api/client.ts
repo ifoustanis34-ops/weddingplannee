@@ -1,7 +1,7 @@
 import axios, { type AxiosError, type InternalAxiosRequestConfig } from 'axios'
 
 import { camelize, snakify } from './case'
-import { toApiError } from './errors'
+import { ApiError, OFFLINE_QUEUED, OFFLINE_QUEUED_MESSAGE, toApiError } from './errors'
 
 /**
  * Shared Axios instance.
@@ -22,9 +22,15 @@ interface Hooks {
   /** Slug of the active organization, sent as `X-Organization` (a subdomain wins when present). */
   organizationSlug: () => string | null
   onSessionExpired: () => void
+  /** A request that never reached the server: true when the offline mode keeps it for later. */
+  onNetworkError: (config: InternalAxiosRequestConfig, slug: string | null) => boolean
 }
 
-const hooks: Hooks = { organizationSlug: () => null, onSessionExpired: () => {} }
+const hooks: Hooks = {
+  organizationSlug: () => null,
+  onSessionExpired: () => {},
+  onNetworkError: () => false,
+}
 
 export function configureApi(overrides: Partial<Hooks>): void {
   Object.assign(hooks, overrides)
@@ -39,7 +45,8 @@ api.interceptors.request.use((config) => {
   // break them (the server answers 404 for an unknown or suspended space).
   const spaceless = SPACELESS_PATHS.some((path) => config.url?.startsWith(path))
   const slug = spaceless ? null : hooks.organizationSlug()
-  if (slug) config.headers.set('X-Organization', slug)
+  // A change replayed after a cut keeps the space it was made in.
+  if (slug && !config.headers.has('X-Organization')) config.headers.set('X-Organization', slug)
   if (config.data && !(config.data instanceof FormData)) config.data = snakify(config.data)
   if (config.params) config.params = snakify(config.params)
   return config
@@ -82,6 +89,12 @@ api.interceptors.response.use(
           hooks.onSessionExpired()
         }
       }
+    }
+    // Never reached the server (no network, not a timeout): the offline mode may keep it.
+    if (!error.response && error.code === 'ERR_NETWORK' && config) {
+      const slug = (config.headers.get('X-Organization') as string | undefined) ?? null
+      if (hooks.onNetworkError(config, slug))
+        throw new ApiError(OFFLINE_QUEUED, OFFLINE_QUEUED_MESSAGE)
     }
     throw toApiError(error)
   },

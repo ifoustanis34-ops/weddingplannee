@@ -6,6 +6,7 @@ import {
   FileSignature,
   LayoutTemplate,
   Link2,
+  MessageCircle,
   Plus,
   Save,
   Send,
@@ -24,6 +25,7 @@ import { formatDate, formatDateTime } from '@/composables/useDate'
 import { formatMoney } from '@/composables/useMoney'
 import { usePermissions } from '@/composables/usePermissions'
 import { useToast } from '@/composables/useToast'
+import { useWhatsApp } from '@/composables/useWhatsApp'
 import { WBadge, WButton, WCard, WEmptyState, WInput, WModal, WSelect, WTextarea } from '@/design'
 import { useCatalog } from '@/modules/catalog/api'
 import type { ServiceItem } from '@/modules/catalog/types'
@@ -340,7 +342,9 @@ async function save(
 const update = useQuoteAction((value: Quote) => Promise.resolve(value))
 
 // --- Lifecycle actions ---------------------------------------------------------------------
-const send = useQuoteAction((id: string) => quotesApi.send(id))
+const send = useQuoteAction(({ id, channel }: { id: string; channel: 'email' | 'whatsapp' }) =>
+  quotesApi.send(id, channel),
+)
 const accept = useQuoteAction((id: string) => quotesApi.accept(id))
 const refuse = useQuoteAction(({ id, reason }: { id: string; reason: string }) =>
   quotesApi.refuse(id, reason),
@@ -399,7 +403,7 @@ function cancel(): void {
 async function confirmSend(): Promise<void> {
   if (!quoteId.value) return
   try {
-    const result = await send.mutateAsync(quoteId.value)
+    const result = await send.mutateAsync({ id: quoteId.value, channel: 'email' })
     sendOpen.value = false
     toast.success(t('quotes.sentNumber', { number: result.number }))
   } catch (error) {
@@ -464,6 +468,35 @@ async function openPdf(): Promise<void> {
   }
 }
 onBeforeUnmount(() => pdfUrl && URL.revokeObjectURL(pdfUrl))
+
+// « Envoyer sur WhatsApp » (feedback 20/11/2026): saves, marks the quote as sent (no email, the
+// version is frozen), then opens the client's chat with the message and the public link.
+const whatsapp = useWhatsApp()
+const NOT_SAVED = new Error('not saved') // save() has already shown why
+async function shareWhatsApp(): Promise<void> {
+  try {
+    await whatsapp.share({
+      phone: client.value?.phone,
+      text: async () => {
+        let result = current.value ?? null
+        if (!locked.value) {
+          if ((dirty.value || !quoteId.value) && !(result = await save(true))) throw NOT_SAVED
+          result = await send.mutateAsync({ id: result!.id, channel: 'whatsapp' })
+        }
+        return t('quotes.whatsappMessage', {
+          name: result!.clientDetail?.name ?? '',
+          number: result!.number,
+          total: formatMoney(result!.total),
+          date: formatDate(result!.validUntil),
+          url: result!.publicUrl ?? '',
+          organization: organization.data.value?.name ?? '',
+        })
+      },
+    })
+  } catch (error) {
+    if (error !== NOT_SAVED) toast.error(toApiError(error).message)
+  }
+}
 
 async function copyLink(): Promise<void> {
   if (!current.value?.publicUrl) return
@@ -544,6 +577,14 @@ const pageTitle = computed(() => {
               @click="copyLink"
             >
               <Link2 class="size-[18px]" aria-hidden="true" />{{ t('quotes.copyLink') }}
+            </WButton>
+            <WButton
+              v-if="!locked || current?.publicUrl"
+              variant="secondary"
+              :loading="whatsapp.pending.value"
+              @click="shareWhatsApp"
+            >
+              <MessageCircle class="size-[18px]" aria-hidden="true" />{{ t('quotes.whatsapp') }}
             </WButton>
             <WButton v-if="!locked" :loading="saving && !quoteId" @click="openSend">
               <Send class="size-[18px]" aria-hidden="true" />{{

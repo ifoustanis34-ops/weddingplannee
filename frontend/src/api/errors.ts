@@ -28,6 +28,11 @@ interface ErrorBody {
   fields?: unknown
 }
 
+/** A change made without connection, kept on the device and sent when the network is back. */
+export const OFFLINE_QUEUED = 'offline_queued'
+export const OFFLINE_QUEUED_MESSAGE =
+  'Hors ligne : modification enregistrée sur l’appareil. Elle sera envoyée automatiquement au retour de la connexion.'
+
 const NETWORK_MESSAGE = 'Connexion impossible. Vérifiez votre réseau puis réessayez.'
 const TOO_LARGE_MESSAGE =
   'Fichier trop lourd pour le serveur. Choisissez une image plus légère (moins de 5 Mo) ou réduisez-la.'

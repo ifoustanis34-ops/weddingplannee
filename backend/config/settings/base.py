@@ -46,6 +46,7 @@ INSTALLED_APPS = [
     "reservations",
     "staff",
     "notifications",
+    "floorplans",
     "platform_admin",
 ]
 

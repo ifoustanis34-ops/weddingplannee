@@ -11,6 +11,7 @@ import { usePermissions } from '@/composables/usePermissions'
 import { useSessionStore } from '@/stores/session'
 import { useToast } from '@/composables/useToast'
 import { WBadge, WButton, WDrawer, WEmptyState, WInput, WModal, WSelect } from '@/design'
+import WhatsAppButton from '@/components/WhatsAppButton.vue'
 import ReservationInvoices from '@/modules/finance/components/ReservationInvoices.vue'
 import ReservationTeam from '@/modules/staff/components/ReservationTeam.vue'
 
@@ -232,14 +233,29 @@ async function confirmCancel(): Promise<void> {
 }
 
 // Documents: fetched with the session, then opened -------------------------------------------
-async function openDocument(type: 'checkout' | 'return'): Promise<void> {
-  if (!data.value) return
-  try {
-    const response = await api.get<Blob>(`/reservations/${data.value.id}/document`, {
+function slipBlob(type: 'checkout' | 'return'): Promise<Blob> {
+  return api
+    .get<Blob>(`/reservations/${data.value!.id}/document`, {
       params: { type },
       responseType: 'blob',
     })
-    const url = URL.createObjectURL(response.data)
+    .then((r) => r.data)
+}
+function slipMessage(type: 'checkout' | 'return'): string {
+  const reservation = data.value!
+  return t('whatsapp.slipMessage', {
+    name: reservation.clientDetail.name,
+    document: slipName(type).toLowerCase(),
+    number: reservation.number,
+    title: reservation.title,
+  })
+}
+const slipName = (type: 'checkout' | 'return') =>
+  t(type === 'checkout' ? 'reservations.drawer.checkoutSlip' : 'reservations.drawer.returnSlip')
+async function openDocument(type: 'checkout' | 'return'): Promise<void> {
+  if (!data.value) return
+  try {
+    const url = URL.createObjectURL(await slipBlob(type))
     window.open(url, '_blank', 'noopener')
     setTimeout(() => URL.revokeObjectURL(url), 60_000)
   } catch (error) {
@@ -454,16 +470,36 @@ const money = (value: number | null | undefined) => (value == null ? '—' : for
       <section v-if="hasEquipment">
         <h3>{{ t('reservations.drawer.documents') }}</h3>
         <div class="mt-2 flex flex-wrap gap-2">
-          <WButton size="sm" variant="secondary" @click="openDocument('checkout')">
-            <FileDown class="size-[15px]" aria-hidden="true" />{{
-              t('reservations.drawer.checkoutSlip')
-            }}
-          </WButton>
-          <WButton size="sm" variant="secondary" @click="openDocument('return')">
-            <FileDown class="size-[15px]" aria-hidden="true" />{{
-              t('reservations.drawer.returnSlip')
-            }}
-          </WButton>
+          <span class="inline-flex gap-1">
+            <WButton size="sm" variant="secondary" @click="openDocument('checkout')">
+              <FileDown class="size-[15px]" aria-hidden="true" />{{
+                t('reservations.drawer.checkoutSlip')
+              }}
+            </WButton>
+            <WhatsAppButton
+              icon
+              :phone="data.clientDetail.phone"
+              :message="slipMessage('checkout')"
+              :file="() => slipBlob('checkout')"
+              :filename="`${data.number}-bon-de-sortie.pdf`"
+              :label="t('whatsapp.slip', { document: slipName('checkout').toLowerCase() })"
+            />
+          </span>
+          <span class="inline-flex gap-1">
+            <WButton size="sm" variant="secondary" @click="openDocument('return')">
+              <FileDown class="size-[15px]" aria-hidden="true" />{{
+                t('reservations.drawer.returnSlip')
+              }}
+            </WButton>
+            <WhatsAppButton
+              icon
+              :phone="data.clientDetail.phone"
+              :message="slipMessage('return')"
+              :file="() => slipBlob('return')"
+              :filename="`${data.number}-bon-de-retour.pdf`"
+              :label="t('whatsapp.slip', { document: slipName('return').toLowerCase() })"
+            />
+          </span>
         </div>
       </section>
 

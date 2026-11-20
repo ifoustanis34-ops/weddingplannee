@@ -14,6 +14,7 @@ import {
   House,
   Mail,
   Package,
+  PencilRuler,
   Settings,
   UserCog,
   Users,
@@ -222,6 +223,16 @@ export const NAV_ITEMS: NavItem[] = [
     phase: 2,
   },
   {
+    // « Croquis » (feedback 20/11/2026): the venue to scale, chairs and tables placed on it.
+    key: 'floorplans',
+    label: 'floorplans',
+    icon: PencilRuler,
+    routeName: 'floorplans',
+    group: 'evenementiel',
+    ready: true,
+    roles: ['owner', 'planner', 'assistant', 'accountant', 'storekeeper', 'team_lead'],
+  },
+  {
     key: 'invitations',
     label: 'invitations',
     module: 'weddings',
@@ -245,8 +256,15 @@ export const NAV_ITEMS: NavItem[] = [
 
 /** What the field roles open (reservations-stock.md §12); missions and check-in come with S7. */
 const FIELD_ROLE_ITEMS: Partial<Record<Role, Set<string>>> = {
-  storekeeper: new Set(['dashboard', 'reservations', 'calendar', 'stock', 'movements']),
-  team_lead: new Set(['dashboard', 'missions']),
+  storekeeper: new Set([
+    'dashboard',
+    'reservations',
+    'calendar',
+    'stock',
+    'movements',
+    'floorplans',
+  ]),
+  team_lead: new Set(['dashboard', 'missions', 'floorplans']),
   staff: new Set(['dashboard', 'missions']),
 }
 

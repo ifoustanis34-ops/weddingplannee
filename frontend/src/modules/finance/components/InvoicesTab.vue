@@ -5,9 +5,10 @@ import { useI18n } from 'vue-i18n'
 
 import { toApiError } from '@/api/errors'
 import { formatDate } from '@/composables/useDate'
-import { formatAmount } from '@/composables/useMoney'
+import { formatAmount, formatMoney } from '@/composables/useMoney'
 import { usePermissions } from '@/composables/usePermissions'
 import { useToast } from '@/composables/useToast'
+import WhatsAppButton from '@/components/WhatsAppButton.vue'
 import { WBadge, WButton, WCard, WChips, WEmptyState } from '@/design'
 
 import { billingApi, INVOICE_TONES, type Invoice, useInvoices } from '../billing'
@@ -33,6 +34,7 @@ async function pdf(url: string, number: string): Promise<void> {
     toast.error(toApiError(error).message)
   }
 }
+const invoicePdf = (id: string) => billingApi.blob(`/invoices/${id}/pdf`)
 </script>
 
 <template>
@@ -112,6 +114,21 @@ async function pdf(url: string, number: string): Promise<void> {
             >
               <Download class="size-[15px]" aria-hidden="true" />
             </WButton>
+            <WhatsAppButton
+              icon
+              :phone="invoice.clientDetail.phone"
+              :message="
+                t('whatsapp.invoiceMessage', {
+                  name: invoice.clientDetail.name,
+                  number: invoice.number,
+                  amount: formatMoney(invoice.total - invoice.credited),
+                  due: formatDate(invoice.dueAt),
+                })
+              "
+              :file="() => invoicePdf(invoice.id)"
+              :filename="`${invoice.number}.pdf`"
+              :label="t('whatsapp.invoice', { number: invoice.number })"
+            />
             <WButton
               v-if="can('manageFinance') && invoice.total > invoice.credited"
               size="sm"

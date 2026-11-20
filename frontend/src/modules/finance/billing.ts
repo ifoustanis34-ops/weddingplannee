@@ -29,7 +29,7 @@ export interface Invoice {
   kindLabel: string
   reservation: string
   reservationDetail: { id: string; number: string; title: string }
-  clientDetail: { id: string; name: string }
+  clientDetail: { id: string; name: string; phone: string }
   issuedAt: string
   dueAt: string
   total: number
@@ -161,6 +161,8 @@ export const billingApi = {
       .then((r) => r.data.rows),
   report: (type: ReportType, period: PeriodRequest) =>
     api.get<Report>(`/reports/${type}`, { params: params(period) }).then((r) => r.data),
+  /** A PDF as a blob (to share it on WhatsApp). */
+  blob: (url: string) => api.get<Blob>(url, { responseType: 'blob' }).then((r) => r.data),
   /** PDF or Excel of a report, or the PDF of an invoice / credit note: a file to save. */
   file: async (url: string, query: Record<string, string | undefined>, filename: string) => {
     const response = await api.get<Blob>(url, { params: query, responseType: 'blob' })

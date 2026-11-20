@@ -31,6 +31,7 @@ from .serializers import (
     QuoteListSerializer,
     QuoteSerializer,
     RefuseSerializer,
+    SendSerializer,
 )
 
 PERMISSIONS = [IsTenantMember, QuotePermission]
@@ -173,9 +174,16 @@ class QuoteActionView(generics.GenericAPIView[Quote]):
 
 
 class SendQuoteView(QuoteActionView):
-    @extend_schema(request=None, responses=QuoteSerializer)
+    """``channel``: ``email`` (default) or ``whatsapp`` (the planner shares the link)."""
+
+    @extend_schema(request=SendSerializer, responses=QuoteSerializer)
     def post(self, request: Request, pk: str) -> Response:
-        return self.respond(services.send_quote(self.get_object(), user=self.user))
+        serializer = SendSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        quote = services.send_quote(
+            self.get_object(), user=self.user, channel=serializer.validated_data["channel"]
+        )
+        return self.respond(quote)
 
 
 class AcceptQuoteView(QuoteActionView):

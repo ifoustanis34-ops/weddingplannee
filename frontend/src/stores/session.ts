@@ -30,11 +30,34 @@ function storeSlug(slug: string | null): void {
   }
 }
 
+// The last session, to open the app without network (offline mode, feedback 20/11/2026).
+const SESSION_KEY = 'wedivo-session'
+
+function readStoredSession(): Session | null {
+  try {
+    const raw = localStorage.getItem(SESSION_KEY)
+    return raw ? (JSON.parse(raw) as Session) : null
+  } catch {
+    return null
+  }
+}
+
+function storeSession(session: Session | null): void {
+  try {
+    if (session) localStorage.setItem(SESSION_KEY, JSON.stringify(session))
+    else localStorage.removeItem(SESSION_KEY)
+  } catch {
+    // Storage unavailable: no offline start on this device.
+  }
+}
+
 export const useSessionStore = defineStore('session', () => {
   const user = ref<Session['user'] | null>(null)
   const organizations = ref<OrganizationSummary[]>([])
   const currentSlug = ref<string | null>(readStoredSlug())
   const status = ref<'unknown' | 'authenticated' | 'anonymous'>('unknown')
+  /** Opened without network from the remembered session, not yet confirmed by the server. */
+  const offline = ref(false)
   let bootstrapping: Promise<void> | null = null
 
   const isAuthenticated = computed(() => status.value === 'authenticated')
@@ -49,7 +72,9 @@ export const useSessionStore = defineStore('session', () => {
   const weddingsEnabled = computed(() => currentOrganization.value?.weddingsEnabled ?? false)
   const firstName = computed(() => user.value?.fullName.split(' ')[0] ?? '')
 
-  function apply(session: Session): void {
+  function apply(session: Session, confirmed = true): void {
+    offline.value = !confirmed
+    if (confirmed) storeSession(session)
     user.value = session.user
     organizations.value = session.organizations
     status.value = 'authenticated'
@@ -58,6 +83,8 @@ export const useSessionStore = defineStore('session', () => {
   }
 
   function clear(): void {
+    storeSession(null)
+    offline.value = false
     user.value = null
     organizations.value = []
     status.value = 'anonymous'
@@ -76,6 +103,12 @@ export const useSessionStore = defineStore('session', () => {
         await authApi.csrf()
         apply(await authApi.me())
       } catch (error) {
+        // No network: the remembered session opens the app on what this device already has.
+        const remembered = readStoredSession()
+        if (error instanceof ApiError && error.code === 'network_error' && remembered) {
+          apply(remembered, false)
+          return
+        }
         if (error instanceof ApiError && error.status !== 401 && error.status !== 403) throw error
         clear()
       } finally {
@@ -144,6 +177,7 @@ export const useSessionStore = defineStore('session', () => {
     organizations,
     currentSlug,
     status,
+    offline,
     isAuthenticated,
     currentOrganization,
     role,

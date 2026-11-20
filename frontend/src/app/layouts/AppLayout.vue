@@ -26,6 +26,7 @@ import { useSessionStore } from '@/stores/session'
 
 import SidebarContent from './SidebarContent.vue'
 import ThemeToggle from './ThemeToggle.vue'
+import OfflineStatus from '@/components/OfflineStatus.vue'
 import AlertCenter from '@/modules/alerts/components/AlertCenter.vue'
 import GuidedTour from '@/components/GuidedTour.vue'
 import PresentationPlayer from '@/components/PresentationPlayer.vue'
@@ -205,6 +206,7 @@ useOrgTimezone()
           </kbd>
         </button>
         <div class="ml-auto flex shrink-0 items-center gap-2">
+          <OfflineStatus />
           <ThemeToggle />
           <span data-tour="alerts" class="inline-flex"><AlertCenter /></span>
         </div>

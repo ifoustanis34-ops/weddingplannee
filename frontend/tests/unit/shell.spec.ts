@@ -58,6 +58,7 @@ describe('navigation', () => {
       'attendance',
       'weddings',
       'vendors',
+      'floorplans',
       'settings',
     ])
     expect(menuItems('assistant').map((item) => item.key)).not.toContain('finance')
@@ -73,9 +74,14 @@ describe('navigation', () => {
       'calendar',
       'stock',
       'movements',
+      'floorplans',
     ])
-    for (const role of ['team_lead', 'staff'] as const)
-      expect(menuItems(role).map((item) => item.key)).toEqual(['dashboard', 'missions'])
+    expect(menuItems('team_lead').map((item) => item.key)).toEqual([
+      'dashboard',
+      'missions',
+      'floorplans',
+    ])
+    expect(menuItems('staff').map((item) => item.key)).toEqual(['dashboard', 'missions'])
   })
 
   it('puts reservations and stock in the mobile tabs, clients and quotes as fallbacks', () => {

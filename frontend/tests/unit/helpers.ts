@@ -47,6 +47,7 @@ export function mountWithPlugins(
         'weddings',
         'calendar',
         'vendors',
+        'floorplans',
       ].map((name) => ({
         path: `/${name}`,
         name,

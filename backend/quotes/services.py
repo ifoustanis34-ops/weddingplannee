@@ -229,8 +229,12 @@ def duplicate_quote(
 
 
 @transaction.atomic
-def send_quote(quote: Quote, *, user: User) -> Quote:
-    """Mark as sent, then generate the PDF and email it in Celery (queues ``pdf``, ``emails``)."""
+def send_quote(quote: Quote, *, user: User, channel: str = "email") -> Quote:
+    """Mark as sent, then generate the PDF and email it in Celery (queues ``pdf``, ``emails``).
+
+    ``channel="whatsapp"`` (feedback 20/11/2026): the planner sends the public link from their own
+    WhatsApp (manual message, never sent by Wedivo). The quote is marked as sent and its version is
+    frozen, without email: neither the client's email nor a verified sender is required."""
     from .tasks import deliver_quote
 
     if quote.is_template:
@@ -239,14 +243,15 @@ def send_quote(quote: Quote, *, user: User) -> Quote:
         )
     if quote.status not in EDITABLE_STATUSES:
         raise BusinessError("quote_locked", "Ce devis est déjà accepté ou refusé.")
-    if not user.is_verified:
+    by_email = channel != "whatsapp"
+    if by_email and not user.is_verified:
         raise BusinessError(
             "email_not_verified",
             "Confirmez votre adresse email avant d’envoyer des devis (lien reçu à l’inscription).",
             status_code=403,
         )
     assert quote.client is not None
-    if not quote.client.email:
+    if by_email and not quote.client.email:
         raise BusinessError(
             "client_email_missing",
             "Ajoutez l’email du client dans sa fiche pour lui envoyer le devis.",
@@ -266,7 +271,9 @@ def send_quote(quote: Quote, *, user: User) -> Quote:
 
     organization = require_current_organization()
     transaction.on_commit(
-        lambda: deliver_quote.delay(str(organization.pk), str(quote.pk), str(user.pk))
+        lambda: deliver_quote.delay(
+            str(organization.pk), str(quote.pk), str(user.pk), email=by_email
+        )
     )
     return quote
 

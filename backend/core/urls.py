@@ -24,5 +24,6 @@ urlpatterns = [
     path("", include("vendors.urls")),
     path("", include("invitations.urls")),
     path("", include("documents.urls")),
+    path("", include("floorplans.urls")),
     path("", include("platform_admin.urls")),
 ]

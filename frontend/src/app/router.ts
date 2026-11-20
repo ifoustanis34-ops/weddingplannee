@@ -8,6 +8,7 @@ import { crmRoutes } from '@/modules/crm/routes'
 import { eventRoutes } from '@/modules/events/routes'
 import { invitationRoutes } from '@/modules/invitations/routes'
 import { financeRoutes } from '@/modules/finance/routes'
+import { floorPlanRoutes } from '@/modules/floorplans/routes'
 import { quoteRoutes } from '@/modules/quotes/routes'
 import { platformRoutes } from '@/modules/platform/routes'
 import { settingsRoutes } from '@/modules/settings/routes'
@@ -56,6 +57,7 @@ const routes: RouteRecordRaw[] = [
   ...invitationRoutes,
   ...calendarRoutes,
   ...vendorRoutes,
+  ...floorPlanRoutes,
   ...stockRoutes,
   ...reservationRoutes,
   ...reportRoutes,

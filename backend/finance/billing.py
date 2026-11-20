@@ -110,7 +110,8 @@ class InvoiceSerializer(serializers.ModelSerializer[Invoice]):
         return {"id": str(r.pk), "number": r.number, "title": r.title}
 
     def get_client_detail(self, invoice: Invoice) -> dict[str, str]:
-        return {"id": str(invoice.client_id), "name": invoice.client.name}
+        client = invoice.client
+        return {"id": str(invoice.client_id), "name": client.name, "phone": client.phone}
 
     def get_lines(self, invoice: Invoice) -> list[dict[str, Any]]:
         return [

@@ -1,5 +1,7 @@
 import { readonly, ref } from 'vue'
 
+import { OFFLINE_QUEUED_MESSAGE } from '@/api/errors'
+
 export type ToastTone = 'success' | 'error' | 'info'
 
 export interface Toast {
@@ -28,7 +30,9 @@ export function useToast() {
   return {
     toasts: readonly(toasts),
     success: (message: string) => push('success', message),
-    error: (message: string) => push('error', message),
+    // A change kept for later is not a failure (offline mode): shown as information.
+    error: (message: string) =>
+      push(message === OFFLINE_QUEUED_MESSAGE ? 'info' : 'error', message),
     info: (message: string) => push('info', message),
     dismiss,
   }

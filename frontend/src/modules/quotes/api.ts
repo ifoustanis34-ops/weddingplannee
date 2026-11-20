@@ -53,7 +53,9 @@ export const quotesApi = {
   update: (id: string, input: QuoteInput) =>
     api.patch<Quote>(`/quotes/${id}`, input).then((r) => r.data),
   remove: (id: string) => api.delete(`/quotes/${id}`).then(() => undefined),
-  send: (id: string) => api.post<Quote>(`/quotes/${id}/send`).then((r) => r.data),
+  /** `whatsapp`: marked as sent without email, the planner shares the link (feedback 20/11/2026). */
+  send: (id: string, channel: 'email' | 'whatsapp' = 'email') =>
+    api.post<Quote>(`/quotes/${id}/send`, { channel }).then((r) => r.data),
   accept: (id: string) => api.post<Quote>(`/quotes/${id}/accept`).then((r) => r.data),
   refuse: (id: string, reason: string) =>
     api.post<Quote>(`/quotes/${id}/refuse`, { reason }).then((r) => r.data),

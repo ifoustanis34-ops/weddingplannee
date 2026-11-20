@@ -8,6 +8,7 @@ import { api } from '@/api/client'
 import { toApiError } from '@/api/errors'
 import { formatMoney } from '@/composables/useMoney'
 import { useToast } from '@/composables/useToast'
+import WhatsAppButton from '@/components/WhatsAppButton.vue'
 import { WButton, WInput } from '@/design'
 
 import { reservationKeys, reservationsApi, useReservationMutation } from '../api'
@@ -97,13 +98,17 @@ async function giveBack(line: ReservationLine): Promise<void> {
   }
 }
 
-async function openOrder(vendor: string): Promise<void> {
-  try {
-    const response = await api.get<Blob>(`/reservations/${id.value}/document`, {
+function orderBlob(vendor: string): Promise<Blob> {
+  return api
+    .get<Blob>(`/reservations/${id.value}/document`, {
       params: { type: 'partner', vendor },
       responseType: 'blob',
     })
-    const url = URL.createObjectURL(response.data)
+    .then((r) => r.data)
+}
+async function openOrder(vendor: string): Promise<void> {
+  try {
+    const url = URL.createObjectURL(await orderBlob(vendor))
     window.open(url, '_blank', 'noopener')
     setTimeout(() => URL.revokeObjectURL(url), 60_000)
   } catch (error) {
@@ -225,30 +230,39 @@ const visible = computed(
         {{ t('reservations.drawer.partners.orders') }}
       </p>
       <div class="flex flex-wrap gap-2">
-        <WButton
-          v-for="order in orders.data.value"
-          :key="order.vendor"
-          size="sm"
-          variant="secondary"
-          @click="openOrder(order.vendor)"
-        >
-          <FileDown class="size-[15px]" aria-hidden="true" />{{
-            t('reservations.drawer.partners.order', { name: order.vendorName })
-          }}
-          <span class="font-normal text-muted">
-            ·
-            {{
-              order.total !== null
-                ? t('reservations.drawer.partners.orderTotal', {
-                    count: order.lines.reduce((sum, l) => sum + l.quantity, 0),
-                    amount: formatMoney(order.total),
-                  })
-                : t('reservations.drawer.partners.orderCount', {
-                    count: order.lines.reduce((sum, l) => sum + l.quantity, 0),
-                  })
-            }}</span
-          >
-        </WButton>
+        <span v-for="order in orders.data.value" :key="order.vendor" class="inline-flex gap-1">
+          <WButton size="sm" variant="secondary" @click="openOrder(order.vendor)">
+            <FileDown class="size-[15px]" aria-hidden="true" />{{
+              t('reservations.drawer.partners.order', { name: order.vendorName })
+            }}
+            <span class="font-normal text-muted">
+              ·
+              {{
+                order.total !== null
+                  ? t('reservations.drawer.partners.orderTotal', {
+                      count: order.lines.reduce((sum, l) => sum + l.quantity, 0),
+                      amount: formatMoney(order.total),
+                    })
+                  : t('reservations.drawer.partners.orderCount', {
+                      count: order.lines.reduce((sum, l) => sum + l.quantity, 0),
+                    })
+              }}</span
+            >
+          </WButton>
+          <WhatsAppButton
+            icon
+            :phone="order.phone"
+            :message="
+              t('whatsapp.orderMessage', {
+                name: order.contact || order.vendorName,
+                number: reservation.number,
+              })
+            "
+            :file="() => orderBlob(order.vendor)"
+            :filename="`${reservation.number}-commande-${order.vendorName}.pdf`"
+            :label="t('whatsapp.order', { name: order.vendorName })"
+          />
+        </span>
       </div>
     </div>
   </section>

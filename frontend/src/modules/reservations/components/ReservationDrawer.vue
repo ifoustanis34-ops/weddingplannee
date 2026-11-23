@@ -241,15 +241,6 @@ function slipBlob(type: 'checkout' | 'return'): Promise<Blob> {
     })
     .then((r) => r.data)
 }
-function slipMessage(type: 'checkout' | 'return'): string {
-  const reservation = data.value!
-  return t('whatsapp.slipMessage', {
-    name: reservation.clientDetail.name,
-    document: slipName(type).toLowerCase(),
-    number: reservation.number,
-    title: reservation.title,
-  })
-}
 const slipName = (type: 'checkout' | 'return') =>
   t(type === 'checkout' ? 'reservations.drawer.checkoutSlip' : 'reservations.drawer.returnSlip')
 async function openDocument(type: 'checkout' | 'return'): Promise<void> {
@@ -479,7 +470,6 @@ const money = (value: number | null | undefined) => (value == null ? '—' : for
             <WhatsAppButton
               icon
               :phone="data.clientDetail.phone"
-              :message="slipMessage('checkout')"
               :file="() => slipBlob('checkout')"
               :filename="`${data.number}-bon-de-sortie.pdf`"
               :label="t('whatsapp.slip', { document: slipName('checkout').toLowerCase() })"
@@ -494,7 +484,6 @@ const money = (value: number | null | undefined) => (value == null ? '—' : for
             <WhatsAppButton
               icon
               :phone="data.clientDetail.phone"
-              :message="slipMessage('return')"
               :file="() => slipBlob('return')"
               :filename="`${data.number}-bon-de-retour.pdf`"
               :label="t('whatsapp.slip', { document: slipName('return').toLowerCase() })"

@@ -252,12 +252,6 @@ const visible = computed(
           <WhatsAppButton
             icon
             :phone="order.phone"
-            :message="
-              t('whatsapp.orderMessage', {
-                name: order.contact || order.vendorName,
-                number: reservation.number,
-              })
-            "
             :file="() => orderBlob(order.vendor)"
             :filename="`${reservation.number}-commande-${order.vendorName}.pdf`"
             :label="t('whatsapp.order', { name: order.vendorName })"

@@ -8,13 +8,12 @@ import { useWhatsApp } from '@/composables/useWhatsApp'
 import { WButton } from '@/design'
 
 /**
- * « WhatsApp » next to a document (invoice, slip, order; feedback 20/11/2026): the PDF goes with a
- * ready message to the recipient, from the planner's own WhatsApp (see `useWhatsApp`).
+ * « WhatsApp » next to a document (invoice, slip, order; feedback 20/11/2026): the PDF alone goes
+ * to the recipient, from the planner's own WhatsApp (see `useWhatsApp`).
  */
 const props = withDefaults(
   defineProps<{
     phone?: string | null
-    message: string
     file: () => Promise<Blob>
     filename: string
     /** Accessible name, e.g. « Envoyer FA-2026-0004 sur WhatsApp ». */
@@ -33,7 +32,6 @@ async function send(): Promise<void> {
   try {
     await whatsapp.share({
       phone: props.phone,
-      text: () => props.message,
       file: props.file,
       filename: props.filename,
     })

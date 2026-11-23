@@ -471,8 +471,8 @@ async function openPdf(): Promise<void> {
 onBeforeUnmount(() => pdfUrl && URL.revokeObjectURL(pdfUrl))
 
 // « Envoyer sur WhatsApp » / « Partager le PDF » (feedback 20 and 23/11/2026): saves, marks the
-// quote as sent (no email, the version is frozen), then hands the PDF and a message with the
-// public link to WhatsApp or to any app of the phone.
+// quote as sent (no email, the version is frozen), then hands the PDF alone to WhatsApp or to
+// any app of the phone.
 const whatsapp = useWhatsApp()
 const sharing = ref<'whatsapp' | 'any' | null>(null)
 const NOT_SAVED = new Error('not saved') // save() has already shown why
@@ -482,21 +482,13 @@ async function shareQuote(target: 'whatsapp' | 'any'): Promise<void> {
   shared = null
   const options = {
     phone: client.value?.phone,
-    text: async () => {
+    prepare: async () => {
       let result = current.value ?? null
       if (!locked.value) {
         if ((dirty.value || !quoteId.value) && !(result = await save(true))) throw NOT_SAVED
         result = await send.mutateAsync({ id: result!.id, channel: 'whatsapp' })
       }
       shared = result
-      return t('quotes.whatsappMessage', {
-        name: result!.clientDetail?.name ?? '',
-        number: result!.number,
-        total: formatMoney(result!.total),
-        date: formatDate(result!.validUntil),
-        url: result!.publicUrl ?? '',
-        organization: organization.data.value?.name ?? '',
-      })
     },
     // The PDF of the version sent (frozen once, reused while nothing changes).
     file: async () => {

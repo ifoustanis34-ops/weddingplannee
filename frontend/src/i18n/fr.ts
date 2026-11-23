@@ -31,14 +31,8 @@ export default {
     send: 'Envoyer sur WhatsApp',
     short: 'WhatsApp',
     invoice: 'Envoyer {number} sur WhatsApp',
-    invoiceMessage:
-      'Bonjour {name},\n\nVeuillez trouver ci-joint notre facture {number} d’un montant de {amount}, à régler avant le {due}.\n\nBien cordialement.',
     slip: 'Envoyer le {document} sur WhatsApp',
-    slipMessage:
-      'Bonjour {name},\n\nVoici le {document} de la réservation {number} ({title}).\n\nBien cordialement.',
     order: 'Envoyer le bon de commande à {name} sur WhatsApp',
-    orderMessage:
-      'Bonjour {name},\n\nVoici notre bon de commande pour la réservation {number}. Merci de nous confirmer la disponibilité.\n\nBien cordialement.',
   },
   share: {
     readyTitle: 'Document prêt',
@@ -119,8 +113,6 @@ export default {
     deleted: 'Croquis supprimé.',
     leaveUnsaved: 'Le croquis a des modifications non enregistrées. Quitter quand même ?',
     imageError: 'L’image du croquis n’a pas pu être produite.',
-    whatsappMessage:
-      'Bonjour,\n\nVoici le croquis « {name} »{venue} : salle de {length} × {width}, {seats} places assises.\n\nBien cordialement.',
     modes: { '2d': 'Plan 2D', '3d': 'Vue 3D' },
     view3d: {
       overview: 'Vue d’ensemble',
@@ -864,8 +856,6 @@ export default {
     pdfDownloaded: 'PDF téléchargé : joignez-le dans l’application de votre choix.',
     pdfDropInChat:
       'PDF téléchargé : glissez-le dans la discussion WhatsApp qui vient de s’ouvrir. Sur téléphone, il part directement.',
-    whatsappMessage:
-      'Bonjour {name},\n\nVoici notre devis {number} d’un montant de {total}.\nConsultez-le, téléchargez le PDF et donnez votre réponse en ligne :\n{url}\n\nCe devis est valable jusqu’au {date}.\n\nBien cordialement,\n{organization}',
     duplicate: 'Dupliquer',
     duplicated: 'Devis dupliqué.',
     saveAsTemplate: 'Enregistrer comme modèle',

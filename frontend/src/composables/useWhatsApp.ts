@@ -9,7 +9,6 @@ import { whatsappHref } from '@/app/support'
  *
  * - `whatsapp`: on a phone the PDF alone goes through the share sheet (WhatsApp, then the
  *   contact); on a computer the PDF is downloaded and the client's chat opens, empty, to drop it in.
- *   Without a document (none today), the message opens in the chat.
  * - `any` (« Partager »): the same share sheet, open to every app (email, Telegram, Drive…); on a
  *   computer the PDF is downloaded.
  *
@@ -19,8 +18,8 @@ import { whatsappHref } from '@/app/support'
 export interface DocumentShare {
   /** The recipient's number, any format (« +237 6 99 00 00 00 »); empty opens the contact list. */
   phone?: string | null
-  /** The message; may do an async step first (e.g. mark a quote as sent to get its link). */
-  text: () => string | Promise<string>
+  /** A step before sending (e.g. save the quote and mark it as sent). */
+  prepare?: () => unknown
   /** The document to attach (PDF, or the PNG of a plan), fetched on click. */
   file?: () => Promise<Blob>
   filename?: string
@@ -48,11 +47,10 @@ function canShareFiles(): boolean {
   }
 }
 
-/** `https://wa.me/237…?text=…`: the chat of that number, or the contact list without one. */
-export function whatsappUrl(phone: string | null | undefined, text: string): string {
+/** `https://wa.me/237…`: the chat of that number, or the contact list without one. */
+export function whatsappUrl(phone: string | null | undefined): string {
   const digits = (phone ?? '').replace(/\D/g, '')
-  const base = digits.length >= 8 ? whatsappHref(digits) : 'https://wa.me/'
-  return text ? `${base}?text=${encodeURIComponent(text)}` : base
+  return digits.length >= 8 ? whatsappHref(digits) : 'https://wa.me/'
 }
 
 export function downloadBlob(blob: Blob, filename: string): void {
@@ -92,10 +90,9 @@ export function useWhatsApp() {
     const tab = !sheet && target === 'whatsapp' ? window.open('about:blank', '_blank') : null
     pending.value = true
     try {
-      // With a document, only the document leaves (feedback 23/11/2026: « le PDF, sans autre
-      // message »). `text()` still runs: it may prepare the document (save, mark as sent).
-      const prepared = await options.text()
-      const text = options.file ? '' : prepared
+      // Only the document leaves, never a message (feedback 23/11/2026: « le PDF, sans autre
+      // message »).
+      await options.prepare?.()
       if (sheet && options.file) {
         const blob = await options.file()
         const file = new File([blob], filename, { type: blob.type || PDF })
@@ -105,10 +102,9 @@ export function useWhatsApp() {
       if (options.file) downloadBlob(await options.file(), filename)
       if (target === 'any') {
         // No share sheet (computer): the document is saved, ready to attach.
-        if (text) await navigator.clipboard?.writeText(text).catch(() => undefined)
         return 'downloaded'
       }
-      const url = whatsappUrl(options.phone, text)
+      const url = whatsappUrl(options.phone)
       if (tab) {
         tab.opener = null
         tab.location.href = url

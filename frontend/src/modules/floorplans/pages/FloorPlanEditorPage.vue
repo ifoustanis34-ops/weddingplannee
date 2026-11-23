@@ -316,14 +316,6 @@ const whatsapp = useWhatsApp()
 async function shareImage(): Promise<void> {
   try {
     await whatsapp.share({
-      text: () =>
-        t('floorplans.whatsappMessage', {
-          name: draft.value.name,
-          venue: draft.value.venue ? ` (${draft.value.venue})` : '',
-          length: metres(draft.value.length),
-          width: metres(draft.value.width),
-          seats: seats.value,
-        }),
       file: image,
       filename: filename.value,
     })

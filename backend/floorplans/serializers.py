@@ -22,7 +22,23 @@ ELEMENT_TYPES = {
     "decor",
     "pillar",
     "text",
+    # 23/11/2026: more to place, for the 3D visit.
+    "head_table",
+    "cocktail",
+    "cake",
+    "lounge",
+    "photobooth",
+    "plant",
+    "chandelier",
+    "screen",
 }
+# The room as it is dressed (3D): floor, walls, light, height under the ceiling.
+AMBIANCE = {
+    "floor": {"tiles", "parquet", "marble", "concrete", "grass", "carpet"},
+    "walls": {"white", "cream", "grey", "none"},
+    "light": {"day", "evening"},
+}
+DEFAULT_AMBIANCE = {"floor": "tiles", "walls": "white", "light": "day", "height": 3.0}
 MAX_ELEMENTS = 2000
 MAX_SIDE = Decimal("500")  # metres: a field, not only a hall
 
@@ -84,6 +100,7 @@ class FloorPlanSerializer(serializers.ModelSerializer[FloorPlan]):
             "width",
             "elements",
             "notes",
+            "ambiance",
             "chairs",
             "created_at",
             "updated_at",
@@ -96,6 +113,24 @@ class FloorPlanSerializer(serializers.ModelSerializer[FloorPlan]):
         if len(value) > MAX_ELEMENTS:
             raise serializers.ValidationError(f"{MAX_ELEMENTS} éléments au plus par croquis.")
         return [clean_element(raw) for raw in value]
+
+    def validate_ambiance(self, value: Any) -> dict[str, Any]:
+        if not isinstance(value, dict):
+            raise serializers.ValidationError("Ambiance attendue sous forme d’objet.")
+        cleaned: dict[str, Any] = dict(DEFAULT_AMBIANCE)
+        for key, allowed in AMBIANCE.items():
+            if key in value:
+                if value[key] not in allowed:
+                    raise serializers.ValidationError(f"« {key} » inconnu : {value[key]}.")
+                cleaned[key] = value[key]
+        if "height" in value:
+            cleaned["height"] = _number(value["height"], "height", low=2, high=20)
+        return cleaned
+
+    def to_representation(self, instance: FloorPlan) -> dict[str, Any]:
+        data = super().to_representation(instance)
+        data["ambiance"] = {**DEFAULT_AMBIANCE, **(instance.ambiance or {})}
+        return data
 
     def get_chairs(self, plan: FloorPlan) -> int:
         """Places to sit: single chairs, plus the seats of tables and rows."""

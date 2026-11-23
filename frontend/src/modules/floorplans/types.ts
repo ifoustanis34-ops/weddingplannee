@@ -13,6 +13,14 @@ export type ElementType =
   | 'decor'
   | 'pillar'
   | 'text'
+  | 'head_table'
+  | 'cocktail'
+  | 'cake'
+  | 'lounge'
+  | 'photobooth'
+  | 'plant'
+  | 'chandelier'
+  | 'screen'
 
 export interface PlanElement {
   id: string
@@ -30,6 +38,23 @@ export interface PlanElement {
   seats: number
 }
 
+/** How the room looks in 3D (feedback 23/11/2026). */
+export interface Ambiance {
+  floor: 'tiles' | 'parquet' | 'marble' | 'concrete' | 'grass' | 'carpet'
+  /** `none`: outdoors (garden, beach). */
+  walls: 'white' | 'cream' | 'grey' | 'none'
+  light: 'day' | 'evening'
+  /** Metres under the ceiling. */
+  height: number
+}
+
+export const DEFAULT_AMBIANCE: Ambiance = {
+  floor: 'tiles',
+  walls: 'white',
+  light: 'day',
+  height: 3,
+}
+
 export interface FloorPlan {
   id: string
   name: string
@@ -40,6 +65,7 @@ export interface FloorPlan {
   width: number
   elements: PlanElement[]
   notes: string
+  ambiance: Ambiance
   /** Places to sit (server count). */
   chairs: number
   createdAt: string
@@ -49,4 +75,4 @@ export interface FloorPlan {
 export type FloorPlanInput = Pick<
   FloorPlan,
   'name' | 'venue' | 'length' | 'width' | 'elements' | 'notes'
->
+> & { ambiance?: Ambiance }

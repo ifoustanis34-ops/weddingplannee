@@ -21,6 +21,8 @@ class FloorPlan(TenantModel):
     # [{id, type, x, y, w, h, rotation, label, seats}] — see serializers.ELEMENT_TYPES.
     elements = models.JSONField(default=list, blank=True)
     notes = models.TextField(blank=True)
+    # {floor, walls, light, height}: how the room looks in 3D (serializers.AMBIANCE).
+    ambiance = models.JSONField(default=dict, blank=True)
 
     class Meta(TenantModel.Meta):
         ordering = ["-updated_at"]

@@ -7,10 +7,11 @@ import { whatsappHref } from '@/app/support'
  * sends the message itself (CLAUDE.md §2: no WhatsApp Business API yet): it opens the planner's
  * own app with the document and a ready message, the planner presses « Envoyer ».
  *
- * - `whatsapp`: on a phone the PDF is attached through the share sheet (WhatsApp, then the
- *   contact); on a computer the PDF is downloaded and the client's chat opens with the message.
+ * - `whatsapp`: on a phone the PDF alone goes through the share sheet (WhatsApp, then the
+ *   contact); on a computer the PDF is downloaded and the client's chat opens, empty, to drop it in.
+ *   Without a document (none today), the message opens in the chat.
  * - `any` (« Partager »): the same share sheet, open to every app (email, Telegram, Drive…); on a
- *   computer the PDF is downloaded and the message copied.
+ *   computer the PDF is downloaded.
  *
  * A phone refuses the share sheet when preparing the PDF took too long after the tap: the file
  * then waits in `readyShare`, and `ShareReady.vue` offers one more tap to send it.
@@ -51,7 +52,7 @@ function canShareFiles(): boolean {
 export function whatsappUrl(phone: string | null | undefined, text: string): string {
   const digits = (phone ?? '').replace(/\D/g, '')
   const base = digits.length >= 8 ? whatsappHref(digits) : 'https://wa.me/'
-  return `${base}?text=${encodeURIComponent(text)}`
+  return text ? `${base}?text=${encodeURIComponent(text)}` : base
 }
 
 export function downloadBlob(blob: Blob, filename: string): void {
@@ -91,20 +92,20 @@ export function useWhatsApp() {
     const tab = !sheet && target === 'whatsapp' ? window.open('about:blank', '_blank') : null
     pending.value = true
     try {
-      const text = await options.text()
+      // With a document, only the document leaves (feedback 23/11/2026: « le PDF, sans autre
+      // message »). `text()` still runs: it may prepare the document (save, mark as sent).
+      const prepared = await options.text()
+      const text = options.file ? '' : prepared
       if (sheet && options.file) {
         const blob = await options.file()
         const file = new File([blob], filename, { type: blob.type || PDF })
-        const result = await openShareSheet(
-          { files: [file], text, title: options.title ?? filename },
-          filename,
-        )
+        const result = await openShareSheet({ files: [file] }, filename)
         return result === 'cancelled' ? false : result
       }
       if (options.file) downloadBlob(await options.file(), filename)
       if (target === 'any') {
-        // No share sheet (computer): the document is saved, the message ready to paste.
-        await navigator.clipboard?.writeText(text).catch(() => undefined)
+        // No share sheet (computer): the document is saved, ready to attach.
+        if (text) await navigator.clipboard?.writeText(text).catch(() => undefined)
         return 'downloaded'
       }
       const url = whatsappUrl(options.phone, text)

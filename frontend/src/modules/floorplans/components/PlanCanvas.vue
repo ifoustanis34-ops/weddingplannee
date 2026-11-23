@@ -257,6 +257,17 @@ function background(): void {
         stroke-width="1.5"
         vector-effect="non-scaling-stroke"
       />
+      <circle
+        v-else-if="ELEMENTS[element.type].round"
+        :cx="element.w / 2"
+        :cy="element.h / 2"
+        :r="Math.min(element.w, element.h) / 2"
+        :fill="ELEMENTS[element.type].fill"
+        :stroke="ELEMENTS[element.type].stroke"
+        stroke-width="1.5"
+        vector-effect="non-scaling-stroke"
+        :stroke-dasharray="element.type === 'chandelier' ? '4 3' : undefined"
+      />
       <g v-else-if="element.type === 'chair'">
         <rect
           :width="element.w"

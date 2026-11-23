@@ -14,6 +14,8 @@ export interface ElementSpec {
   seated?: boolean
   /** Fixed proportions (a round table stays round). */
   square?: boolean
+  /** Drawn as a circle in 2D. */
+  round?: boolean
 }
 
 export const PAPER = {
@@ -51,6 +53,21 @@ export const ELEMENTS: Record<ElementType, ElementSpec> = {
   decor: { w: 2.5, h: 0.6, fill: '#fce6f1', stroke: '#c42c7e' },
   pillar: { w: 0.5, h: 0.5, fill: '#4a4769', stroke: '#17153b', square: true },
   text: { w: 3, h: 0.6, fill: 'none', stroke: 'none' },
+  head_table: {
+    w: 5,
+    h: 0.9,
+    seats: 6,
+    fill: '#ffffff',
+    stroke: '#b97a0e',
+    seated: true,
+  },
+  cocktail: { w: 0.7, h: 0.7, fill: '#ffffff', stroke: '#4a4769', square: true, round: true },
+  cake: { w: 1.2, h: 1.2, fill: '#fdf2dc', stroke: '#b97a0e', square: true, round: true },
+  lounge: { w: 2.2, h: 0.9, fill: '#e9e6f4', stroke: '#5126c2' },
+  photobooth: { w: 2.5, h: 2, fill: '#fce6f1', stroke: '#c42c7e' },
+  plant: { w: 0.6, h: 0.6, fill: '#dff4ec', stroke: '#0e8f69', square: true, round: true },
+  chandelier: { w: 1.2, h: 1.2, fill: 'none', stroke: '#b97a0e', square: true, round: true },
+  screen: { w: 3, h: 0.25, fill: '#17153b', stroke: '#17153b' },
 }
 
 /** Order of the « Ajouter » palette. */
@@ -66,6 +83,14 @@ export const PALETTE: ElementType[] = [
   'dj',
   'decor',
   'entrance',
+  'head_table',
+  'cocktail',
+  'cake',
+  'lounge',
+  'photobooth',
+  'screen',
+  'plant',
+  'chandelier',
   'pillar',
   'text',
 ]
@@ -74,7 +99,8 @@ export const CHAIR = 0.45
 /** Room the chairs take around a table, to keep tables apart. */
 export const CHAIR_GAP = 0.15
 
-export const isTable = (type: ElementType) => type === 'round_table' || type === 'rect_table'
+export const isTable = (type: ElementType) =>
+  type === 'round_table' || type === 'rect_table' || type === 'head_table'
 
 /** Places to sit, as the server counts them. */
 export function seatCount(elements: PlanElement[]): number {
@@ -121,6 +147,14 @@ export function chairsOf(element: PlanElement): ChairSpot[] {
       ...side(top, -(CHAIR_GAP + CHAIR / 2), 0),
       ...side(bottom, element.h + CHAIR_GAP + CHAIR / 2, 180),
     ]
+  }
+  if (element.type === 'head_table') {
+    // The guests of honour sit on one side, facing the room.
+    return Array.from({ length: n }, (_, i) => ({
+      x: (element.w * (i + 0.5)) / n,
+      y: -(CHAIR_GAP + CHAIR / 2),
+      rotation: 0,
+    }))
   }
   if (element.type === 'chair_row') {
     return Array.from({ length: n }, (_, i) => ({

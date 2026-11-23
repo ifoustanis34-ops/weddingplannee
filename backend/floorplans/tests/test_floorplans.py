@@ -89,3 +89,32 @@ def test_another_agency_cannot_see_the_plan(
     assert other.get(reverse("floorplan-list")).json() == []
     assert other.get(reverse("floorplan-detail", args=[plan["id"]])).status_code == 404
     assert other.delete(reverse("floorplan-detail", args=[plan["id"]])).status_code == 404
+
+
+def test_new_elements_and_the_ambiance_are_kept(
+    client_for: Callable[..., APIClient], owner_a: User, org_a: Organization
+) -> None:
+    client = client_for(owner_a, org_a)
+    body = {
+        **PLAN,
+        "elements": [
+            {"id": "h", "type": "head_table", "x": 2, "y": 1, "w": 5, "h": 0.9, "seats": 6},
+            {"id": "p", "type": "plant", "x": 1, "y": 1, "w": 0.6, "h": 0.6},
+        ],
+        "ambiance": {"floor": "parquet", "light": "evening"},
+    }
+
+    created = client.post(reverse("floorplan-list"), body, format="json")
+    refused = client.post(
+        reverse("floorplan-list"), {**body, "ambiance": {"floor": "lava"}}, format="json"
+    )
+
+    assert created.status_code == 201, created.json()
+    assert created.json()["chairs"] == 6
+    assert created.json()["ambiance"] == {
+        "floor": "parquet",
+        "walls": "white",
+        "light": "evening",
+        "height": 3.0,
+    }
+    assert refused.status_code == 400

@@ -18,7 +18,7 @@ import { toApiError } from '@/api/errors'
 import { usePermissions } from '@/composables/usePermissions'
 import { useToast } from '@/composables/useToast'
 import { useWhatsApp } from '@/composables/useWhatsApp'
-import { WButton, WCard, WEmptyState, WInput, WModal, WTextarea } from '@/design'
+import { WButton, WCard, WEmptyState, WInput, WModal, WSelect, WTextarea } from '@/design'
 
 import { floorPlansApi, useFloorPlan, useFloorPlanAction } from '../api'
 import PlanCanvas from '../components/PlanCanvas.vue'
@@ -26,7 +26,13 @@ import PlanCanvas from '../components/PlanCanvas.vue'
 const Plan3D = defineAsyncComponent(() => import('../components/Plan3D.vue'))
 import { ELEMENTS, isTable, metres, newId, PALETTE, round, seatCount } from '../elements'
 import { planToPng } from '../image'
-import type { ElementType, FloorPlanInput, PlanElement } from '../types'
+import {
+  type Ambiance,
+  DEFAULT_AMBIANCE,
+  type ElementType,
+  type FloorPlanInput,
+  type PlanElement,
+} from '../types'
 
 /**
  * « Croquis » (feedback 20/11/2026): the planner enters the length and the width of the venue,
@@ -43,13 +49,14 @@ const editable = computed(() => can('editWeddings'))
 const planId = computed(() => String(route.params.id))
 const plan = useFloorPlan(planId)
 
-const draft = ref<FloorPlanInput>({
+const draft = ref<FloorPlanInput & { ambiance: Ambiance }>({
   name: '',
   venue: '',
   length: 20,
   width: 12,
   elements: [],
   notes: '',
+  ambiance: { ...DEFAULT_AMBIANCE },
 })
 const saved = ref('')
 // Undo: the elements before each change.
@@ -67,6 +74,7 @@ watch(
       width: value.width,
       elements: value.elements.map((e) => ({ ...e })),
       notes: value.notes,
+      ambiance: { ...DEFAULT_AMBIANCE, ...(value.ambiance ?? {}) },
     }
     saved.value = JSON.stringify(draft.value)
     history.length = 0
@@ -96,6 +104,9 @@ const selected = computed(() => draft.value.elements.find((e) => e.id === select
 const seats = computed(() => seatCount(draft.value.elements))
 const tables = computed(() => draft.value.elements.filter((e) => isTable(e.type)).length)
 
+/** Guest tables get a number (T1, T2…); the head table keeps its name. */
+const numbered = (type: ElementType) => isTable(type) && type !== 'head_table'
+
 function add(type: ElementType): void {
   const spec = ELEMENTS[type]
   remember()
@@ -103,7 +114,7 @@ function add(type: ElementType): void {
   const w = Math.min(spec.w, draft.value.length)
   const h = Math.min(spec.h, draft.value.width)
   const shift = (draft.value.elements.length % 6) * 0.4
-  const tableNumber = draft.value.elements.filter((e) => isTable(e.type)).length + 1
+  const tableNumber = draft.value.elements.filter((e) => numbered(e.type)).length + 1
   const element: PlanElement = {
     id: newId(),
     type,
@@ -112,7 +123,7 @@ function add(type: ElementType): void {
     w,
     h,
     rotation: 0,
-    label: isTable(type) ? `T${tableNumber}` : type === 'text' ? t('floorplans.types.text') : '',
+    label: numbered(type) ? `T${tableNumber}` : type === 'text' ? t('floorplans.types.text') : '',
     seats: spec.seats ?? 0,
   }
   draft.value.elements.push(element)
@@ -160,8 +171,8 @@ function duplicate(): void {
     x: round(selected.value.x + 0.5),
     y: round(selected.value.y + 0.5),
   }
-  if (isTable(copy.type)) {
-    copy.label = `T${draft.value.elements.filter((e) => isTable(e.type)).length + 1}`
+  if (numbered(copy.type)) {
+    copy.label = `T${draft.value.elements.filter((e) => numbered(e.type)).length + 1}`
   }
   draft.value.elements.push(copy)
   selectedId.value = copy.id
@@ -245,6 +256,18 @@ async function confirmDelete(): Promise<void> {
   }
 }
 onBeforeRouteLeave(() => !dirty.value || window.confirm(t('floorplans.leaveUnsaved')))
+
+// « Ambiance » of the 3D view: floor, walls (or outdoors), day or evening, ceiling height.
+const AMBIANCE_CHOICES = {
+  floor: ['tiles', 'parquet', 'marble', 'concrete', 'carpet', 'grass'],
+  walls: ['white', 'cream', 'grey', 'none'],
+  light: ['day', 'evening'],
+} as const
+const ambianceOptions = (key: keyof typeof AMBIANCE_CHOICES) =>
+  AMBIANCE_CHOICES[key].map((value) => ({
+    value,
+    label: t(`floorplans.ambiance.${key}.${value}`),
+  }))
 
 // Elements outside a room that was made smaller.
 const outside = computed(
@@ -458,6 +481,7 @@ async function shareImage(): Promise<void> {
             :length="draft.length"
             :width="draft.width"
             :elements="draft.elements"
+            :ambiance="draft.ambiance"
           />
         </div>
         <div v-else class="overflow-hidden rounded-wd border border-line shadow-[var(--shadow)]">
@@ -590,6 +614,32 @@ async function shareImage(): Promise<void> {
         </WCard>
         <WCard v-else-if="editable">
           <p class="text-[13px] text-muted">{{ t('floorplans.selectHint') }}</p>
+        </WCard>
+
+        <WCard>
+          <h2 class="text-[15px] font-semibold">{{ t('floorplans.ambiance.title') }}</h2>
+          <div class="mt-3 flex flex-col gap-3">
+            <WSelect
+              v-for="key in ['floor', 'walls', 'light'] as const"
+              :key="key"
+              v-model="draft.ambiance[key]"
+              :options="ambianceOptions(key)"
+              :label="t(`floorplans.ambiance.${key}.label`)"
+              :disabled="!editable"
+            />
+            <WInput
+              v-if="draft.ambiance.walls !== 'none'"
+              v-model.number="draft.ambiance.height"
+              type="number"
+              min="2"
+              max="20"
+              step="0.5"
+              inputmode="decimal"
+              addon="m"
+              :label="t('floorplans.ambiance.height')"
+              :disabled="!editable"
+            />
+          </div>
         </WCard>
 
         <WCard>

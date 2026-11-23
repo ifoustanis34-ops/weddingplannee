@@ -513,7 +513,9 @@ async function shareQuote(target: 'whatsapp' | 'any'): Promise<void> {
   try {
     const result =
       target === 'whatsapp' ? await whatsapp.share(options) : await whatsapp.shareAnywhere(options)
-    if (result === 'downloaded') toast.success(t('quotes.pdfDownloadedMessageCopied'))
+    if (result === 'downloaded') toast.success(t('quotes.pdfDownloaded'))
+    else if (result === 'shared' && !whatsapp.canShareFiles() && target === 'whatsapp')
+      toast.info(t('quotes.pdfDropInChat'))
   } catch (error) {
     if (error !== NOT_SAVED) toast.error(toApiError(error).message)
   } finally {

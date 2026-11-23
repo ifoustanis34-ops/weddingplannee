@@ -42,7 +42,7 @@ export default {
   },
   share: {
     readyTitle: 'Document prêt',
-    readyText: 'Touchez « Envoyer » pour choisir WhatsApp ou une autre application.',
+    readyText: 'Touchez « Envoyer », choisissez WhatsApp puis le client : seul le PDF part.',
     send: 'Envoyer',
     failed: 'Le partage n’a pas abouti. Réessayez.',
   },
@@ -125,11 +125,36 @@ export default {
     view3d: {
       overview: 'Vue d’ensemble',
       top: 'Vue de dessus',
-      guest: 'À hauteur d’invité',
       walls: 'Murs',
+      enter: 'Entrer dans la salle',
+      leave: 'Sortir',
       help: 'Glissez pour tourner · pincez ou molette pour zoomer · deux doigts pour déplacer',
+      walkHelp:
+        'Glissez pour regarder autour · flèches pour marcher (clavier : flèches ou ZQSD, Maj pour aller plus vite)',
+      pad: { forward: 'Avancer', back: 'Reculer', left: 'Pas à gauche', right: 'Pas à droite' },
       unsupported:
         'La vue 3D n’est pas disponible sur cet appareil (WebGL désactivé). Le plan 2D reste utilisable.',
+    },
+    ambiance: {
+      title: 'Ambiance (vue 3D)',
+      height: 'Hauteur sous plafond',
+      floor: {
+        label: 'Sol',
+        tiles: 'Carrelage',
+        parquet: 'Parquet',
+        marble: 'Marbre',
+        concrete: 'Béton ciré',
+        carpet: 'Moquette',
+        grass: 'Gazon (extérieur)',
+      },
+      walls: {
+        label: 'Murs',
+        white: 'Blancs',
+        cream: 'Crème',
+        grey: 'Gris perle',
+        none: 'Pas de murs (plein air)',
+      },
+      light: { label: 'Lumière', day: 'Jour', evening: 'Soirée (lumières chaudes)' },
     },
     form: {
       name: 'Nom du croquis',
@@ -165,6 +190,14 @@ export default {
       decor: 'Décor / arche',
       pillar: 'Poteau',
       text: 'Texte',
+      head_table: 'Table d’honneur',
+      cocktail: 'Mange-debout',
+      cake: 'Table du gâteau',
+      lounge: 'Salon / canapé',
+      photobooth: 'Photobooth',
+      plant: 'Plante',
+      chandelier: 'Lustre',
+      screen: 'Écran',
     },
   },
   theme: {
@@ -828,8 +861,9 @@ export default {
     whatsapp: 'Envoyer sur WhatsApp',
     sharePdf: 'Partager le PDF',
     shareTitle: 'Devis',
-    pdfDownloadedMessageCopied:
-      'PDF téléchargé et message copié : joignez-le dans l’application de votre choix.',
+    pdfDownloaded: 'PDF téléchargé : joignez-le dans l’application de votre choix.',
+    pdfDropInChat:
+      'PDF téléchargé : glissez-le dans la discussion WhatsApp qui vient de s’ouvrir. Sur téléphone, il part directement.',
     whatsappMessage:
       'Bonjour {name},\n\nVoici notre devis {number} d’un montant de {total}.\nConsultez-le, téléchargez le PDF et donnez votre réponse en ligne :\n{url}\n\nCe devis est valable jusqu’au {date}.\n\nBien cordialement,\n{organization}',
     duplicate: 'Dupliquer',

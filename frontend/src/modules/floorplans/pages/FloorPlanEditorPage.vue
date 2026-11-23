@@ -10,7 +10,7 @@ import {
   Trash2,
   Undo2,
 } from '@lucide/vue'
-import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
+import { computed, defineAsyncComponent, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { onBeforeRouteLeave, useRoute, useRouter } from 'vue-router'
 
@@ -22,6 +22,8 @@ import { WButton, WCard, WEmptyState, WInput, WModal, WTextarea } from '@/design
 
 import { floorPlansApi, useFloorPlan, useFloorPlanAction } from '../api'
 import PlanCanvas from '../components/PlanCanvas.vue'
+// three.js is large: the 3D view loads only when it is opened.
+const Plan3D = defineAsyncComponent(() => import('../components/Plan3D.vue'))
 import { ELEMENTS, isTable, metres, newId, PALETTE, round, seatCount } from '../elements'
 import { planToPng } from '../image'
 import type { ElementType, FloorPlanInput, PlanElement } from '../types'
@@ -254,15 +256,22 @@ const outside = computed(
 
 // --- Image and WhatsApp ----------------------------------------------------------------------
 const canvas = ref<{ svg: SVGSVGElement | null } | null>(null)
+/** « Plan 2D » to draw, « Vue 3D » to see the room as the guests will (feedback 23/11/2026). */
+const mode = ref<'2d' | '3d'>('2d')
+const scene = ref<{ snapshot: () => Promise<Blob> } | null>(null)
 const filename = computed(
   () =>
-    `croquis-${(draft.value.name || 'plan')
+    `croquis-${mode.value === '3d' ? '3d-' : ''}${(draft.value.name || 'plan')
       .normalize('NFD')
       .replace(/[̀-ͯ]/g, '')
       .replace(/[^a-zA-Z0-9]+/g, '-')
       .toLowerCase()}.png`,
 )
 async function image(): Promise<Blob> {
+  if (mode.value === '3d') {
+    if (!scene.value) throw new Error(t('floorplans.imageError'))
+    return scene.value.snapshot()
+  }
   selectedId.value = null
   await new Promise((resolve) => requestAnimationFrame(resolve))
   if (!canvas.value?.svg) throw new Error(t('floorplans.imageError'))
@@ -423,7 +432,35 @@ async function shareImage(): Promise<void> {
 
       <!-- The plan -->
       <section class="flex min-w-0 flex-col gap-2">
-        <div class="overflow-hidden rounded-wd border border-line shadow-[var(--shadow)]">
+        <div
+          class="flex gap-1 self-start rounded-[10px] border border-line bg-surface p-1"
+          role="tablist"
+        >
+          <button
+            v-for="option in ['2d', '3d'] as const"
+            :key="option"
+            type="button"
+            role="tab"
+            :aria-selected="mode === option"
+            class="rounded-[8px] px-3 py-1.5 text-[13px] font-bold"
+            :class="mode === option ? 'bg-violet text-violet-ink' : 'text-ink-2 hover:text-violet'"
+            @click="mode = option"
+          >
+            {{ t(`floorplans.modes.${option}`) }}
+          </button>
+        </div>
+        <div
+          v-if="mode === '3d'"
+          class="overflow-hidden rounded-wd border border-line shadow-[var(--shadow)]"
+        >
+          <Plan3D
+            ref="scene"
+            :length="draft.length"
+            :width="draft.width"
+            :elements="draft.elements"
+          />
+        </div>
+        <div v-else class="overflow-hidden rounded-wd border border-line shadow-[var(--shadow)]">
           <PlanCanvas
             ref="canvas"
             :name="draft.name"

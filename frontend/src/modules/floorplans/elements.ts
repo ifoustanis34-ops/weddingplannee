@@ -117,8 +117,9 @@ export function chairsOf(element: PlanElement): ChairSpot[] {
         rotation,
       }))
     return [
-      ...side(top, -(CHAIR_GAP + CHAIR / 2), 180),
-      ...side(bottom, element.h + CHAIR_GAP + CHAIR / 2, 0),
+      // The back of each chair away from the table (as around a round table).
+      ...side(top, -(CHAIR_GAP + CHAIR / 2), 0),
+      ...side(bottom, element.h + CHAIR_GAP + CHAIR / 2, 180),
     ]
   }
   if (element.type === 'chair_row') {

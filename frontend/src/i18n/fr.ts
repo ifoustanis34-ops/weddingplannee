@@ -40,6 +40,12 @@ export default {
     orderMessage:
       'Bonjour {name},\n\nVoici notre bon de commande pour la réservation {number}. Merci de nous confirmer la disponibilité.\n\nBien cordialement.',
   },
+  share: {
+    readyTitle: 'Document prêt',
+    readyText: 'Touchez « Envoyer » pour choisir WhatsApp ou une autre application.',
+    send: 'Envoyer',
+    failed: 'Le partage n’a pas abouti. Réessayez.',
+  },
   offline: {
     title: 'Mode hors ligne',
     offline: 'Hors ligne',
@@ -115,6 +121,16 @@ export default {
     imageError: 'L’image du croquis n’a pas pu être produite.',
     whatsappMessage:
       'Bonjour,\n\nVoici le croquis « {name} »{venue} : salle de {length} × {width}, {seats} places assises.\n\nBien cordialement.',
+    modes: { '2d': 'Plan 2D', '3d': 'Vue 3D' },
+    view3d: {
+      overview: 'Vue d’ensemble',
+      top: 'Vue de dessus',
+      guest: 'À hauteur d’invité',
+      walls: 'Murs',
+      help: 'Glissez pour tourner · pincez ou molette pour zoomer · deux doigts pour déplacer',
+      unsupported:
+        'La vue 3D n’est pas disponible sur cet appareil (WebGL désactivé). Le plan 2D reste utilisable.',
+    },
     form: {
       name: 'Nom du croquis',
       namePlaceholder: 'Ex. Mariage Grâce & Yannick — dîner',
@@ -810,6 +826,10 @@ export default {
     copyLink: 'Copier le lien client',
     linkCopied: 'Lien copié.',
     whatsapp: 'Envoyer sur WhatsApp',
+    sharePdf: 'Partager le PDF',
+    shareTitle: 'Devis',
+    pdfDownloadedMessageCopied:
+      'PDF téléchargé et message copié : joignez-le dans l’application de votre choix.',
     whatsappMessage:
       'Bonjour {name},\n\nVoici notre devis {number} d’un montant de {total}.\nConsultez-le, téléchargez le PDF et donnez votre réponse en ligne :\n{url}\n\nCe devis est valable jusqu’au {date}.\n\nBien cordialement,\n{organization}',
     duplicate: 'Dupliquer',

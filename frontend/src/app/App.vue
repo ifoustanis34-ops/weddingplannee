@@ -3,6 +3,7 @@ import { useQueryClient } from '@tanstack/vue-query'
 import { type Component, computed, watch } from 'vue'
 import { useRoute } from 'vue-router'
 
+import ShareReady from '@/components/ShareReady.vue'
 import { WToast } from '@/design'
 import { usePreferencesStore } from '@/stores/preferences'
 import { useSessionStore } from '@/stores/session'
@@ -39,4 +40,5 @@ watch(
   </component>
   <RouterView v-else />
   <WToast />
+  <ShareReady />
 </template>

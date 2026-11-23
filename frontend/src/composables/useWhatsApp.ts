@@ -1,18 +1,21 @@
-import { ref } from 'vue'
+import { ref, shallowRef } from 'vue'
 
 import { whatsappHref } from '@/app/support'
 
 /**
- * « Envoyer sur WhatsApp » (feedback 20/11/2026) for quotes, invoices and slips. Wedivo never sends
- * the message itself (CLAUDE.md §2: no WhatsApp Business API yet): it opens the planner's own
- * WhatsApp with a ready message, the planner presses « Envoyer ».
+ * Sharing a document (feedback 20 and 23/11/2026): quotes, invoices, slips, plans. Wedivo never
+ * sends the message itself (CLAUDE.md §2: no WhatsApp Business API yet): it opens the planner's
+ * own app with the document and a ready message, the planner presses « Envoyer ».
  *
- * - With a document and a phone able to share files (Android, iOS): the PDF is attached through
- *   the share sheet, where the planner picks WhatsApp then the contact.
- * - Otherwise (computer): the PDF is downloaded and the client's chat opens with the message; the
- *   planner drops the file in it.
+ * - `whatsapp`: on a phone the PDF is attached through the share sheet (WhatsApp, then the
+ *   contact); on a computer the PDF is downloaded and the client's chat opens with the message.
+ * - `any` (« Partager »): the same share sheet, open to every app (email, Telegram, Drive…); on a
+ *   computer the PDF is downloaded and the message copied.
+ *
+ * A phone refuses the share sheet when preparing the PDF took too long after the tap: the file
+ * then waits in `readyShare`, and `ShareReady.vue` offers one more tap to send it.
  */
-export interface WhatsAppShare {
+export interface DocumentShare {
   /** The recipient's number, any format (« +237 6 99 00 00 00 »); empty opens the contact list. */
   phone?: string | null
   /** The message; may do an async step first (e.g. mark a quote as sent to get its link). */
@@ -20,9 +23,18 @@ export interface WhatsAppShare {
   /** The document to attach (PDF, or the PNG of a plan), fetched on click. */
   file?: () => Promise<Blob>
   filename?: string
+  /** Title of the share sheet (some apps use it as the email subject). */
+  title?: string
 }
+/** Kept for the existing callers. */
+export type WhatsAppShare = DocumentShare
+
+export type ShareResult = 'shared' | 'cancelled' | 'downloaded' | 'pending'
 
 const PDF = 'application/pdf'
+
+/** A document ready to share, waiting for one more tap (see `ShareReady.vue`). */
+export const readyShare = shallowRef<{ data: ShareData; filename: string } | null>(null)
 
 function canShareFiles(): boolean {
   try {
@@ -42,7 +54,7 @@ export function whatsappUrl(phone: string | null | undefined, text: string): str
   return `${base}?text=${encodeURIComponent(text)}`
 }
 
-function download(blob: Blob, filename: string): void {
+export function downloadBlob(blob: Blob, filename: string): void {
   const href = URL.createObjectURL(blob)
   const link = document.createElement('a')
   link.href = href
@@ -51,30 +63,50 @@ function download(blob: Blob, filename: string): void {
   setTimeout(() => URL.revokeObjectURL(href), 60_000)
 }
 
+/** Opens the share sheet; `pending` when the phone wants one more tap. */
+export async function openShareSheet(data: ShareData, filename: string): Promise<ShareResult> {
+  try {
+    await navigator.share(data)
+    return 'shared'
+  } catch (error) {
+    if (error instanceof DOMException && error.name === 'AbortError') return 'cancelled'
+    if (error instanceof DOMException && error.name === 'NotAllowedError') {
+      readyShare.value = { data, filename }
+      return 'pending'
+    }
+    throw error
+  }
+}
+
 export function useWhatsApp() {
   const pending = ref(false)
 
-  /** Resolves false when the planner closed the share sheet; throws the API errors. */
-  async function share(options: WhatsAppShare): Promise<boolean> {
+  async function run(
+    options: DocumentShare,
+    target: 'whatsapp' | 'any',
+  ): Promise<ShareResult | false> {
     const filename = options.filename ?? 'document.pdf'
     const sheet = Boolean(options.file) && canShareFiles()
-    // The tab is opened during the click, before any await, or the browser blocks it.
-    const tab = sheet ? null : window.open('about:blank', '_blank')
+    // A new tab is opened during the tap, before any await, or the browser blocks it.
+    const tab = !sheet && target === 'whatsapp' ? window.open('about:blank', '_blank') : null
     pending.value = true
     try {
       const text = await options.text()
       if (sheet && options.file) {
         const blob = await options.file()
-        try {
-          const type = blob.type || PDF
-          await navigator.share({ files: [new File([blob], filename, { type })], text })
-        } catch (error) {
-          if (error instanceof DOMException && error.name === 'AbortError') return false
-          throw error
-        }
-        return true
+        const file = new File([blob], filename, { type: blob.type || PDF })
+        const result = await openShareSheet(
+          { files: [file], text, title: options.title ?? filename },
+          filename,
+        )
+        return result === 'cancelled' ? false : result
       }
-      if (options.file) download(await options.file(), filename)
+      if (options.file) downloadBlob(await options.file(), filename)
+      if (target === 'any') {
+        // No share sheet (computer): the document is saved, the message ready to paste.
+        await navigator.clipboard?.writeText(text).catch(() => undefined)
+        return 'downloaded'
+      }
       const url = whatsappUrl(options.phone, text)
       if (tab) {
         tab.opener = null
@@ -82,7 +114,7 @@ export function useWhatsApp() {
       } else {
         window.location.href = url
       }
-      return true
+      return 'shared'
     } catch (error) {
       tab?.close()
       throw error
@@ -91,5 +123,12 @@ export function useWhatsApp() {
     }
   }
 
-  return { share, pending }
+  return {
+    /** To WhatsApp; resolves false when the planner closed the share sheet. */
+    share: (options: DocumentShare) => run(options, 'whatsapp'),
+    /** To any app (« Partager »). */
+    shareAnywhere: (options: DocumentShare) => run(options, 'any'),
+    canShareFiles,
+    pending,
+  }
 }

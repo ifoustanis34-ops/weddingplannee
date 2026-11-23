@@ -10,6 +10,7 @@ import {
   Plus,
   Save,
   Send,
+  Share2,
   Trash2,
   X,
 } from '@lucide/vue'
@@ -469,32 +470,54 @@ async function openPdf(): Promise<void> {
 }
 onBeforeUnmount(() => pdfUrl && URL.revokeObjectURL(pdfUrl))
 
-// « Envoyer sur WhatsApp » (feedback 20/11/2026): saves, marks the quote as sent (no email, the
-// version is frozen), then opens the client's chat with the message and the public link.
+// « Envoyer sur WhatsApp » / « Partager le PDF » (feedback 20 and 23/11/2026): saves, marks the
+// quote as sent (no email, the version is frozen), then hands the PDF and a message with the
+// public link to WhatsApp or to any app of the phone.
 const whatsapp = useWhatsApp()
+const sharing = ref<'whatsapp' | 'any' | null>(null)
 const NOT_SAVED = new Error('not saved') // save() has already shown why
-async function shareWhatsApp(): Promise<void> {
+let shared: Quote | null = null
+async function shareQuote(target: 'whatsapp' | 'any'): Promise<void> {
+  sharing.value = target
+  shared = null
+  const options = {
+    phone: client.value?.phone,
+    text: async () => {
+      let result = current.value ?? null
+      if (!locked.value) {
+        if ((dirty.value || !quoteId.value) && !(result = await save(true))) throw NOT_SAVED
+        result = await send.mutateAsync({ id: result!.id, channel: 'whatsapp' })
+      }
+      shared = result
+      return t('quotes.whatsappMessage', {
+        name: result!.clientDetail?.name ?? '',
+        number: result!.number,
+        total: formatMoney(result!.total),
+        date: formatDate(result!.validUntil),
+        url: result!.publicUrl ?? '',
+        organization: organization.data.value?.name ?? '',
+      })
+    },
+    // The PDF of the version sent (frozen once, reused while nothing changes).
+    file: async () => {
+      const document = await quotesApi.generate(shared!.id)
+      return (
+        await api.get<Blob>(document.pdfUrl.replace(/^\/api\/v1/, ''), { responseType: 'blob' })
+      ).data
+    },
+    get filename() {
+      return `${shared?.number || current.value?.number || 'devis'}.pdf`
+    },
+    title: t('quotes.shareTitle'),
+  }
   try {
-    await whatsapp.share({
-      phone: client.value?.phone,
-      text: async () => {
-        let result = current.value ?? null
-        if (!locked.value) {
-          if ((dirty.value || !quoteId.value) && !(result = await save(true))) throw NOT_SAVED
-          result = await send.mutateAsync({ id: result!.id, channel: 'whatsapp' })
-        }
-        return t('quotes.whatsappMessage', {
-          name: result!.clientDetail?.name ?? '',
-          number: result!.number,
-          total: formatMoney(result!.total),
-          date: formatDate(result!.validUntil),
-          url: result!.publicUrl ?? '',
-          organization: organization.data.value?.name ?? '',
-        })
-      },
-    })
+    const result =
+      target === 'whatsapp' ? await whatsapp.share(options) : await whatsapp.shareAnywhere(options)
+    if (result === 'downloaded') toast.success(t('quotes.pdfDownloadedMessageCopied'))
   } catch (error) {
     if (error !== NOT_SAVED) toast.error(toApiError(error).message)
+  } finally {
+    sharing.value = null
   }
 }
 
@@ -581,10 +604,20 @@ const pageTitle = computed(() => {
             <WButton
               v-if="!locked || current?.publicUrl"
               variant="secondary"
-              :loading="whatsapp.pending.value"
-              @click="shareWhatsApp"
+              :loading="sharing === 'whatsapp'"
+              :disabled="sharing !== null"
+              @click="shareQuote('whatsapp')"
             >
               <MessageCircle class="size-[18px]" aria-hidden="true" />{{ t('quotes.whatsapp') }}
+            </WButton>
+            <WButton
+              v-if="!locked || current?.publicUrl"
+              variant="secondary"
+              :loading="sharing === 'any'"
+              :disabled="sharing !== null"
+              @click="shareQuote('any')"
+            >
+              <Share2 class="size-[18px]" aria-hidden="true" />{{ t('quotes.sharePdf') }}
             </WButton>
             <WButton v-if="!locked" :loading="saving && !quoteId" @click="openSend">
               <Send class="size-[18px]" aria-hidden="true" />{{

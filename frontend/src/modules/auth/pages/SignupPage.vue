@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import HoneypotField from '@/components/HoneypotField.vue'
 import { toTypedSchema } from '@/app/zodSchema'
 import { CircleCheck, LoaderCircle } from '@lucide/vue'
 import { type TypedSchema, useForm } from 'vee-validate'
@@ -201,7 +202,8 @@ async function submit(): Promise<void> {
       </li>
     </ol>
 
-    <form class="mt-6 flex flex-col gap-4" novalidate @submit="next">
+    <form class="relative mt-6 flex flex-col gap-4" novalidate @submit="next">
+      <HoneypotField />
       <template v-if="step === 0">
         <WInput
           v-model="companyName"

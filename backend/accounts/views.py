@@ -6,14 +6,14 @@ from typing import Any
 from django.conf import settings
 from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import ensure_csrf_cookie
-from drf_spectacular.utils import OpenApiResponse, extend_schema
-from rest_framework import status
+from drf_spectacular.utils import OpenApiResponse, extend_schema, inline_serializer
+from rest_framework import serializers, status
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.request import Request
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from core import audit
+from core import antibot, audit
 from core.audit import client_ip
 from core.exceptions import BusinessError
 from core.tenant import tenant_context
@@ -57,9 +57,22 @@ class CsrfView(PublicAPIView):
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 
+class FormTokenView(PublicAPIView):
+    """Dated, signed token the public forms send back (anti-bot, core/antibot.py)."""
+
+    @extend_schema(
+        responses=inline_serializer("FormToken", {"form_token": serializers.CharField()})
+    )
+    def get(self, request: Request) -> Response:
+        response = Response({"form_token": antibot.issue()})
+        response["Cache-Control"] = "no-store"
+        return response
+
+
 class SignupView(PublicAPIView):
     @extend_schema(request=SignupSerializer, responses={201: SessionSerializer})
     def post(self, request: Request) -> Response:
+        antibot.check(request.data, min_seconds=settings.ANTIBOT_MIN_SECONDS)
         serializer = SignupSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         user, _ = services.signup(
@@ -73,6 +86,7 @@ class SignupView(PublicAPIView):
 class LoginView(PublicAPIView):
     @extend_schema(request=LoginSerializer, responses={200: SessionSerializer})
     def post(self, request: Request) -> Response:
+        antibot.check(request.data)
         serializer = LoginSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         user = services.login(**serializer.validated_data, ip=client_ip(request))
@@ -190,6 +204,7 @@ class PasswordResetView(PublicAPIView):
         responses={204: OpenApiResponse(description="Toujours 204, que l’email existe ou non.")},
     )
     def post(self, request: Request) -> Response:
+        antibot.check(request.data, min_seconds=1)
         serializer = PasswordResetRequestSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         services.request_password_reset(serializer.validated_data["email"], ip=client_ip(request))

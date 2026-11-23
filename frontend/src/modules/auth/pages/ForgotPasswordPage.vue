@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import HoneypotField from '@/components/HoneypotField.vue'
 import { toTypedSchema } from '@/app/zodSchema'
 import { MailCheck } from '@lucide/vue'
 import { useForm } from 'vee-validate'
@@ -46,7 +47,8 @@ const onSubmit = handleSubmit(async (values) => {
     </div>
     <template v-else>
       <p class="mt-1 text-muted">{{ t('auth.forgot.subtitle') }}</p>
-      <form class="mt-8 flex flex-col gap-4" novalidate @submit="onSubmit">
+      <form class="relative mt-8 flex flex-col gap-4" novalidate @submit="onSubmit">
+        <HoneypotField />
         <WInput
           v-model="email"
           v-bind="emailAttrs"

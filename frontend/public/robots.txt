@@ -1,0 +1,3 @@
+# Wedivo is a private application: nothing to index.
+User-agent: *
+Disallow: /

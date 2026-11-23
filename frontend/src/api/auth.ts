@@ -1,4 +1,5 @@
 import { api } from './client'
+import { guardFields } from './formGuard'
 
 export type Role =
   | 'owner'
@@ -69,17 +70,19 @@ export const authApi = {
   changePassword: (currentPassword: string, newPassword: string) =>
     api.post('/auth/me/password', { currentPassword, newPassword }).then(() => undefined),
   finishTour: () => api.post('/auth/me/tour').then(() => undefined),
-  login: (email: string, password: string) =>
-    api.post<Session>('/auth/login', { email, password }).then((r) => r.data),
-  signup: (payload: SignupPayload) =>
-    api.post<Session>('/auth/signup', payload).then((r) => r.data),
+  login: async (email: string, password: string) =>
+    api
+      .post<Session>('/auth/login', { email, password, ...(await guardFields()) })
+      .then((r) => r.data),
+  signup: async (payload: SignupPayload) =>
+    api.post<Session>('/auth/signup', { ...payload, ...(await guardFields()) }).then((r) => r.data),
   logout: () => api.post('/auth/logout').then(() => undefined),
   slugAvailable: (params: { slug?: string; name?: string }) =>
     api.get<SlugAvailability>('/auth/slug-available', { params }).then((r) => r.data),
   verifyEmail: (token: string) => api.post('/auth/verify-email', { token }).then(() => undefined),
   resendVerification: () => api.post('/auth/verify-email/resend').then(() => undefined),
-  requestPasswordReset: (email: string) =>
-    api.post('/auth/password-reset', { email }).then(() => undefined),
+  requestPasswordReset: async (email: string) =>
+    api.post('/auth/password-reset', { email, ...(await guardFields()) }).then(() => undefined),
   confirmPasswordReset: (uid: string, token: string, password: string) =>
     api.post('/auth/password-reset/confirm', { uid, token, password }).then(() => undefined),
 }

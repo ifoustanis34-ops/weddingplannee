@@ -15,3 +15,10 @@ EMAIL_BACKEND = "django.core.mail.backends.locmem.EmailBackend"
 
 # Serve static files from app directories without a collectstatic run.
 WHITENOISE_AUTOREFRESH = True
+
+# Anti-bot: off by default in tests (its own tests turn it on); no global request limit.
+ANTIBOT_ENABLED = False
+REST_FRAMEWORK = {
+    **REST_FRAMEWORK,
+    "DEFAULT_THROTTLE_RATES": {"anon": "100000/min", "user": "100000/min"},
+}

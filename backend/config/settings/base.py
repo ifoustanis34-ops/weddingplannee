@@ -138,7 +138,20 @@ REST_FRAMEWORK = {
     "DEFAULT_PAGINATION_CLASS": "core.pagination.DefaultCursorPagination",
     "EXCEPTION_HANDLER": "core.exceptions.exception_handler",
     "DEFAULT_FILTER_BACKENDS": ["django_filters.rest_framework.DjangoFilterBackend"],
+    # Anti-bot (20/11/2026): limits a person never reaches, per address or per account.
+    "DEFAULT_THROTTLE_CLASSES": [
+        "core.throttling.VisitorThrottle",
+        "core.throttling.AccountThrottle",
+    ],
+    "DEFAULT_THROTTLE_RATES": {
+        "anon": env("API_RATE_ANON", default="240/min"),
+        "user": env("API_RATE_USER", default="1500/min"),
+    },
 }
+
+# Anti-bot of the public forms (core/antibot.py).
+ANTIBOT_ENABLED = env.bool("ANTIBOT_ENABLED", default=True)
+ANTIBOT_MIN_SECONDS = env.float("ANTIBOT_MIN_SECONDS", default=2.0)
 
 SIMPLE_JWT = {
     "ACCESS_TOKEN_LIFETIME": timedelta(minutes=15),

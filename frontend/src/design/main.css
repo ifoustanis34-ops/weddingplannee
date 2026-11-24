@@ -93,6 +93,11 @@
     padding: env(safe-area-inset-top, 0) env(safe-area-inset-right, 0)
       env(safe-area-inset-bottom, 0) env(safe-area-inset-left, 0);
   }
+  /* Layouts whose sticky top bar already keeps the room of the phone's status bar (AppLayout,
+     PlatformLayout): no second gap above it (feedback 24/11/2026). */
+  html.safe-top-bar body {
+    padding-top: 0;
+  }
   h1,
   h2,
   h3 {

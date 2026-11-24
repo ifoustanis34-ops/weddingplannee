@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { Menu } from '@lucide/vue'
-import { ref, watch } from 'vue'
+import { onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRoute, useRouter } from 'vue-router'
 
@@ -31,6 +31,10 @@ async function logout(): Promise<void> {
   toast.info(t('shell.loggedOut'))
   await router.push({ name: 'login' })
 }
+
+// The top bar keeps the room of the status bar itself: the page must not add it again.
+onMounted(() => document.documentElement.classList.add('safe-top-bar'))
+onBeforeUnmount(() => document.documentElement.classList.remove('safe-top-bar'))
 </script>
 
 <template>

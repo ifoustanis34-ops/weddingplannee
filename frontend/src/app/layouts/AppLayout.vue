@@ -167,6 +167,10 @@ onBeforeUnmount(() => {
 
 // Dates everywhere in the agency's time zone (set once the organization is loaded).
 useOrgTimezone()
+
+// The top bar keeps the room of the status bar itself: the page must not add it again.
+onMounted(() => document.documentElement.classList.add('safe-top-bar'))
+onBeforeUnmount(() => document.documentElement.classList.remove('safe-top-bar'))
 </script>
 
 <template>

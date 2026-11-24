@@ -29,6 +29,11 @@ export interface StaffMember {
   mobileMoney: string
   emergencyContact: string
   notes: string
+  /** Pay slip identity (feedback 24/11/2026); CNPS and « declared » for owner / accountant. */
+  cnpsNumber?: string
+  hireDate: string | null
+  category: string
+  declared?: boolean
   hasAccount: boolean
   isActive: boolean
   today: {
@@ -51,6 +56,10 @@ export type StaffInput = Partial<
     | 'emergencyContact'
     | 'notes'
     | 'isActive'
+    | 'cnpsNumber'
+    | 'hireDate'
+    | 'category'
+    | 'declared'
   >
 >
 
@@ -144,6 +153,21 @@ export interface MyOverview {
   }[]
 }
 
+/** A named line of a slip (feedback 24/11/2026): bonus, allowance, overtime, advance, loan… */
+export interface PayItem {
+  label: string
+  amount: number
+  kind: 'gain' | 'deduction'
+  /** Counts for contributions and taxes (gains). */
+  taxable: boolean
+}
+export interface Contribution {
+  code: string
+  label: string
+  base: number
+  rate: string
+  amount: number
+}
 export interface PayLine {
   id: string
   staff: string
@@ -151,12 +175,26 @@ export interface PayLine {
   position: string
   payMode: PayMode
   payRate: number
+  declared: boolean
   days: number
   missions: number
   hours: number
   base: number
+  items: PayItem[]
   bonuses: number
   advances: number
+  gross: number
+  slip: {
+    gross?: number
+    taxable?: number
+    employee?: Contribution[]
+    employer?: Contribution[]
+    withheld?: number
+    employerTotal?: number
+    otherDeductions?: number
+    net?: number
+  }
+  net: number
   alreadyPaid: number
   total: number
   paidAt: string | null
@@ -198,9 +236,18 @@ export interface StaffPayment {
   reservation: string | null
   reservationNumber: string | null
   date: string
+  base: number
+  items: PayItem[]
+  hours: number
   amount: number
   method: string
   note: string
+}
+export interface PayrollSettings {
+  contributionsEnabled: boolean
+  employerCnps: string
+  accidentRate: number
+  signatory: string
 }
 export const BADGE_DESIGNS = ['carte', 'classique', 'portrait', 'elegant', 'minimal'] as const
 export type BadgeDesign = (typeof BADGE_DESIGNS)[number]
@@ -232,6 +279,27 @@ export interface Planning {
       }[]
     >
   }[]
+}
+
+const slugify = (text: string) =>
+  text
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/[^a-zA-Z0-9]+/g, '-')
+    .toLowerCase()
+
+async function downloadPdf(
+  url: string,
+  params: Record<string, string | undefined>,
+  filename: string,
+): Promise<void> {
+  const response = await api.get<Blob>(url, { params, responseType: 'blob' })
+  const href = URL.createObjectURL(response.data)
+  const link = document.createElement('a')
+  link.href = href
+  link.download = filename
+  link.click()
+  setTimeout(() => URL.revokeObjectURL(href), 60_000)
 }
 
 export const staffApi = {
@@ -304,7 +372,13 @@ export const staffApi = {
     date: string
     reservation?: string | null
     method: string
-    lines: { staff: string; amount: number; note?: string }[]
+    lines: {
+      staff: string
+      base: number
+      items?: Omit<PayItem, 'taxable'>[]
+      hours?: number
+      note?: string
+    }[]
   }) => api.post<StaffPayment[]>('/staff-payments', input).then((r) => r.data),
   payments: () => api.get<StaffPayment[]>('/staff-payments').then((r) => r.data),
   /** One card as an image (object URL), to choose the design. */
@@ -340,8 +414,27 @@ export const staffApi = {
     api.post<PayPeriod>(`/pay-periods/${id}/refresh`).then((r) => r.data),
   validatePeriod: (id: string) =>
     api.post<PayPeriod>(`/pay-periods/${id}/validate`).then((r) => r.data),
-  updateLine: (id: string, input: { bonuses: number; advances: number }) =>
+  updateLine: (id: string, input: { items: PayItem[] }) =>
     api.patch<PayLine>(`/pay-lines/${id}`, input).then((r) => r.data),
+  /** The salary of a person, from the pay screen (feedback 24/11/2026). */
+  setSalary: (id: string, input: { payMode: PayMode; payRate: number; declared?: boolean }) =>
+    api.patch(`/staff/${id}/salary`, input).then(() => undefined),
+  payrollSettings: () => api.get<PayrollSettings>('/pay/settings').then((r) => r.data),
+  savePayrollSettings: (input: Partial<PayrollSettings>) =>
+    api.patch<PayrollSettings>('/pay/settings', input).then((r) => r.data),
+  /** « Bulletins de paie » of a whole period, one per page. */
+  periodPayslips: (id: string, month: string) =>
+    downloadPdf(`/pay-periods/${id}/payslips`, {}, `bulletins-${month}.pdf`),
+  /** « Fiche de paie journalière » of one payment. */
+  paymentSlip: (id: string, name: string, day: string) =>
+    downloadPdf(`/staff-payments/${id}/slip`, {}, `fiche-${slugify(name)}-${day}.pdf`),
+  /** Every daily slip of a day (or of an event that day). */
+  daySlips: (day: string, reservation?: string) =>
+    downloadPdf(
+      '/pay/day/slips',
+      { date: day, reservation: reservation || undefined },
+      `fiches-journalieres-${day}.pdf`,
+    ),
   payLine: (id: string, method: string) =>
     api.post<PayLine>(`/pay-lines/${id}/pay`, { method }).then((r) => r.data),
   /** « Feuille de paie du jour » (15/11/2026): everyone paid that day, with signatures. */
@@ -357,15 +450,9 @@ export const staffApi = {
     link.click()
     setTimeout(() => URL.revokeObjectURL(href), 60_000)
   },
-  statement: async (id: string, name: string) => {
-    const response = await api.get<Blob>(`/pay-lines/${id}/statement`, { responseType: 'blob' })
-    const href = URL.createObjectURL(response.data)
-    const link = document.createElement('a')
-    link.href = href
-    link.download = `releve-${name}.pdf`
-    link.click()
-    setTimeout(() => URL.revokeObjectURL(href), 60_000)
-  },
+  /** « Bulletin de paie » of one person for the period. */
+  statement: (id: string, name: string) =>
+    downloadPdf(`/pay-lines/${id}/statement`, {}, `bulletin-${slugify(name)}.pdf`),
 }
 
 export const staffKeys = { all: ['staff'] as const }

@@ -1,0 +1,149 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<title>Bulletin de paie</title>
+<style>
+@font-face { font-family: "M"; src: url("{{ fonts.m400 }}"); font-weight: 400; }
+@font-face { font-family: "M"; src: url("{{ fonts.m700 }}"); font-weight: 700; }
+@page { size: A4; margin: 12mm 13mm 14mm; @bottom-center { content: "{{ employer.trade_name }} · Bulletin de paie · page " counter(page) " / " counter(pages); font: 7pt "M"; color: #85829f; } }
+body { font-family: "M"; font-size: 8.4pt; color: #17153b; margin: 0; }
+.slip { page-break-after: always; }
+.slip:last-child { page-break-after: auto; }
+header { display: table; width: 100%; border-bottom: 2pt solid #17153b; padding-bottom: 3mm; }
+header > div { display: table-cell; vertical-align: top; }
+header img { max-height: 14mm; max-width: 42mm; display: block; margin-bottom: 1.5mm; }
+.employer { font-size: 7.6pt; color: #4a4769; line-height: 1.45; }
+.employer b { color: #17153b; font-size: 9pt; }
+.title { text-align: right; }
+.title h1 { font-size: 15pt; margin: 0; letter-spacing: .3pt; }
+.title p { margin: 1mm 0 0; color: #4a4769; }
+.draft { display: inline-block; margin-top: 1.5mm; padding: .6mm 2mm; background: #fdf2dc; color: #b97a0e; font-weight: 700; font-size: 7pt; }
+.boxes { display: table; width: 100%; margin: 4mm 0 3mm; border-spacing: 0; }
+.box { display: table-cell; width: 50%; border: .5pt solid #d6d2e6; padding: 2.2mm 3mm; vertical-align: top; }
+.box + .box { border-left: 0; }
+.box h3 { margin: 0 0 1.2mm; font-size: 7pt; color: #85829f; text-transform: uppercase; letter-spacing: .5pt; }
+.kv { width: 100%; border-collapse: collapse; }
+.kv td { padding: .45mm 0; border: 0; }
+.kv td:first-child { color: #85829f; width: 42%; }
+table.lines { width: 100%; border-collapse: collapse; margin-top: 2mm; }
+.lines th { background: #17153b; color: #fff; text-align: left; padding: 1.6mm 2mm; font-size: 7.2pt; font-weight: 700; }
+.lines td { padding: 1.3mm 2mm; border-bottom: .4pt solid #e5e2f0; }
+.lines .section td { background: #f1eff8; font-weight: 700; font-size: 7.4pt; color: #4a4769; }
+.lines .subtotal td { font-weight: 700; border-top: .6pt solid #17153b; }
+.num { text-align: right; white-space: nowrap; }
+.muted { color: #85829f; }
+.net { margin-top: 3.5mm; display: table; width: 100%; }
+.net > div { display: table-cell; vertical-align: middle; }
+.netbox { background: #17153b; color: #fff; padding: 3mm 4mm; text-align: right; width: 52%; }
+.netbox small { display: block; color: #a9a5cc; font-size: 7pt; }
+.netbox b { font-size: 15pt; }
+.cumul { width: 100%; border-collapse: collapse; margin-top: 3mm; font-size: 7.4pt; }
+.cumul th, .cumul td { border: .4pt solid #d6d2e6; padding: 1.2mm 2mm; text-align: right; }
+.cumul th { background: #f1eff8; font-weight: 700; color: #4a4769; }
+.sign { display: table; width: 100%; margin-top: 7mm; }
+.sign > div { display: table-cell; width: 50%; padding-right: 6mm; }
+.sign p { margin: 0 0 14mm; font-weight: 700; }
+.sign hr { border: 0; border-top: .5pt solid #85829f; }
+.note { margin-top: 4mm; font-size: 6.8pt; color: #85829f; line-height: 1.4; }
+</style>
+</head>
+<body>
+{% for s in slips %}
+<section class="slip">
+  <header>
+    <div class="employer">
+      {% if employer.logo %}<img src="{{ employer.logo }}" alt="">{% endif %}
+      <b>{{ employer.name }}</b><br>
+      {% if employer.address %}{{ employer.address }}<br>{% endif %}
+      {% if employer.phone %}Tél. {{ employer.phone }}<br>{% endif %}
+      {% for id in employer.ids %}{{ id }}{% if not forloop.last %} · {% endif %}{% endfor %}
+    </div>
+    <div class="title">
+      <h1>BULLETIN DE PAIE</h1>
+      <p><b>{{ s.period }}</b></p>
+      <p class="muted">N° {{ s.number }}</p>
+      {% if s.draft %}<span class="draft">PROVISOIRE — période en cours</span>{% endif %}
+    </div>
+  </header>
+
+  <div class="boxes">
+    <div class="box">
+      <h3>Salarié</h3>
+      <table class="kv">
+        <tr><td>Nom</td><td><b>{{ s.staff.full_name }}</b></td></tr>
+        <tr><td>Matricule</td><td>{{ s.staff.employee_number|default:"—" }}</td></tr>
+        <tr><td>Emploi</td><td>{{ s.staff.position }}{% if s.staff.department %} · {{ s.staff.department }}{% endif %}</td></tr>
+        <tr><td>Catégorie</td><td>{{ s.staff.category|default:"—" }}</td></tr>
+        <tr><td>N° CNPS</td><td>{{ s.staff.cnps_number|default:"—" }}</td></tr>
+      </table>
+    </div>
+    <div class="box">
+      <h3>Contrat et période</h3>
+      <table class="kv">
+        <tr><td>Statut</td><td>{{ s.staff.get_kind_display }}</td></tr>
+        <tr><td>Date d’embauche</td><td>{{ s.hire_date }}</td></tr>
+        <tr><td>Rémunération</td><td>{{ s.staff.get_pay_mode_display }}</td></tr>
+        <tr><td>Travail</td><td>{{ s.days }} jour{{ s.days|pluralize }} · {{ s.missions }} mission{{ s.missions|pluralize }} · {{ s.hours|default:"0" }} h</td></tr>
+        <tr><td>Absences pointées</td><td>{{ s.absences }}</td></tr>
+      </table>
+    </div>
+  </div>
+
+  <table class="lines">
+    <thead><tr><th>Libellé</th><th>Base / détail</th><th class="num">Taux</th><th class="num">À payer</th><th class="num">À retenir</th></tr></thead>
+    <tbody>
+      <tr class="section"><td colspan="5">Rémunération</td></tr>
+      <tr><td>{{ s.base_label }}</td><td>{{ s.base_detail }}</td><td></td><td class="num">{{ s.base }}</td><td></td></tr>
+      {% for g in s.gains %}<tr><td>{{ g.label }}{% if not g.taxable %} <span class="muted">(non imposable)</span>{% endif %}</td><td></td><td></td><td class="num">{{ g.money }}</td><td></td></tr>{% endfor %}
+      <tr class="subtotal"><td colspan="3">Salaire brut</td><td class="num">{{ s.gross }}</td><td></td></tr>
+
+      {% if s.employee %}
+      <tr class="section"><td colspan="5">Cotisations et impôts du salarié</td></tr>
+      {% for c in s.employee %}<tr><td>{{ c.label }}</td><td>{{ c.base_money }}</td><td class="num">{{ c.rate }}</td><td></td><td class="num">{{ c.money }}</td></tr>{% endfor %}
+      <tr class="subtotal"><td colspan="4">Total des retenues sociales et fiscales</td><td class="num">{{ s.withheld }}</td></tr>
+      {% endif %}
+
+      {% if s.deductions %}
+      <tr class="section"><td colspan="5">Autres retenues</td></tr>
+      {% for d in s.deductions %}<tr><td>{{ d.label }}</td><td></td><td></td><td></td><td class="num">{{ d.money }}</td></tr>{% endfor %}
+      {% endif %}
+    </tbody>
+  </table>
+
+  <div class="net">
+    <div class="muted">
+      {% if s.already_paid %}Net du mois : {{ s.net }}<br>Déjà payé à la journée : − {{ s.already_paid }}<br>{% endif %}
+      {% if s.paid %}<b style="color:#0e8f69">{{ s.paid }}</b>{% endif %}
+    </div>
+    <div class="netbox"><small>NET À PAYER</small><b>{{ s.to_pay }}</b></div>
+  </div>
+
+  {% if s.employer %}
+  <table class="lines" style="margin-top:4mm">
+    <thead><tr><th>Charges patronales (pour information)</th><th>Base</th><th class="num">Taux</th><th class="num">Montant</th></tr></thead>
+    <tbody>
+      {% for c in s.employer %}<tr><td>{{ c.label }}</td><td>{{ c.base_money }}</td><td class="num">{{ c.rate }}</td><td class="num">{{ c.money }}</td></tr>{% endfor %}
+      <tr class="subtotal"><td colspan="3">Total charges patronales</td><td class="num">{{ s.employer_total }}</td></tr>
+    </tbody>
+  </table>
+  {% endif %}
+
+  <table class="cumul">
+    <tr><th style="text-align:left">Cumuls de l’année</th><th>Brut</th><th>Retenues sociales et fiscales</th><th>dont impôts</th><th>Net</th></tr>
+    <tr><td style="text-align:left">Au {{ s.month }}</td><td>{{ s.cumul.gross }}</td><td>{{ s.cumul.withheld }}</td><td>{{ s.cumul.taxes }}</td><td>{{ s.cumul.net }}</td></tr>
+  </table>
+
+  <div class="sign">
+    <div><p>L’employeur{% if employer.signatory %} — {{ employer.signatory }}{% endif %}</p><hr></div>
+    <div><p>Le salarié — reçu pour solde</p><hr></div>
+  </div>
+
+  <p class="note">
+    {% if employer.contributions %}Cotisations et impôts calculés selon les taux du Cameroun enregistrés dans Wedivo (CNPS plafonnée à 750 000 FCFA par mois, IRPP au barème après abattement de 30 % et de 500 000 FCFA par an, CAC, CFC, RAV, TDL) : vérifiez-les avec votre comptable avant toute déclaration.{% else %}Aucune cotisation ni impôt retenu : les cotisations sont désactivées dans les réglages de la paie, ou la personne n’est pas déclarée à la CNPS.{% endif %}
+    Conservez ce bulletin sans limitation de durée.
+  </p>
+</section>
+{% endfor %}
+</body>
+</html>

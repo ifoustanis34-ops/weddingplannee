@@ -55,7 +55,8 @@ Role = Membership.Role
 READ = frozenset({Role.OWNER, Role.PLANNER, Role.ASSISTANT, Role.ACCOUNTANT})
 WRITE = frozenset({Role.OWNER, Role.PLANNER})
 PAY = frozenset({Role.OWNER, Role.ACCOUNTANT})
-MONEY_FIELDS = ("pay_rate",)
+# Pay and social identity: owner and accountant only (§11).
+MONEY_FIELDS = ("pay_rate", "cnps_number", "declared")
 
 
 def role_of(request: Request) -> str | None:
@@ -122,6 +123,10 @@ class StaffSerializer(serializers.ModelSerializer[StaffMember]):
             "mobile_money",
             "emergency_contact",
             "notes",
+            "cnps_number",
+            "hire_date",
+            "category",
+            "declared",
             "user",
             "has_account",
             "is_active",
@@ -295,6 +300,7 @@ class PayLineSerializer(serializers.ModelSerializer[PayLine]):
     position = serializers.CharField(source="staff.position", read_only=True)
     pay_mode = serializers.CharField(source="staff.pay_mode", read_only=True)
     pay_rate = serializers.IntegerField(source="staff.pay_rate", read_only=True)
+    declared = serializers.BooleanField(source="staff.declared", read_only=True)
     hours = serializers.FloatField(read_only=True)
 
     class Meta:
@@ -309,9 +315,14 @@ class PayLineSerializer(serializers.ModelSerializer[PayLine]):
             "days",
             "missions",
             "hours",
+            "declared",
             "base",
+            "items",
             "bonuses",
             "advances",
+            "gross",
+            "slip",
+            "net",
             "already_paid",
             "total",
             "paid_at",
@@ -379,7 +390,13 @@ class StaffListView(generics.ListCreateAPIView[StaffMember]):
 
     def perform_create(self, serializer: StaffSerializer) -> None:  # type: ignore[override]
         if role_of(self.request) not in PAY:
-            serializer.validated_data.pop("pay_rate", None)  # the planner sets no salary
+            for field in MONEY_FIELDS:  # the planner sets no salary
+                serializer.validated_data.pop(field, None)
+        # A salaried person is declared to the CNPS unless said otherwise.
+        if "declared" not in serializer.validated_data:
+            serializer.validated_data["declared"] = (
+                serializer.validated_data.get("kind") == StaffMember.Kind.EMPLOYEE
+            )
         member = serializer.save(created_by=self.request.user)
         services.ensure_employee_number(member)  # « ME-2026-011 » from the start
 
@@ -418,8 +435,8 @@ class StaffDetailView(generics.RetrieveUpdateDestroyAPIView[StaffMember]):
 
     def perform_update(self, serializer: StaffSerializer) -> None:  # type: ignore[override]
         if role_of(self.request) not in PAY:
-            serializer.validated_data.pop("pay_rate", None)
-            serializer.validated_data.pop("pay_mode", None)
+            for field in (*MONEY_FIELDS, "pay_mode"):
+                serializer.validated_data.pop(field, None)
         serializer.save()
 
 
@@ -1045,7 +1062,7 @@ class PayPeriodActionView(APIView):
 
 
 class PayLineView(APIView):
-    """PATCH bonuses / advances (draft) · POST /pay (validated) · GET /statement (PDF)."""
+    """PATCH the named lines (draft) · POST /pay (validated) · GET /statement (pay slip PDF)."""
 
     permission_classes = PERMISSIONS
     pay_view = True
@@ -1059,16 +1076,20 @@ class PayLineView(APIView):
     @extend_schema(request=None, responses=PayLineSerializer)
     def patch(self, request: Request, pk: str) -> Response:
         line = self._line(pk)
-        try:
-            bonuses = int(request.data.get("bonuses", line.bonuses))
-            advances = int(request.data.get("advances", line.advances))
-        except (TypeError, ValueError) as exc:
-            raise BusinessError("invalid", "Montants illisibles.") from exc
-        if bonuses < 0 or advances < 0:
-            raise BusinessError("invalid", "Les montants sont positifs.")
-        return Response(
-            PayLineSerializer(services.update_line(line, bonuses=bonuses, advances=advances)).data
-        )
+        items = request.data.get("items")
+        if items is None:  # the former form: one bonus, one advance
+            try:
+                bonuses = int(request.data.get("bonuses", line.bonuses))
+                advances = int(request.data.get("advances", line.advances))
+            except (TypeError, ValueError) as exc:
+                raise BusinessError("invalid", "Montants illisibles.") from exc
+            if bonuses < 0 or advances < 0:
+                raise BusinessError("invalid", "Les montants sont positifs.")
+            items = [
+                {"label": "Primes", "amount": bonuses, "kind": "gain"},
+                {"label": "Avances", "amount": advances, "kind": "deduction", "taxable": False},
+            ]
+        return Response(PayLineSerializer(services.update_line(line, items=items)).data)
 
 
 class PayLinePayView(PayLineView):
@@ -1083,56 +1104,6 @@ class PayLinePayView(PayLineView):
             self._line(pk), method=method, paid_at=paid_at, user=request.user, request=request  # type: ignore[arg-type]
         )
         return Response(PayLineSerializer(line).data)
-
-
-class PayStatementView(PayLineView):
-    """« Relevé de rémunération » PDF (§7) — not a legal payslip."""
-
-    @extend_schema(responses={200: OpenApiResponse(description="PDF")})
-    def get(self, request: Request, pk: str) -> HttpResponse:
-        line = self._line(pk)
-        organization = require_current_organization()
-        branding = branding_services.get_branding()
-        attendances = Attendance.objects.filter(
-            staff=line.staff,
-            date__range=(line.period.start, line.period.end),
-        ).select_related("assignment__reservation")
-        html = render_to_string(
-            "staff/statement.html",
-            {
-                "agency": branding.trade_name or organization.name,
-                "logo": branding_services.logo_data_uri(),
-                "line": line,
-                "staff": line.staff,
-                "period": f"Du {long_date(line.period.start.isoformat())} au "
-                f"{long_date(line.period.end.isoformat())}",
-                "rate": money(line.staff.pay_rate),
-                "base": money(line.base),
-                "bonuses": money(line.bonuses),
-                "advances": money(line.advances),
-                "total": money(line.total),
-                "paid": long_date(line.paid_at.isoformat()) if line.paid_at else None,
-                "rows": [
-                    {
-                        "date": long_date(a.date.isoformat()),
-                        "mission": a.assignment.reservation.number if a.assignment else "—",
-                        "status": a.get_status_display(),
-                        "hours": f"{a.hours:.2f}".replace(".", ","),
-                    }
-                    for a in attendances
-                ],
-                "fonts": {
-                    "m400": rendering.asset_url("fonts/montserrat-latin-400-normal.woff"),
-                    "m700": rendering.asset_url("fonts/montserrat-latin-700-normal.woff"),
-                },
-            },
-        )
-        response = HttpResponse(
-            rendering.html_to_pdf(html, str(organization.pk)), content_type="application/pdf"
-        )
-        name = line.staff.full_name.replace(" ", "-").lower()
-        response["Content-Disposition"] = f'attachment; filename="releve-{name}.pdf"'
-        return response
 
 
 class StaffBadgePreviewView(APIView):
@@ -1221,7 +1192,11 @@ class DaySheetView(APIView):
 class PayNowInput(serializers.Serializer[Any]):
     class Line(serializers.Serializer[Any]):
         staff = TenantPrimaryKeyRelatedField(StaffMember)
-        amount = serializers.IntegerField(min_value=0)
+        # The day's base, then bonuses and deductions (`items`); `amount` alone = the base.
+        amount = serializers.IntegerField(min_value=0, required=False, default=0)
+        base = serializers.IntegerField(min_value=0, required=False, allow_null=True)
+        items = serializers.ListField(child=serializers.DictField(), required=False, default=list)
+        hours = serializers.DecimalField(max_digits=5, decimal_places=2, required=False)
         note = serializers.CharField(max_length=160, required=False, allow_blank=True)
 
     date = serializers.DateField()
@@ -1234,6 +1209,7 @@ class PayNowInput(serializers.Serializer[Any]):
 
 class StaffPaymentSerializer(serializers.ModelSerializer[StaffPayment]):
     staff_name = serializers.CharField(source="staff.full_name", read_only=True)
+    hours = serializers.FloatField(read_only=True)
     reservation_number = serializers.CharField(
         source="reservation.number", read_only=True, default=None
     )
@@ -1247,6 +1223,9 @@ class StaffPaymentSerializer(serializers.ModelSerializer[StaffPayment]):
             "reservation",
             "reservation_number",
             "date",
+            "base",
+            "items",
+            "hours",
             "amount",
             "method",
             "note",

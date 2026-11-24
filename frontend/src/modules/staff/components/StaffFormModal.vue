@@ -45,6 +45,10 @@ const blank = (): Required<StaffInput> => ({
   emergencyContact: '',
   notes: '',
   isActive: true,
+  cnpsNumber: '',
+  hireDate: null,
+  category: '',
+  declared: false,
 })
 const form = ref(blank())
 // Server field errors (camelCase keys, api/errors.ts), shown under each field.
@@ -83,6 +87,10 @@ watch(open, (value) => {
         emergencyContact: m.emergencyContact,
         notes: m.notes,
         isActive: m.isActive,
+        cnpsNumber: m.cnpsNumber ?? '',
+        hireDate: m.hireDate,
+        category: m.category,
+        declared: m.declared ?? false,
       }
     : blank()
   skills.value = form.value.skills.join(', ')
@@ -134,7 +142,10 @@ async function submit(): Promise<void> {
   if (!seesPay.value) {
     delete input.payRate
     delete input.payMode
+    delete input.cnpsNumber
+    delete input.declared
   }
+  if (!input.hireDate) input.hireDate = null
   errors.value = {}
   try {
     const member = await save.mutateAsync(input)
@@ -288,9 +299,32 @@ async function submit(): Promise<void> {
           type="number"
           min="0"
           inputmode="numeric"
-          :label="t('staff.form.payRate')"
+          addon="FCFA"
+          :label="t(`staff.form.rate.${form.payMode}`)"
+          :hint="t('staff.form.rateHint')"
         />
+        <WInput
+          v-model="form.cnpsNumber"
+          :error="errors.cnpsNumber"
+          :label="t('staff.form.cnps')"
+        />
+        <label class="flex items-center gap-2 self-end pb-2.5 text-[14px] font-semibold text-ink-2">
+          <input v-model="form.declared" type="checkbox" class="size-5 accent-violet" />
+          {{ t('staff.form.declared') }}
+        </label>
       </template>
+      <WInput
+        v-model="form.hireDate"
+        :error="errors.hireDate"
+        type="date"
+        :label="t('staff.form.hireDate')"
+      />
+      <WInput
+        v-model="form.category"
+        :error="errors.category"
+        :label="t('staff.form.category')"
+        :placeholder="t('staff.form.categoryPlaceholder')"
+      />
       <WInput
         v-model="skills"
         :error="errors.skills"

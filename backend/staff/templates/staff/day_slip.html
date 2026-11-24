@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<title>Fiche de paie journalière</title>
+<style>
+@font-face { font-family: "M"; src: url("{{ fonts.m400 }}"); font-weight: 400; }
+@font-face { font-family: "M"; src: url("{{ fonts.m700 }}"); font-weight: 700; }
+@page { size: A5; margin: 10mm 11mm 12mm; @bottom-center { content: "{{ employer.trade_name }} · Fiche de paie journalière"; font: 6.5pt "M"; color: #85829f; } }
+body { font-family: "M"; font-size: 8pt; color: #17153b; margin: 0; }
+.slip { page-break-after: always; }
+.slip:last-child { page-break-after: auto; }
+header { display: table; width: 100%; border-bottom: 1.6pt solid #17153b; padding-bottom: 2.5mm; }
+header > div { display: table-cell; vertical-align: top; }
+header img { max-height: 11mm; max-width: 34mm; display: block; margin-bottom: 1mm; }
+.employer { font-size: 7pt; color: #4a4769; line-height: 1.4; }
+.employer b { color: #17153b; font-size: 8.4pt; }
+.title { text-align: right; }
+.title h1 { font-size: 12.5pt; margin: 0; }
+.title p { margin: .8mm 0 0; }
+.muted { color: #85829f; }
+.who { margin: 3mm 0 2mm; border: .5pt solid #d6d2e6; padding: 2mm 3mm; }
+.who b { font-size: 10pt; }
+table { width: 100%; border-collapse: collapse; }
+th { background: #17153b; color: #fff; text-align: left; padding: 1.3mm 1.8mm; font-size: 6.8pt; }
+td { padding: 1.1mm 1.8mm; border-bottom: .4pt solid #e5e2f0; }
+.num { text-align: right; white-space: nowrap; }
+.section td { background: #f1eff8; font-weight: 700; color: #4a4769; }
+.netbox { margin-top: 3mm; background: #17153b; color: #fff; padding: 2.5mm 3.5mm; text-align: right; }
+.netbox small { display: block; color: #a9a5cc; font-size: 6.6pt; }
+.netbox b { font-size: 13pt; }
+.pay { margin-top: 2mm; }
+.sign { display: table; width: 100%; margin-top: 6mm; }
+.sign > div { display: table-cell; width: 50%; padding-right: 5mm; }
+.sign p { margin: 0 0 11mm; font-weight: 700; }
+.sign hr { border: 0; border-top: .5pt solid #85829f; }
+</style>
+</head>
+<body>
+{% for s in slips %}
+<section class="slip">
+  <header>
+    <div class="employer">
+      {% if employer.logo %}<img src="{{ employer.logo }}" alt="">{% endif %}
+      <b>{{ employer.name }}</b><br>
+      {% if employer.address %}{{ employer.address }}<br>{% endif %}
+      {% for id in employer.ids %}{{ id }}{% if not forloop.last %} · {% endif %}{% endfor %}
+    </div>
+    <div class="title">
+      <h1>FICHE DE PAIE JOURNALIÈRE</h1>
+      <p><b>{{ s.date }}</b></p>
+      <p class="muted">N° {{ s.number }}</p>
+    </div>
+  </header>
+
+  <div class="who">
+    <b>{{ s.staff.full_name }}</b><br>
+    {{ s.staff.position }} · {{ s.staff.get_kind_display }} · matricule {{ s.staff.employee_number|default:"—" }}<br>
+    <span class="muted">Rémunération : {{ s.mode }} ({{ s.rate }}){% if s.staff.phone %} · Tél. {{ s.staff.phone }}{% endif %}</span>
+  </div>
+
+  <table>
+    <thead><tr><th>Mission du jour</th><th>Étape</th><th>Arrivée</th><th>Départ</th><th>Présence</th></tr></thead>
+    <tbody>
+      {% for m in s.missions %}<tr><td>{{ m.event }}{% if m.role %} <span class="muted">({{ m.role }})</span>{% endif %}</td><td>{{ m.step }}</td><td>{{ m.arrival }}</td><td>{{ m.departure }}</td><td>{{ m.status }}</td></tr>
+      {% empty %}<tr><td colspan="5" class="muted">Journée payée hors mission enregistrée.</td></tr>{% endfor %}
+    </tbody>
+  </table>
+  <p class="muted" style="margin:1.2mm 0 2mm">Heures travaillées : {{ s.hours }}</p>
+
+  <table>
+    <thead><tr><th>Libellé</th><th class="num">Gain</th><th class="num">Retenue</th></tr></thead>
+    <tbody>
+      <tr><td>Rémunération de la journée</td><td class="num">{{ s.base }}</td><td></td></tr>
+      {% for g in s.gains %}<tr><td>{{ g.label }}</td><td class="num">{{ g.money }}</td><td></td></tr>{% endfor %}
+      {% for d in s.deductions %}<tr><td>{{ d.label }}</td><td></td><td class="num">{{ d.money }}</td></tr>{% endfor %}
+    </tbody>
+  </table>
+
+  <div class="netbox"><small>NET PAYÉ</small><b>{{ s.net }}</b></div>
+  <p class="pay">Payé par <b>{{ s.method }}</b>{% if s.mobile_money %} au {{ s.mobile_money }}{% endif %}{% if s.note %} · {{ s.note }}{% endif %}</p>
+
+  <div class="sign">
+    <div><p>Pour l’employeur{% if employer.signatory %} — {{ employer.signatory }}{% endif %}</p><hr></div>
+    <div><p>Signature — reçu la somme</p><hr></div>
+  </div>
+</section>
+{% endfor %}
+</body>
+</html>

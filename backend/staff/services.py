@@ -18,11 +18,13 @@ from core.exceptions import BusinessError
 from core.tenant import require_current_organization
 from organizations.timezones import org_tz
 
+from . import payroll
 from .models import (
     Assignment,
     Attendance,
     PayLine,
     PayPeriod,
+    PayrollSettings,
     StaffMember,
     StaffPayment,
     StaffTask,
@@ -342,8 +344,57 @@ def compute_line(line: PayLine) -> PayLine:
         )["total"]
         or 0
     )
-    line.total = max(0, line.base + line.bonuses - line.advances - line.already_paid)
+    items = list(line.items or [])
+    line.bonuses = sum(int(i["amount"]) for i in items if i["kind"] == payroll.GAIN)
+    line.advances = sum(int(i["amount"]) for i in items if i["kind"] == payroll.DEDUCTION)
+    slip = payroll.compute(
+        line.base,
+        items,
+        declared=staff.declared,
+        settings=payroll_settings(months=_months(period.start, period.end)),
+    )
+    line.gross, line.net = slip.gross, slip.net
+    line.slip = payroll.summary(slip)
+    line.total = max(0, slip.net - line.already_paid)
     return line
+
+
+def get_payroll_settings() -> PayrollSettings:
+    found = PayrollSettings.objects.get_or_create(organization=require_current_organization())
+    settings: PayrollSettings = found[0]
+    return settings
+
+
+def payroll_settings(months: Decimal = Decimal(1)) -> payroll.Settings:
+    stored = get_payroll_settings()
+    return payroll.Settings(
+        enabled=stored.contributions_enabled,
+        accident_rate=Decimal(stored.accident_rate),
+        months=months,
+    )
+
+
+def year_to_date(line: PayLine) -> dict[str, int]:
+    """Cumuls of the year on the slip: validated or paid periods of the same year, this one
+    included."""
+    stored = PayLine.objects.filter(
+        staff=line.staff,
+        period__start__year=line.period.start.year,
+        period__start__lte=line.period.start,
+    ).exclude(period__status=PayPeriod.Status.DRAFT)
+    lines = list(stored) if line.period.status != PayPeriod.Status.DRAFT else [*stored, line]
+    taxes = ("irpp", "cac")
+    return {
+        "gross": sum(item.gross for item in lines),
+        "withheld": sum(int((item.slip or {}).get("withheld", 0)) for item in lines),
+        "taxes": sum(
+            int(c["amount"])
+            for item in lines
+            for c in (item.slip or {}).get("employee", [])
+            if c["code"] in taxes
+        ),
+        "net": sum(item.net for item in lines),
+    }
 
 
 @transaction.atomic
@@ -375,15 +426,20 @@ def refresh(period: PayPeriod) -> PayPeriod:
         )
         line.period, line.staff = period, staff
         compute_line(line)
-        if line.pk or line.base:
+        # Salaried people always have their line, even without salary typed yet (to set it).
+        if line.pk or line.base or staff.pay_mode == StaffMember.PayMode.MONTHLY:
             line.save()
     return period
 
 
 @transaction.atomic
-def update_line(line: PayLine, *, bonuses: int, advances: int) -> PayLine:
+def update_line(line: PayLine, *, items: list[dict[str, Any]]) -> PayLine:
+    """The named lines of the slip (bonuses, allowances, overtime, advances, absences…)."""
     _draft(line.period)
-    line.bonuses, line.advances = bonuses, advances
+    try:
+        line.items = payroll.clean_items(items)
+    except ValueError as exc:
+        raise BusinessError("invalid", str(exc)) from exc
     compute_line(line)
     line.save()
     return line
@@ -608,7 +664,21 @@ def pay_now(
     from finance.defaults import ensure_expense_categories
     from finance.models import Expense, ExpenseCategory
 
-    lines = [line for line in lines if int(line.get("amount") or 0) > 0]
+    prepared = []
+    for line in lines:
+        try:
+            items = payroll.clean_items(line.get("items") or [])
+        except ValueError as exc:
+            raise BusinessError("invalid", str(exc)) from exc
+        raw = line.get("base")
+        base = int(raw if raw is not None else line.get("amount") or 0)
+        if base < 0:
+            raise BusinessError("invalid", "Les montants sont positifs.")
+        # Paid on the spot: no contributions withheld (they come with the month for the declared).
+        slip = payroll.compute(base, items, declared=False, settings=payroll.Settings())
+        if slip.net > 0:
+            prepared.append({**line, "base": base, "items": items, "amount": slip.net})
+    lines = prepared
     if not lines:
         raise BusinessError("invalid", "Indiquez au moins un montant à payer.")
     ensure_expense_categories()
@@ -634,6 +704,9 @@ def pay_now(
                 staff=staff,
                 reservation=reservation,
                 date=day,
+                base=int(line["base"]),
+                items=line["items"],
+                hours=Decimal(str(line.get("hours") or 0)).quantize(Decimal("0.01")),
                 amount=amount,
                 method=method,
                 note=str(line.get("note") or "")[:160],

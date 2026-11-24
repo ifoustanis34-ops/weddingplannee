@@ -7,6 +7,7 @@ When they do (team lead, staff), `user` links the record to « Mes missions » a
 from __future__ import annotations
 
 import uuid
+from decimal import Decimal
 from typing import Any
 
 from django.conf import settings
@@ -47,6 +48,12 @@ class StaffMember(TenantModel):
     mobile_money = models.CharField(max_length=32, blank=True)
     emergency_contact = models.CharField(max_length=160, blank=True)
     notes = models.TextField(blank=True)
+    # Pay slip identity (feedback 24/11/2026).
+    cnps_number = models.CharField(max_length=32, blank=True)
+    hire_date = models.DateField(null=True, blank=True)
+    category = models.CharField(max_length=60, blank=True)  # catégorie / échelon
+    # Declared to the CNPS: contributions and taxes are withheld on the slip (when turned on).
+    declared = models.BooleanField(default=False)
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True, related_name="+"
     )
@@ -185,8 +192,15 @@ class PayLine(TenantModel):
     missions = models.PositiveIntegerField(default=0)
     hours = models.DecimalField(max_digits=7, decimal_places=2, default=0)
     base = models.BigIntegerField(default=0)
+    # Lines typed by the manager (payroll.clean_items): named bonuses, allowances, overtime,
+    # advances, loans, absences. `bonuses` / `advances` are their sums.
+    items = models.JSONField(default=list, blank=True)
     bonuses = models.BigIntegerField(default=0)
     advances = models.BigIntegerField(default=0)
+    gross = models.BigIntegerField(default=0)
+    # payroll.summary(): contributions withheld, employer charges, net.
+    slip = models.JSONField(default=dict, blank=True)
+    net = models.BigIntegerField(default=0)
     # Paid the same day during the period (« Payer la journée »): deducted, never paid twice.
     already_paid = models.BigIntegerField(default=0)
     total = models.BigIntegerField(default=0)
@@ -220,6 +234,10 @@ class StaffPayment(TenantModel):
         related_name="staff_payments",
     )
     date = models.DateField()
+    # The daily slip (feedback 24/11/2026): base of the day + bonuses − deductions = amount paid.
+    base = models.BigIntegerField(default=0)
+    items = models.JSONField(default=list, blank=True)
+    hours = models.DecimalField(max_digits=5, decimal_places=2, default=0)
     amount = models.BigIntegerField()
     method = models.CharField(max_length=16)
     note = models.CharField(max_length=160, blank=True)
@@ -232,4 +250,20 @@ class StaffPayment(TenantModel):
         indexes = [models.Index(fields=["organization", "date"])]
         constraints = [
             models.CheckConstraint(condition=Q(amount__gt=0), name="staff_payment_positive"),
+        ]
+
+
+class PayrollSettings(TenantModel):
+    """« Réglages de la paie » of the agency (feedback 24/11/2026), one per space."""
+
+    # Withhold the Cameroon contributions and taxes (staff/payroll.py) on declared staff.
+    contributions_enabled = models.BooleanField(default=False)
+    employer_cnps = models.CharField(max_length=32, blank=True)
+    accident_rate = models.DecimalField(max_digits=4, decimal_places=2, default=Decimal("1.75"))
+    # Who signs the slips for the employer (« Le gérant »).
+    signatory = models.CharField(max_length=120, blank=True)
+
+    class Meta(TenantModel.Meta):
+        constraints = [
+            models.UniqueConstraint(fields=["organization"], name="unique_payroll_settings")
         ]

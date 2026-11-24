@@ -1,6 +1,6 @@
 from django.urls import path
 
-from . import views
+from . import payslips, views
 
 urlpatterns = [
     path("staff", views.StaffListView.as_view(), name="staff-list"),
@@ -66,7 +66,20 @@ urlpatterns = [
     path("pay-lines/<uuid:pk>/pay", views.PayLinePayView.as_view(), name="pay-line-pay"),
     path(
         "pay-lines/<uuid:pk>/statement",
-        views.PayStatementView.as_view(),
+        payslips.PayslipView.as_view(),
         name="pay-line-statement",
     ),
+    path(
+        "pay-periods/<uuid:pk>/payslips",
+        payslips.PeriodPayslipsView.as_view(),
+        name="pay-period-payslips",
+    ),
+    path(
+        "staff-payments/<uuid:pk>/slip",
+        payslips.PaymentSlipView.as_view(),
+        name="staff-payment-slip",
+    ),
+    path("pay/day/slips", payslips.DaySlipsView.as_view(), name="pay-day-slips"),
+    path("pay/settings", payslips.PayrollSettingsView.as_view(), name="pay-settings"),
+    path("staff/<uuid:pk>/salary", payslips.SalaryView.as_view(), name="staff-salary"),
 ]

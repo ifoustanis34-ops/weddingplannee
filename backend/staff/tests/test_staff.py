@@ -200,7 +200,13 @@ def test_pay_from_attendance_bonuses_validation_and_payment(
         assert lines["Awa Sangaré"].base == 258_333  # 31 days ÷ 30 of a month
         assert services._months(date(2026, 10, 1), date(2026, 10, 31)) == 1  # whole month
 
-        line = services.update_line(lines["Brice Ndzana"], bonuses=5000, advances=3000)
+        line = services.update_line(
+            lines["Brice Ndzana"],
+            items=[
+                {"label": "Prime", "amount": 5000, "kind": "gain"},
+                {"label": "Avance", "amount": 3000, "kind": "deduction"},
+            ],
+        )
         assert line.total == 18_000
         with pytest.raises(BusinessError):
             services.pay_line(line, method="cash", paid_at=today, user=owner_a)  # not validated

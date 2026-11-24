@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { FileDown } from '@lucide/vue'
+import { FileDown, Files, Pencil } from '@lucide/vue'
 import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 
@@ -12,7 +12,8 @@ import { useSessionStore } from '@/stores/session'
 import { WBadge, WButton, WCard, WEmptyState, WNote, WSelect } from '@/design'
 import { iso } from '@/modules/calendar/month'
 
-import { type PayLine, type PayPeriod, staffApi, usePayPeriods, useStaffMutation } from '../api'
+import { type PayPeriod, staffApi, usePayPeriods, useStaffMutation } from '../api'
+import PayLineModal from './PayLineModal.vue'
 
 /**
  * « Salaires du mois » (§7): pay periods computed from attendance, bonuses and advances; what
@@ -44,9 +45,22 @@ const createCurrent = useStaffMutation(() => {
 })
 const refresh = useStaffMutation((id: string) => staffApi.refreshPeriod(id))
 const validate = useStaffMutation((id: string) => staffApi.validatePeriod(id))
-const update = useStaffMutation((line: PayLine) =>
-  staffApi.updateLine(line.id, { bonuses: line.bonuses, advances: line.advances }),
-)
+// The line opened in « Détail et salaire » (always the fresh one from the list).
+const editingId = ref<string | null>(null)
+const editing = computed(() => selected.value?.lines.find((l) => l.id === editingId.value) ?? null)
+const missingSalary = computed(() => selected.value?.lines.filter((l) => !l.payRate).length ?? 0)
+const allSlips = ref(false)
+async function downloadAll(): Promise<void> {
+  if (!selected.value) return
+  allSlips.value = true
+  try {
+    await staffApi.periodPayslips(selected.value.id, selected.value.start.slice(0, 7))
+  } catch (error) {
+    toast.error(toApiError(error).message)
+  } finally {
+    allSlips.value = false
+  }
+}
 const pay = useStaffMutation(({ id, method }: { id: string; method: string }) =>
   staffApi.payLine(id, method),
 )
@@ -92,7 +106,7 @@ const method = ref('cash')
         >{{ t('staff.pay.create') }}</WButton
       >
     </div>
-    <WNote>{{ t('staff.pay.legal') }}</WNote>
+    <WNote>{{ t('staff.pay.howTo') }}</WNote>
     <div v-if="periods.isPending.value" class="skeleton h-48" />
     <WEmptyState v-else-if="!selected" :title="t('staff.pay.none')" />
     <WCard
@@ -100,10 +114,19 @@ const method = ref('cash')
       :title="`${formatDate(selected.start)} – ${formatDate(selected.end)}`"
       :subtitle="selected.statusLabel"
     >
+      <p
+        v-if="missingSalary"
+        class="mb-3 rounded-wd bg-coral-soft px-3 py-2 text-[13.5px] font-semibold text-coral"
+      >
+        {{ t('staff.pay.missingSalary', { count: missingSalary }, missingSalary) }}
+      </p>
       <div class="mb-3 flex flex-wrap items-center gap-2">
         <p class="mr-auto text-[13.5px]">
           {{ t('staff.pay.total') }} <b class="num">{{ formatMoney(selected.total) }}</b>
         </p>
+        <WButton size="sm" variant="secondary" :loading="allSlips" @click="downloadAll">
+          <Files class="size-[15px]" aria-hidden="true" />{{ t('staff.pay.allSlips') }}
+        </WButton>
         <template v-if="selected.status === 'draft'">
           <WButton
             size="sm"
@@ -140,7 +163,7 @@ const method = ref('cash')
               <th class="px-2 py-2 text-right">{{ t('staff.pay.worked') }}</th>
               <th class="px-2 py-2 text-right">{{ t('staff.pay.base') }}</th>
               <th class="px-2 py-2 text-right">{{ t('staff.pay.bonuses') }}</th>
-              <th class="px-2 py-2 text-right">{{ t('staff.pay.advances') }}</th>
+              <th class="px-2 py-2 text-right">{{ t('staff.pay.deductions') }}</th>
               <th class="px-2 py-2 text-right">{{ t('staff.pay.alreadyPaid') }}</th>
               <th class="px-2 py-2 text-right">{{ t('staff.pay.net') }}</th>
               <th class="px-2 py-2">
@@ -157,8 +180,17 @@ const method = ref('cash')
               <td class="px-2 py-2">
                 <span class="block font-semibold">{{ line.staffName }}</span>
                 <span class="block text-[12px] text-muted"
-                  >{{ line.position }} · {{ t(`staff.payModes.${line.payMode}`) }}</span
+                  >{{ line.position }} · {{ t(`staff.payModes.${line.payMode}`) }}
+                  <template v-if="line.payRate">· {{ formatAmount(line.payRate) }}</template></span
                 >
+                <button
+                  v-if="!line.payRate"
+                  type="button"
+                  class="mt-0.5 text-[12px] font-bold text-coral underline"
+                  @click="editingId = line.id"
+                >
+                  {{ t('staff.pay.setSalary') }}
+                </button>
               </td>
               <td class="num px-2 py-2 text-right whitespace-nowrap">
                 {{
@@ -170,29 +202,15 @@ const method = ref('cash')
                 }}
               </td>
               <td class="num px-2 py-2 text-right">{{ formatAmount(line.base) }}</td>
-              <td class="px-2 py-2 text-right">
-                <input
-                  v-if="selected.status === 'draft'"
-                  v-model.number="line.bonuses"
-                  type="number"
-                  min="0"
-                  class="num h-8 w-24 rounded-[8px] border border-line-2 bg-surface px-2 text-right"
-                  :aria-label="t('staff.pay.bonusesFor', { name: line.staffName })"
-                  @change="attempt(update.mutateAsync(line))"
-                />
-                <span v-else class="num">{{ formatAmount(line.bonuses) }}</span>
+              <td class="num px-2 py-2 text-right">
+                {{ line.bonuses ? `+ ${formatAmount(line.bonuses)}` : '—' }}
               </td>
-              <td class="px-2 py-2 text-right">
-                <input
-                  v-if="selected.status === 'draft'"
-                  v-model.number="line.advances"
-                  type="number"
-                  min="0"
-                  class="num h-8 w-24 rounded-[8px] border border-line-2 bg-surface px-2 text-right"
-                  :aria-label="t('staff.pay.advancesFor', { name: line.staffName })"
-                  @change="attempt(update.mutateAsync(line))"
-                />
-                <span v-else class="num">{{ formatAmount(line.advances) }}</span>
+              <td class="num px-2 py-2 text-right text-ink-2">
+                {{
+                  line.advances + (line.slip.withheld ?? 0)
+                    ? `− ${formatAmount(line.advances + (line.slip.withheld ?? 0))}`
+                    : '—'
+                }}
               </td>
               <td class="num px-2 py-2 text-right text-ink-2">
                 {{ line.alreadyPaid ? `− ${formatAmount(line.alreadyPaid)}` : '—' }}
@@ -215,9 +233,18 @@ const method = ref('cash')
                 >
                 <WButton
                   size="sm"
+                  variant="secondary"
+                  :aria-label="t('staff.pay.detailFor', { name: line.staffName })"
+                  @click="editingId = line.id"
+                >
+                  <Pencil class="size-[14px]" aria-hidden="true" />{{ t('staff.pay.detail') }}
+                </WButton>
+                <WButton
+                  size="sm"
                   variant="ghost"
                   icon
                   :aria-label="t('staff.pay.statement', { name: line.staffName })"
+                  :title="t('staff.pay.statement', { name: line.staffName })"
                   @click="attempt(staffApi.statement(line.id, line.staffName))"
                 >
                   <FileDown class="size-[15px]" aria-hidden="true" />
@@ -228,5 +255,6 @@ const method = ref('cash')
         </table>
       </div>
     </WCard>
+    <PayLineModal :line="editing" :draft="selected?.status === 'draft'" @close="editingId = null" />
   </div>
 </template>
